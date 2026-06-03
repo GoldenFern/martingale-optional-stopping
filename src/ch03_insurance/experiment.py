@@ -34,13 +34,13 @@ def run_ruin_prob_experiment(lam=1.0, mu=1.0, theta=0.2,
                               u_values=np.arange(0, 21),
                               n_paths=50000, T=100.0, seed=42):
     """增加路径数以降低 MC 噪声，特别是在大 u 处。"""
+    np.random.seed(seed)
     expected_claim = lam * mu
     c = expected_claim * (1 + theta)
     claim_dist = expon(scale=mu)
     mgf = exp_claim_mgf_factory('exponential', rate=1/mu)
     R = find_adjustment_R(lam, c, mgf)
 
-    rng = np.random.default_rng(seed)
     rows = []
     for u in u_values:
         proc = SurplusProcess(u, c, lam, claim_dist)

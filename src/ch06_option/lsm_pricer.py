@@ -45,19 +45,18 @@ class LSMPricer:
         S = self.simulate_paths()
         payoff = lambda s: np.maximum(self.K - s, 0)  # 看跌期权
 
-        # 倒向递推
-        V = payoff(S[:, -1]).copy()
-        tau = np.full(self.M, self.N, dtype=int)  # 停时步数
-        exercised = np.zeros((self.M, self.N), dtype=bool)
+        cashflow = payoff(S[:, -1]).copy()
+        tau = np.full(self.M, self.N, dtype=int)
+        exercise_decision = np.zeros((self.M, self.N + 1), dtype=bool)
 
         for t in range(self.N - 1, 0, -1):
-            itm = payoff(S[:, t]) > 0
+            immediate_all = payoff(S[:, t])
+            itm = immediate_all > 0
             if itm.sum() < 3:
-                V[itm] *= self.df
                 continue
 
-            # 折现价值
-            Y = V[itm] * self.df
+            # 将当前已知未来现金流折现回 t 时刻，作为 continuation value 的样本。
+            Y = cashflow[itm] * np.exp(-self.r * self.dt * (tau[itm] - t))
             X = S[itm, t]
 
             # 基函数：1, S, S^2
@@ -68,16 +67,20 @@ class LSMPricer:
             # 决策
             immediate = payoff(X)
             exercise = immediate > C
-            exercised[itm, t] = exercise
-            V[itm] = np.where(exercise, immediate, Y)
-            tau[np.where(itm)[0][exercise]] = t
+            itm_idx = np.where(itm)[0]
+            exercise_decision[itm_idx, t] = exercise
+            exercise_idx = itm_idx[exercise]
+            tau[exercise_idx] = t
+            cashflow[exercise_idx] = immediate[exercise]
 
         # 定价
-        discounted_payoffs = self.df**tau * payoff(S[np.arange(self.M), tau])
+        final_payoff = payoff(S[np.arange(self.M), tau])
+        discounted_payoffs = np.exp(-self.r * self.dt * tau) * final_payoff
         price = discounted_payoffs.mean()
         se = discounted_payoffs.std(ddof=1) / np.sqrt(self.M)
+        exercise_decision[:, self.N] = payoff(S[:, self.N]) > 0
         self._priced = True
-        return price, se, S, tau, exercised
+        return price, se, S, tau, exercise_decision
 
     def exercise_boundary(self, n_grid=50):
         """计算 (t, S) 网格上的行权概率。"""
@@ -91,6 +94,6 @@ class LSMPricer:
             for j, s0 in enumerate(s_grid):
                 in_bin = np.abs(s_vals - s0) < (s_grid[1] - s_grid[0])
                 if in_bin.sum() > 10:
-                    boundary_prob[i, j] = exercised[in_bin, i].mean()
+                    boundary_prob[i, j] = exercised[in_bin, i + 1].mean()
 
         return t_grid, s_grid, boundary_prob

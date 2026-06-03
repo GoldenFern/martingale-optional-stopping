@@ -17,7 +17,7 @@ DATA_DIR = PROJECT_ROOT / 'output' / 'data'
 def run_success_experiment(N_values=(20, 50, 100, 200),
                            n_r_points=50, n_trials=5000, seed=42):
     """实验1: 成功率 vs r/N。"""
-    rng = np.random.default_rng(seed)
+    np.random.seed(seed)
     rows = []
     for N in N_values:
         for r_frac in np.linspace(0.02, 0.98, n_r_points):
@@ -47,7 +47,7 @@ def run_snell_experiment(N=20):
 def run_control_experiment(N_values=(20, 50, 100, 200),
                            n_r_points=30, n_trials=2000, seed=42):
     """实验3: 鞅对照组。"""
-    rng = np.random.default_rng(seed)
+    np.random.seed(seed)
     rows = []
     for N in N_values:
         for r_frac in np.linspace(0.02, 0.98, n_r_points):

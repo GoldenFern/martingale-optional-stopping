@@ -8,7 +8,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from core.visualization import (
-    set_style, new_figure, save_figure,
+    set_style, new_figure, save_figure, emphasize_log_grid,
     COLOR_BLUE, COLOR_RED, COLOR_GRAY,
 )
 
@@ -23,8 +23,8 @@ def fig4_1_convergence():
 
     fig, ax = new_figure()
     for stype, color, label, y_theory in [
-        ('two_sided', COLOR_BLUE, 'two-sided $\\tau = \\inf\\{n: S_n=-a \\;\\text{or}\\; S_n=b\\}$', 0),
-        ('one_sided', COLOR_RED, 'one-sided $\\tau = \\inf\\{n: S_n=b\\}$', 10.0),
+        ('two_sided', COLOR_BLUE, '双边停时（OST 成立）', 0),
+        ('one_sided', COLOR_RED, '单边停时（OST 失效）', 10.0),
     ]:
         sub = df[df['stop_type'] == stype]
         ax.errorbar(sub['n_paths'], sub['mean'], yerr=1.96 * sub['se'],
@@ -33,10 +33,11 @@ def fig4_1_convergence():
         ax.axhline(y_theory, color=color, lw=0.6, ls='--', alpha=0.5)
 
     ax.set_xscale('log')
+    emphasize_log_grid(ax)
     ax.set_xlabel('Monte Carlo 路径数 $M$')
     ax.set_ylabel('$\\mathbb{E}[S_\\tau]$ 估计值')
     ax.set_title('OST 收敛对比：双边成立 vs 单边失效')
-    ax.legend(loc='best', frameon=False, fontsize=7)
+    ax.legend(loc='best', fontsize=8)
     save_figure(fig, 'ch04_convergence.pdf')
 
 
@@ -48,15 +49,18 @@ def fig4_2_truncation():
     fig, ax = new_figure()
     ax.errorbar(df['N'], df['mean'], yerr=1.96 * df['se'],
                 fmt='o', color=COLOR_BLUE, capsize=1.5, markersize=2.5,
-                lw=0, alpha=0.6)
-    ax.axhline(10.0, color=COLOR_RED, lw=0.6, ls='--', label='理论极限 $b=10$')
-    ax.axhline(0.0, color=COLOR_GRAY, lw=0.4, ls=':', label='$\\mathbb{E}[S_0]=0$')
+                lw=0, alpha=0.75, label='模拟估计（95% CI）')
+    ax.axhline(0.0, color=COLOR_GRAY, lw=0.8, ls=':',
+               label='每个固定 $N$: $\\mathbb{E}[S_{\\tau\\wedge N}]=0$')
+    ax.axhline(10.0, color=COLOR_RED, lw=0.8, ls='--',
+               label='几乎处处极限 $S_\\tau=b=10$')
 
     ax.set_xscale('log')
+    emphasize_log_grid(ax)
     ax.set_xlabel('截断值 $N$')
-    ax.set_ylabel('$\\mathbb{E}[S_{\\tau \\wedge N}]$')
-    ax.set_title('截断停时偏误：$\\mathbb{E}[S_{\\tau\\wedge N}]$ vs $N$')
-    ax.legend(loc='lower right', frameon=False, fontsize=8)
+    ax.set_ylabel('$S_{\\tau \\wedge N}$ 的样本均值')
+    ax.set_title('截断序列与不可交换极限')
+    ax.legend(loc='lower left', fontsize=7)
     save_figure(fig, 'ch04_truncation.pdf')
 
 
@@ -73,15 +77,19 @@ def fig4_3_tail():
         mask = surv > 1e-4
         ax.loglog(t[mask], surv[mask], color=color, lw=0.8, label=label)
 
-    # 参考线：1/sqrt(pi*t) 重尾
-    t_ref = np.logspace(1, 4, 100)
-    ax.loglog(t_ref, 1.0 / np.sqrt(np.pi * t_ref), '--', color=COLOR_GRAY,
-              lw=0.6, alpha=0.6, label='$\\sim 1/\\sqrt{\\pi t}$')
+    # 参考线：与单边样本在 anchor_t 处对齐的 t^{-1/2} 重尾。
+    anchor_t = min(500, len(data['surv_one']) - 1)
+    anchor_surv = max(data['surv_one'][anchor_t], 1e-12)
+    t_ref = np.logspace(np.log10(50), np.log10(data['t_one'].max()), 100)
+    ref = anchor_surv * np.sqrt(anchor_t / t_ref)
+    ax.loglog(t_ref, ref, '--', color=COLOR_GRAY,
+              lw=0.8, alpha=0.75, label='$C t^{-1/2}$')
 
     ax.set_xlabel('$t$')
     ax.set_ylabel('$P(\\tau > t)$')
     ax.set_title('停时尾部对比 (双对数)')
-    ax.legend(loc='lower left', frameon=False, fontsize=8)
+    emphasize_log_grid(ax)
+    ax.legend(loc='lower left', fontsize=8)
     save_figure(fig, 'ch04_tail.pdf')
 
 

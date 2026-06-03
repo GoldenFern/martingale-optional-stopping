@@ -13,7 +13,7 @@ DATA_DIR = PROJECT_ROOT / 'output' / 'data'
 
 def run_fixation_experiment(N=100, n_paths=5000, seed=42):
     """实验：固定概率 vs 初始频率，仅 N=100。"""
-    rng = np.random.default_rng(seed)
+    np.random.seed(seed)
     freq_values = np.arange(0.1, 1.0, 0.1)
     rows = []
     tau_exact = expected_tau_moran(N)
@@ -45,6 +45,7 @@ def run_fixation_experiment(N=100, n_paths=5000, seed=42):
 
 def run_tau_distribution(N=100, x0=None, n_paths=10000, seed=42):
     """实验：停时分布。"""
+    np.random.seed(seed)
     if x0 is None:
         x0 = N // 2
     rng = np.random.default_rng(seed)

@@ -25,22 +25,31 @@ def run_convergence_experiment(a=10, b=10,
         sim_two = MonteCarloSimulation(rw, tau_two)
         means_two = np.empty(n_repeats)
         for r in range(n_repeats):
-            mean, _ = sim_two.estimate_expectation(0.0, M, max_steps)
+            mean, _ = sim_two.estimate_expectation(
+                0.0, M, max_steps, seed + 1000 * r + int(M)
+            )
             means_two[r] = mean
         rows.append({
             'stop_type': 'two_sided', 'n_paths': M,
             'mean': means_two.mean(), 'se': means_two.std(ddof=1),
+            'reached_frac': 1.0,
         })
         # 单边
         tau_one = HittingLevel(b, 'up')
         sim_one = MonteCarloSimulation(rw, tau_one)
         means_one = np.empty(n_repeats)
+        reached_fracs = np.empty(n_repeats)
         for r in range(n_repeats):
-            mean, _ = sim_one.estimate_expectation(0.0, M, max_steps)
-            means_one[r] = mean
+            result = sim_one.run(
+                0.0, M, max_steps, seed + 50000 + 1000 * r + int(M)
+            )
+            reached = result.reached_stop
+            reached_fracs[r] = reached.mean()
+            means_one[r] = result.stopped_values[reached].mean() if reached.any() else np.nan
         rows.append({
             'stop_type': 'one_sided', 'n_paths': M,
-            'mean': means_one.mean(), 'se': means_one.std(ddof=1),
+            'mean': np.nanmean(means_one), 'se': np.nanstd(means_one, ddof=1),
+            'reached_frac': reached_fracs.mean(),
         })
     df = pd.DataFrame(rows)
     DATA_DIR.mkdir(parents=True, exist_ok=True)

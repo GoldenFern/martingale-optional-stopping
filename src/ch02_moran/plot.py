@@ -44,21 +44,21 @@ def fig2_1_paths(N=100, x0=50, n_display=10, seed=42):
             ax.plot(freq, alpha=0.5, lw=0.4, color=color)
             ax.scatter(tau, freq[-1], color=color, s=6, alpha=0.7, zorder=5)
 
-    ax.axhline(0, color='gray', lw=0.3, ls='--')
-    ax.axhline(1, color='gray', lw=0.3, ls='--')
+    ax.axhline(0, color='gray', lw=0.5, ls='--', alpha=0.6)
+    ax.axhline(1, color='gray', lw=0.5, ls='--', alpha=0.6)
     ax.set_xlim(0, None)
     ax.set_xlabel('代数')
     ax.set_ylabel('A 等位基因频率')
-    ax.set_title(f'Moran 模型基因频率轨迹 (N={N})')
+    ax.set_title(f'Moran 模型样本路径（$N={N}$）')
     handles = [
         plt.Line2D([0], [0], color=COLOR_BLUE, lw=1, label='固定'),
         plt.Line2D([0], [0], color=COLOR_RED, lw=1, label='灭绝'),
     ]
-    ax.legend(handles=handles, loc='best', frameon=False)
+    ax.legend(handles=handles, loc='best')
     save_figure(fig, 'ch02_paths.pdf')
 
 
-def fig2_2_fixation():
+def fig2_2_fixation(n_paths=5000):
     """图 2.2：固定概率 vs 初始频率，仅 N=100。"""
     set_style()
     import pandas as pd
@@ -67,20 +67,23 @@ def fig2_2_fixation():
     sub = df[df['N'] == 100]
 
     fig, ax = new_figure()
+    p_hat = sub['p_fixation_mc'].to_numpy()
+    p_se = np.sqrt(p_hat * (1 - p_hat) / n_paths)
     ax.errorbar(sub['initial_freq'], sub['p_fixation_mc'],
-                 yerr=1.96 * sub['tau_mc_se'] / np.sqrt(5000),
-                 fmt='o', color=COLOR_BLUE, capsize=2, markersize=4,
-                 lw=0, label='Monte Carlo (N=100)')
+                yerr=1.96 * p_se,
+                fmt='o', color=COLOR_BLUE, capsize=2, markersize=4,
+                lw=0, label='Monte Carlo（95% CI）')
 
     xs = np.linspace(0, 1, 50)
-    ax.plot(xs, xs, '--', color=COLOR_RED, lw=1.0, label='理论值 $y = x_0/N$')
+    ax.plot(xs, xs, '--', color=COLOR_RED, lw=1.15,
+            label='理论值 $y=x_0/N$')
 
     ax.set_xlabel('初始频率 $x_0/N$')
     ax.set_ylabel('固定概率')
-    ax.set_title('固定概率 vs 初始频率 (N=100)')
-    ax.legend(loc='upper left', frameon=False, fontsize=8)
-    ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1)
+    ax.set_title('固定概率与初始频率（$N=100$）')
+    ax.legend(loc='upper left', fontsize=8)
+    ax.set_xlim(-0.02, 1.02)
+    ax.set_ylim(-0.02, 1.02)
     save_figure(fig, 'ch02_fixation.pdf')
 
 
@@ -91,7 +94,7 @@ def fig2_3_tau_dist():
 
     fig, ax = new_figure()
     n_bins = 80
-    ax.hist(tau, bins=n_bins, density=True, alpha=0.5, color=COLOR_BLUE,
+    ax.hist(tau, bins=n_bins, density=True, alpha=0.55, color=COLOR_BLUE,
             edgecolor='white', linewidth=0.3, label='模拟')
 
     # 指数分布拟合
@@ -101,10 +104,10 @@ def fig2_3_tau_dist():
             label='指数分布拟合')
 
     ax.set_xlim(0, None)
-    ax.set_xlabel('停时 $\\tau$ (代)')
+    ax.set_xlabel('停时 $\\tau$（代）')
     ax.set_ylabel('概率密度')
-    ax.set_title(f'Moran 模型停时分布 (N=100, $x_0$=50)')
-    ax.legend(loc='upper right', frameon=False, fontsize=8)
+    ax.set_title('停时分布（$N=100, x_0=50$）')
+    ax.legend(loc='upper right', fontsize=8)
     save_figure(fig, 'ch02_tau_dist.pdf')
 
 
