@@ -1,4 +1,4 @@
-\section{第一章 绪论}
+\section{绪论}
 
 \subsection{研究背景}
 
@@ -102,7 +102,7 @@
   \item 以 $\hat{\mu} \pm 1.96 \times \text{SE}$ 构造 95\% 渐进置信区间。
 \end{enumerate}
 
-对于需要参数扫描的实验（如破产概率随初始资本的变化），对每个参数值重复上述过程。所有代码以 Python 3.13 编写，数值计算依赖 NumPy 和 SciPy，图形绘制使用 Matplotlib。代码采用面向对象架构：\texttt{core/} 模块提供抽象的 \texttt{Martingale}、\texttt{StoppingTime} 和 \texttt{MonteCarloSimulation} 基类，各章节代码通过继承和组合复用，避免重复实现。完整代码随论文附于项目仓库中。
+对于需要参数扫描的实验（如破产概率随初始资本的变化），对每个参数值重复上述过程。所有代码以 Python 3.13 编写，数值计算依赖 NumPy 和 SciPy，图形绘制使用 Matplotlib。代码采用面向对象架构：\texttt{core/} 模块提供过程、停时和 Monte Carlo 模拟引擎等公共组件，各章节代码通过组合复用，避免重复实现。完整代码随论文附于项目仓库中。
 
 \subsection{章节安排}
 

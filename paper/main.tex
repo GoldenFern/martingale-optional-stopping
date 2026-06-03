@@ -8,6 +8,7 @@
 \setCJKsansfont{SimHei}[BoldFont=SimHei]
 \setCJKmonofont{KaiTi}
 \setmathfont{XITS Math}
+\providecommand{\keywordname}{关键词}
 
 % ===== 定理环境 =====
 \usepackage{amsthm}
@@ -21,16 +22,28 @@
 \definecolor{color1}{RGB}{0,0,90}
 \definecolor{color2}{RGB}{0,20,20}
 \usepackage{hyperref}
+\usepackage{bookmark}
+\graphicspath{{figures/}{../output/figures/}}
+\hypersetup{
+  unicode=true,
+  colorlinks=true,
+  linkcolor=color1,
+  citecolor=color1,
+  urlcolor=color1,
+  pdfauthor={GoldenFern},
+  pdftitle={鞅过程可选停止定理的数值模拟}
+}
 
 % ===== 元信息 =====
-\PaperTitle{鞅过程时停定理的数值模拟}
+\PaperTitle{鞅过程可选停止定理的数值模拟}
 \Authors{GoldenFern\textsuperscript{1}}
 \affiliation{\textsuperscript{1}[redacted]，上海交通大学，上海，200240}
 \JournalInfo{随机过程课程大作业，2026 年 6 月 \quad 学号：[redacted] \quad [redacted]}
+\Archive{}
 \Abstract{
-本文通过 Monte Carlo 数值模拟方法，系统研究了可选停止定理（Optional Stopping Theorem）在不同随机过程中的表现。
-选取了五个典型模型——Moran 种群遗传过程、Cramér-Lundberg 保险破产过程、赌徒破产过程、秘书问题、美式期权定价——逐一构造相应的鞅或分析其不适用 OST 的原因，
-通过数值实验验证了 OST 成立所需的条件，揭示了停时无限期望或过程无界时 OST 失效的机制，并探讨了 OST 在最优停时问题中的延伸（Snell 包络、Longstaff-Schwartz 算法）。
+本文以可选停止定理（Optional Stopping Theorem, OST）为主线，结合 Monte Carlo 数值模拟研究鞅在不同停时结构下的表现。
+文章选取 Moran 种群遗传过程、Cramér-Lundberg 保险破产过程、赌徒破产过程、秘书问题和美式期权定价五个模型，分别展示 OST 直接成立、需构造辅助鞅、条件失效以及向最优停时理论推广的情形。
+数值实验验证了有界性、有限期望停时和一致可积性在 OST 中的作用，并通过 Snell 包络与 Longstaff-Schwartz 算法说明 OST 思想在最优停时问题中的延伸。
 }
 \Keywords{可选停止定理 --- 鞅 --- Monte Carlo 模拟 --- 最优停时 --- 停时 --- Snell 包络}
 
@@ -59,8 +72,7 @@
 % ===== 第七章 总结 =====
 \input{sections/ch07_conclusion}
 
-\phantomsection
-\addcontentsline{toc}{section}{参考文献}
+\clearpage
 \bibliographystyle{unsrt}
 \bibliography{references}
 \end{document}

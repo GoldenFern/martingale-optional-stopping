@@ -17,15 +17,22 @@
 \end{itemize}
 当且仅当繁殖出 A 且杀死 a 时（概率 $\frac{i}{N} \cdot \frac{N-i}{N}$）A 的数量增加 1；当且仅当繁殖出 a 且杀死 A 时（概率 $\frac{N-i}{N} \cdot \frac{i}{N}$），A 的数量减少 1。即
 \begin{equation}\label{eq:moran_trans}
-  P(X_{n+1} = i+1 \mid X_n = i) = P(X_{n+1} = i-1 \mid X_n = i) = \frac{i(N-i)}{N^2},
+  \begin{aligned}
+  P(X_{n+1} = i+1 \mid X_n = i)
+  &= P(X_{n+1} = i-1 \mid X_n = i) \\
+  &= \frac{i(N-i)}{N^2},
+  \end{aligned}
 \end{equation}
 其余概率为 $P(X_{n+1} = i \mid X_n = i) = 1 - 2i(N-i)/N^2$。
 
 由此计算条件期望：
 \begin{align}
   \mathbb{E}[X_{n+1} \mid X_n = i]
-  &= (i+1) \cdot \frac{i(N-i)}{N^2} + (i-1) \cdot \frac{i(N-i)}{N^2} + i \cdot \Big(1 - \frac{2i(N-i)}{N^2}\Big) \notag\\
-  &= i + \frac{i(N-i)}{N^2}(+1) + \frac{i(N-i)}{N^2}(-1) = i. \label{eq:moran_mg}
+  &= (i+1) \frac{i(N-i)}{N^2}
+   + (i-1) \frac{i(N-i)}{N^2} \notag\\
+  &\quad + i \Big(1 - \frac{2i(N-i)}{N^2}\Big) \notag\\
+  &= i + \frac{i(N-i)}{N^2}(+1)
+   + \frac{i(N-i)}{N^2}(-1) = i. \label{eq:moran_mg}
 \end{align}
 所以 $\mathbb{E}[X_{n+1} \mid \mathcal{F}_n] = X_n$，即 $\{X_n\}$ 是一个鞅。这是非常优美的性质：没有任何选择压力的有限种群中，等位基因的频率在期望意义下保持不变——尽管在单条轨迹上它必然漂变至吸收。
 
@@ -54,16 +61,28 @@ $X_\tau$ 只能取两个值：0（灭绝）或 $N$（固定）。设 $P_N = \mat
 一步条件期望平方增量：
 \begin{align}
   \mathbb{E}[X_{k}^2 \mid X_{k-1}=i] - i^2
-  &= (i+1)^2 \cdot \frac{i(N-i)}{N^2} + (i-1)^2 \cdot \frac{i(N-i)}{N^2} + i^2 \cdot \Big(1 - \frac{2i(N-i)}{N^2}\Big) - i^2 \notag\\
+  &= (i+1)^2 \frac{i(N-i)}{N^2}
+   + (i-1)^2 \frac{i(N-i)}{N^2} \notag\\
+  &\quad + i^2 \Big(1 - \frac{2i(N-i)}{N^2}\Big) - i^2 \notag\\
   &= \frac{2i(N-i)}{N^2}.
 \end{align}
 因此 $A_n = \sum_{k=1}^{n} \frac{2 X_{k-1} (N - X_{k-1})}{N^2}$。对停时 $\tau$ 应用 OST（因其满足条件 2），有 $\mathbb{E}[M_\tau] = \mathbb{E}[M_0] = \mathbb{E}[X_0^2]$。故
 \begin{equation}
-  \mathbb{E}[X_\tau^2] - \mathbb{E}[x_0^2] = \mathbb{E}[A_\tau] = \mathbb{E}\Bigg[\sum_{k=1}^{\tau} \frac{2 X_{k-1} (N - X_{k-1})}{N^2}\Bigg].
+  \begin{aligned}
+  \mathbb{E}[X_\tau^2] - x_0^2
+  &= \mathbb{E}[A_\tau] \\
+  &= \mathbb{E}\Bigg[\sum_{k=1}^{\tau}
+      \frac{2 X_{k-1} (N - X_{k-1})}{N^2}\Bigg].
+  \end{aligned}
 \end{equation}
 由于 $X_\tau \in \{0, N\}$，$\mathbb{E}[X_\tau^2] = N^2 \cdot P_N = N x_0$。因此
 \begin{equation}\label{eq:moran_tau_ost}
-  N x_0 - x_0^2 = \frac{2}{N^2} \mathbb{E}\Bigg[\sum_{k=1}^{\tau} X_{k-1} (N - X_{k-1})\Bigg].
+  \begin{aligned}
+  N x_0 - x_0^2
+  = \frac{2}{N^2}
+  \mathbb{E}\Bigg[\sum_{k=1}^{\tau}
+  X_{k-1} (N - X_{k-1})\Bigg].
+  \end{aligned}
 \end{equation}
 
 更为直接的方法是利用出生-死亡链的标准结果。对于转移概率 $p_{i,i+1} = p_{i,i-1} = i(N-i)/N^2$ 的生灭过程，从状态 $i$ 出发的平均吸收时间 $t_i = \mathbb{E}[\tau \mid X_0 = i]$ 满足三对角线性方程组：

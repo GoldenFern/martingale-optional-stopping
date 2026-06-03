@@ -67,44 +67,54 @@ OST 失效的深层数学原因在于被停过程 $\{S_{n \wedge \tau_{\text{one
 \end{equation}
 这是一个以 $n^{-1/2}$ 速率衰减的重尾分布，其积分 $\int_0^\infty \mathbb{P}(\tau > t) dt$ 发散，因此 $\mathbb{E}[\tau_{\text{one}}] = \infty$。重尾性使得``绝大多数''路径会在相对较短的时间内碰到 $+b$，但极少数``顽固''路径（游走先大幅下跌再缓慢回升）贡献了无穷的期望——这是期望与中位数之间存在巨大差异的典型案例。
 
-\subsubsection*{截断停时的收敛分析}
+\subsubsection*{截断停时与不可交换极限}
 
-为展示 OST 失效是连续而非突变的，引入截断停时 $\tau_N = \min(\tau_{\text{one}}, N)$。对任意固定的 $N$，$\tau_N$ 有界（$\leqslant N$），OST 的条件 1 满足，故 $\mathbb{E}[S_{\tau_N}] = 0$。但当 $N \to \infty$ 时，$\mathbb{E}[S_{\tau_N}]$ 收敛到 $\mathbb{E}[S_{\tau_{\text{one}}}] = b$。关键在于收敛速率：由 $\mathbb{P}(\tau_{\text{one}} > N) \sim 1/\sqrt{\pi N}$，在 $\tau_{\text{one}} > N$ 的条件下 $S_N$ 的条件期望为负（因为游走尚未碰到 $+b$，倾向于是净向下偏移的），其量级约为 $-\sqrt{N}$。因此当 $N$ 很大时，
-\begin{equation}\label{eq:trunc_rate}
-  \mathbb{E}[S_{\tau_N}] \approx b \cdot \mathbb{P}(\tau_{\text{one}} \leqslant N) + \mathbb{E}[S_N \mid \tau_{\text{one}} > N] \cdot \mathbb{P}(\tau_{\text{one}} > N)
-  \sim 0 \cdot \Big(1 - \frac{c}{\sqrt{N}}\Big) + (-\sqrt{N}) \cdot \frac{c}{\sqrt{N}} = -c',
+为展示 OST 失效的精确机制，引入截断停时 $\tau_N = \min(\tau_{\text{one}}, N)$。对任意固定的 $N$，$\tau_N$ 有界（$\leqslant N$），OST 的条件 1 满足，因此
+\begin{equation}\label{eq:trunc_ost}
+  \mathbb{E}[S_{\tau_N}] = \mathbb{E}[S_0] = 0, \quad \forall N < \infty.
 \end{equation}
-即偏误以 $O(1)$ 趋于一个非零常数而非以 $O(1/\sqrt{N})$ 收敛到 0——截断修正在 OST 反例中速度极慢。即使在 $N=10^5$ 的截断下，Monte Carlo 估计仍然显著偏离 0。
+另一方面，由于 $\tau_{\text{one}} < \infty$ 几乎必然成立，随机变量序列逐点收敛：
+\begin{equation}
+  S_{\tau_N} = S_{\tau_{\text{one}}\wedge N}
+  \xrightarrow[N\to\infty]{a.s.} S_{\tau_{\text{one}}}=b.
+\end{equation}
+于是出现了 OST 反例最核心的现象：
+\begin{equation}\label{eq:no_ui_limit}
+  \lim_{N\to\infty}\mathbb{E}[S_{\tau_N}] = 0,
+  \qquad
+  \mathbb{E}\!\left[\lim_{N\to\infty}S_{\tau_N}\right] = b.
+\end{equation}
+二者不相等，说明 $\{S_{\tau_N}\}_{N\geqslant 1}$ 不是一致可积的。直观地看，在大多数已经命中 $+b$ 的路径上，$S_{\tau_N}=b$；但少数尚未命中的路径可能位于很深的负半轴，其负值贡献恰好抵消前者，使每个固定 $N$ 的期望仍为 0。随着 $N$ 增大，这些负值路径越来越稀少但也越来越极端，导致 Monte Carlo 估计方差增大，有限样本很难稳定观察到理论均值。
 
 \subsection{数值实验设计与参数设置}
 
-设置 $a = b = 10$（双方各有 10 元初始资金）。为了对比双边和单边停时的收敛行为，对不同的 Monte Carlo 路径数 $M \in \{10^2, 10^3, \dots, 10^4\}$（对数均匀分布），各重复 3 次独立实验估计 $\mathbb{E}[S_\tau]$。对于截断偏误实验，将单边停时 $\tau_{\text{one}}$ 截断在不同的 $N$ 值（对数均匀分布于 $10^1$ 至 $10^5$），每级用 1000 条路径估计 $\mathbb{E}[S_{\tau_N}]$。对于尾部实验，用 5000 条路径（最大步数 5000）估计双边和单边停时的生存函数 $\mathbb{P}(\tau > t)$。
+设置 $a = b = 10$（双方各有 10 元初始资金）。为了对比双边和单边停时的收敛行为，对不同的 Monte Carlo 路径数 $M \in \{10^2, 10^3, \dots, 10^4\}$（对数均匀分布），各重复 3 次独立实验估计 $\mathbb{E}[S_\tau]$。单边自然停时实验只记录在模拟上限内已经命中 $+b$ 的路径；这些路径的停时值均为 $S_\tau=b$，未命中路径的比例由尾部实验单独解释。对于截断序列实验，将单边停时 $\tau_{\text{one}}$ 截断在不同的 $N$ 值（对数均匀分布于 $10^1$ 至 $10^5$），每级用 1000 条路径估计 $S_{\tau_N}$ 的样本均值。对于尾部实验，用 5000 条路径（最大步数 5000）估计双边和单边停时的生存函数 $\mathbb{P}(\tau > t)$。
 
 \subsection{结果与讨论}
 
-\textbf{图~\ref{fig:ch04_conv}} 是本章最核心的实验结果。横轴为 Monte Carlo 路径数 $M$（对数刻度），纵轴为 $\mathbb{E}[S_\tau]$ 的估计值（带 95\% CI）。蓝色曲线（双边障碍 $\tau_{\text{two}}$）快速收敛至水平虚线 $\mathbb{E}[S_\tau] = 0$（OST 预测），且置信区间随 $M$ 增大而缩小——这是典型的 Monte Carlo 收敛行为。红色曲线（单边障碍 $\tau_{\text{one}}$）则完全不同：估计值始终远离 0，围绕 $\mathbb{E}[S_\tau] \approx b = 10$ 波动。注意蓝色曲线收敛到的极限值``0''并非偶然——它被 OST 精确预测；而红色曲线的行为说明，无论增加多少模拟路径，$\mathbb{E}[S_\tau]$ 的估计值始终不会趋向 0。这是数值实验对 OST 失效最直接、最有力的展示了。
+\textbf{图~\ref{fig:ch04_conv}} 是本章最核心的实验结果。横轴为 Monte Carlo 路径数 $M$（对数刻度），纵轴为 $\mathbb{E}[S_\tau]$ 的估计值（带 95\% CI）。蓝色曲线（双边障碍 $\tau_{\text{two}}$）快速收敛至水平虚线 $\mathbb{E}[S_\tau] = 0$（OST 预测），且置信区间随 $M$ 增大而缩小——这是典型的 Monte Carlo 收敛行为。红色曲线（单边障碍 $\tau_{\text{one}}$）则完全不同：凡是命中 $+b$ 的自然停时路径都有 $S_\tau=b=10$，估计值稳定地落在 10 附近，而不是 0。注意蓝色曲线收敛到 0 并非偶然，它被 OST 精确预测；红色曲线则说明自然单边停时下 $\mathbb{E}[S_\tau]=b\neq0$，OST 不能直接应用。
 
-\textbf{图~\ref{fig:ch04_trunc}} 展示了截断修正的局限。横轴为截断值 $N$（对数刻度），纵轴为 $\mathbb{E}[S_{\tau \wedge N}]$。在 $N$ 较小时（$N = 10$），绝大多数路径被截断，$\mathbb{E}[S_{\tau \wedge N}] \approx \mathbb{E}[S_N] = 0$（OST 在截断后重新成立）。随着 $N$ 增大，越来越多的原始路径在其自然停时 $\tau_{\text{one}}$ 处停止（已经碰到 $+b$），$\mathbb{E}[S_{\tau \wedge N}]$ 缓慢地向上漂离 0，趋向 $b = 10$。然而即使 $N = 10^5$（对于 $b=10$ 来说这是一个极大的截断值），偏误仍然显著——$\mathbb{E}[S_{\tau \wedge N}]$ 远未收敛到极限值 $b$。这从数值上直观地展示了重尾分布的顽抗性：即使在极大的截断值下，仍有不可忽视的路径比例尚未碰到 $+b$。
+\textbf{图~\ref{fig:ch04_trunc}} 展示了截断序列的数值行为。横轴为截断值 $N$（对数刻度），纵轴为 $S_{\tau\wedge N}$ 的样本均值。灰色水平线标出理论事实 $\mathbb{E}[S_{\tau\wedge N}]=0$（对每个固定 $N$ 成立），红色虚线标出几乎处处极限 $S_\tau=b=10$。模拟点没有稳定地趋向红线，而是在 0 附近出现越来越宽的置信区间，这正是式 \eqref{eq:no_ui_limit} 的数值表现：几乎处处收敛并不保证期望收敛。对大 $N$，少数未命中路径携带极大的负值，显著放大样本方差；若有限样本没有充分覆盖这些极端路径，样本均值会出现明显波动。
 
-\textbf{图~\ref{fig:ch04_tail}} 以双对数坐标展示了两种停时分布的尾部。双边停时 $\tau_{\text{two}}$（蓝色）的生存函数在对数-线性坐标下近似为一直线——即真正的指数衰减 $\sim e^{-\lambda t}$，故 $\mathbb{E}[\tau_{\text{two}}] < \infty$。单边停时 $\tau_{\text{one}}$（红色）在对数-对数坐标下呈现缓慢的线性衰减，与参考线 $\sim 1/\sqrt{\pi t}$（灰色虚线）平行——这是 $n^{-1/2}$ 型重尾衰减的特征签名。这一重尾性直接导致 $\mathbb{E}[\tau_{\text{one}}] = \infty$，而 $\mathbb{E}[\tau] < \infty$ 是 OST 三个充分条件之一。因此图~\ref{fig:ch04_tail} 实际上从微观层面解释了图~\ref{fig:ch04_conv} 中 OST 失效的根本机理。
+\textbf{图~\ref{fig:ch04_tail}} 以双对数坐标展示了两种停时分布的尾部。双边停时 $\tau_{\text{two}}$（蓝色）快速衰减，反映有限区间首出时的轻尾性质，故 $\mathbb{E}[\tau_{\text{two}}] < \infty$。单边停时 $\tau_{\text{one}}$（红色）在对数-对数坐标下呈现缓慢的近似线性衰减，与参考线 $C t^{-1/2}$（灰色虚线）平行——这是重尾衰减的特征签名。这里常数 $C$ 与上障碍 $b$ 有关，因此图中只强调斜率 $-1/2$。这一重尾性直接导致 $\mathbb{E}[\tau_{\text{one}}] = \infty$，而 $\mathbb{E}[\tau] < \infty$ 是 OST 三个充分条件之一。因此图~\ref{fig:ch04_tail} 从微观层面解释了图~\ref{fig:ch04_conv} 中 OST 失效的根本机理。
 
 \begin{figure}[ht]
   \centering
   \includegraphics[width=\linewidth]{ch04_convergence}
-  \caption{双边停时与单边停时的 $\mathbb{E}[S_\tau]$ Monte Carlo 估计收敛对比。双边（蓝色）快速收敛至 OST 预测值 0（虚线）。单边（红色）估计值始终远离 0，且随路径数增加并未向 0 收敛——数值实验对 OST 失效的最直接证据。}
+  \caption{双边停时与单边自然停时的 $\mathbb{E}[S_\tau]$ Monte Carlo 估计对比。双边（蓝色）快速收敛至 OST 预测值 0（虚线）；单边（红色）命中 $+b$ 后恒有 $S_\tau=b=10$，因此不可能收敛到 0。}
   \label{fig:ch04_conv}
 \end{figure}
 
 \begin{figure}[ht]
   \centering
   \includegraphics[width=\linewidth]{ch04_truncation}
-  \caption{截断停时偏误：$\mathbb{E}[S_{\tau \wedge N}]$ 随截断值 $N$ 的变化。尽管 OST 对任意固定 $N$ 成立（$\mathbb{E}[S_{\tau \wedge N}] = 0$），但 $\mathbb{E}[S_{\tau \wedge N}]$ 随 $N\to\infty$ 的收敛极慢，即便 $N=10^5$ 时仍显著偏离 0。两条参考线标明了 OST 预测值（0）和极限值（$b=10$）。}
+  \caption{截断序列与不可交换极限。对每个固定 $N$，OST 给出 $\mathbb{E}[S_{\tau \wedge N}] = 0$（灰色线）；但随机变量本身几乎处处收敛到 $S_\tau=b=10$（红色虚线）。样本均值在大 $N$ 下方差显著增大，说明一致可积性缺失时不能将极限与期望交换。}
   \label{fig:ch04_trunc}
 \end{figure}
 
 \begin{figure}[ht]
   \centering
   \includegraphics[width=\linewidth]{ch04_tail}
-  \caption{停时生存函数 $\mathbb{P}(\tau > t)$ 的双对数图。双边停时：指数衰减（轻尾），$\mathbb{E}[\tau] < \infty$。单边停时：$\sim 1/\sqrt{\pi t}$ 衰减（重尾），$\mathbb{E}[\tau] = \infty$。灰色虚线为参考线 $1/\sqrt{\pi t}$。重尾性是 OST 条件 3 失效的微观原因。}
+  \caption{停时生存函数 $\mathbb{P}(\tau > t)$ 的双对数图。双边停时为轻尾，$\mathbb{E}[\tau] < \infty$；单边停时呈 $C t^{-1/2}$ 型重尾，$\mathbb{E}[\tau] = \infty$。重尾性是 OST 条件 3 失效的微观原因。}
   \label{fig:ch04_tail}
 \end{figure}
