@@ -1,44 +1,110 @@
-\section{赌徒破产：OST 条件失效}
+\section{赌徒破产中 OST 的条件失效}
 
 \subsection{背景介绍}
 
-赌徒破产问题是 OST 最经典的测试场。设对称随机游走 $S_n = \sum_{i=1}^{n} \eta_i$，其中 $\eta_i = \pm 1$ 各概率 $1/2$，$S_0=0$。$\{S_n\}$ 是一个鞅。考虑两种停时：（A）双边障碍 $\tau_{\text{two}} = \inf\{n: S_n = -a\ \text{或}\ S_n = +b\}$；（B）单边障碍 $\tau_{\text{one}} = \inf\{n: S_n = +b\}$。对于（A），OST 的三个充分条件全部满足（过程在停时前有界），$\mathbb{E}[S_{\tau_{\text{two}}}] = 0$。对于（B），三个条件全部失效——过程在停时前无下界、停时期望无限 $\mathbb{E}[\tau_{\text{one}}] = \infty$、停时无界。因此 OST 不适用，$\mathbb{E}[S_{\tau_{\text{one}}}] \neq 0$。
+赌徒破产问题是概率论中最古老的随机过程模型之一，其历史可追溯至 Pascal 和 Fermat 关于赌博问题的通信。从现代鞅论的角度看，它是研究 OST 的天然试验场：过程是简单的对称随机游走（最经典的鞅），停时是首达吸收边界，且可以通过选择单边或双边边界来切换 OST 是否成立。
+
+考虑赌徒甲初始资金为 $a$ 元，赌徒乙初始资金为 $b$ 元。每局甲以概率 $p$ 赢 1 元，以概率 $q = 1-p$ 输 1 元。令 $S_n$ 为甲在前 $n$ 局后的净赢额（$S_0 = 0$），即 $S_n = \sum_{i=1}^{n} \xi_i$，其中 $\xi_i = \pm 1$。当 $p = 1/2$ 时，$\{S_n\}$ 是一个鞅；当 $p \neq 1/2$ 时，$\{S_n\}$ 不是鞅，但可以构造 Wald 鞅 $W_n = (q/p)^{S_n}$ 或补偿鞅 $S_n - (2p-1)n$。
+
+本文第四章聚焦于 $p = 1/2$（即公平赌博）的情况。此时 OST 成立与否完全取决于停时的选择。
 
 \subsection{理论分析}
 
-对于双边障碍，由 OST 可得破产概率 $P_a = b/(a+b)$ 和 $\mathbb{E}[\tau_{\text{two}}] = ab$。
+\subsubsection*{情形 A：双边障碍——OST 完美成立}
 
-对于单边障碍，$\tau_{\text{one}}$ 几乎必然有限（一维随机游走的常返性），但 $\mathbb{E}[\tau_{\text{one}}] = \infty$（重尾分布）。OST 失效的根本原因在于被停过程 $\{S_{n \wedge \tau_{\text{one}}}\}$ 并非一致可积：虽然每条路径最终都会碰到 $+b$，但在碰到之前可以任意深度地进入负值区域，期望下的``质量泄漏''阻止了 OST 的成立。具体来说，$S_{\tau_{\text{one}}} \equiv b$ 以概率 1 成立，故 $\mathbb{E}[S_{\tau_{\text{one}}}] = b \neq 0 = \mathbb{E}[S_0]$。
+定义停时 $\tau_{\text{two}} = \inf\{n: S_n = -a\ \text{或}\ S_n = +b\}$（甲输光或乙输光）。由于 $\tau_{\text{two}}$ 是双边首出时，$S_{n \wedge \tau_{\text{two}}}$ 始终被约束在 $[-a, b]$ 之内，故 $|S_{n \wedge \tau_{\text{two}}}| \leqslant \max(a, b)$。OST 的条件 2（被停过程有界）满足。此外，随机游走在有限区间内的首出时具有有限的期望值，$\mathbb{E}[\tau_{\text{two}}] < \infty$。因此 OST 无条件成立，$\mathbb{E}[S_{\tau_{\text{two}}}] = \mathbb{E}[S_0] = 0$，即
+\begin{equation}\label{eq:gambler_ost}
+  -a \cdot \mathbb{P}(S_{\tau_{\text{two}}} = -a) + b \cdot \mathbb{P}(S_{\tau_{\text{two}}} = +b) = 0.
+\end{equation}
+解之得甲的输光概率和乙的输光概率分别为
+\begin{equation}\label{eq:gambler_prob}
+  P_a = \frac{b}{a+b}, \quad P_b = \frac{a}{a+b}.
+\end{equation}
+这就是经典的赌徒破产公式：甲的破产概率等于乙的初始资金占总资金的比例。
 
-为展示 OST 失效并非``突变''而是``渐变''，引入截断停时 $\tau_N = \min(\tau_{\text{one}}, N)$。对任意固定的 $N$，$\tau_N$ 有界，OST 重新成立，$\mathbb{E}[S_{\tau_N}] = 0$。但随着 $N \to \infty$，$\mathbb{E}[S_{\tau_N}]$ 缓慢地收敛到 $\mathbb{E}[S_{\tau_{\text{one}}}] = b$。
+进一步，利用 $\{S_n^2 - n\}$ 也是鞅（教材例 6.3.2），类似地应用 OST 可得
+\begin{equation}\label{eq:gambler_etau}
+  \mathbb{E}[\tau_{\text{two}}] = a b.
+\end{equation}
+例如，两人各有 10 元时，平均需要 100 局才有一方输光。
 
-\subsection{数值模拟}
+\subsubsection*{情形 B：单边障碍——OST 的三个条件全部失效}
 
-设置 $a=b=10$。
+现在定义停时 $\tau_{\text{one}} = \inf\{n: S_n = +b\}$——甲停手不赌了，乙有无限资本。这是单边首达时。一维随机游走的常返性保证 $\tau_{\text{one}} < \infty$ 几乎必然（即甲最终一定会赢到 $b$ 元），然而：
 
-图~\ref{fig:ch04_conv} 对比了双边和单边停时下 $\mathbb{E}[S_\tau]$ 的 Monte Carlo 估计随样本量的收敛行为。双边障碍下估计值快速收敛到 0（置信区间窄），而单边障碍下估计值始终远离 0。
+\begin{enumerate}[noitemsep]
+  \item \textbf{停时无界}：对任意 $K$，$\mathbb{P}(\tau_{\text{one}} > K) > 0$。游走可以在碰到 $+b$ 之前在负半轴逗留任意长的时间。
+  \item \textbf{过程在停时前无（下）界}：在 $\tau_{\text{one}}$ 之前，$S_n$ 可以取任意大的负值——游走可以先去到 $-1, -10, -100$，再折返碰到 $+b$。
+  \item \textbf{停时期望无限}：$\mathbb{E}[\tau_{\text{one}}] = \infty$。原因见下面的尾部分析。
+\end{enumerate}
+条件 1、2、3 全部不成立。相应地，OST 失效：
+\begin{equation}
+  \mathbb{E}[S_{\tau_{\text{one}}}] = b \neq 0 = \mathbb{E}[S_0].
+\end{equation}
 
-图~\ref{fig:ch04_trunc} 展示了截断偏误。随截断值 $N$ 从 $10^1$ 增至 $10^5$，$\mathbb{E}[S_{\tau \wedge N}]$ 从接近 0 缓慢漂移至接近 $b=10$。即使在 $N=10^5$ 时偏误仍然显著，直观展示了单边停时下 OST 失效的``顽固性''。
+\subsubsection*{一致可积性的缺失}
 
-图~\ref{fig:ch04_tail}（双对数坐标）比较了两种停时的尾部行为。双边停时的生存函数呈指数衰减（轻尾），而单边停时的生存函数 $\sim 1/\sqrt{\pi t}$（重尾）。重尾直接导致 $\mathbb{E}[\tau_{\text{one}}] = \infty$，是 OST 失效的微观原因。
+OST 失效的深层数学原因在于被停过程 $\{S_{n \wedge \tau_{\text{one}}}\}$ 不是一致可积的。回顾一致可积性的定义：一族随机变量 $\{X_\alpha\}$ 是一致可积的，若
+\begin{equation}
+  \lim_{M \to \infty} \sup_{\alpha} \mathbb{E}[|X_\alpha| \cdot \mathbf{1}_{\{|X_\alpha| > M\}}] = 0.
+\end{equation}
+对于 $\{S_{n \wedge \tau_{\text{one}}}\}$，虽然 $\tau_{\text{one}} < \infty$ a.s.，但那些在 $\tau_{\text{one}} > n$ 条件下的路径上 $S_n$ 可能取到非常大的负值。具体来说，$\mathbb{E}[S_n^- \mid \tau_{\text{one}} > n]$ 随 $n$ 增长而增大，使得对于任意大的 $M$，始终存在某个 $n$ 使 $\mathbb{E}[|S_{n \wedge \tau_{\text{one}}}| \mathbf{1}_{\{|S_{n \wedge \tau_{\text{one}}}| > M\}}]$ 不可忽略。一致可积性的缺失导致极限与期望的交换不合法：
+\begin{equation}
+  \lim_{n \to \infty} \mathbb{E}[S_{n \wedge \tau_{\text{one}}}] = 0 \quad \text{（每个有限 $n$ 的 OST 成立）},
+\end{equation}
+但
+\begin{equation}
+  \mathbb{E}\Big[\lim_{n \to \infty} S_{n \wedge \tau_{\text{one}}}\Big] = \mathbb{E}[S_{\tau_{\text{one}}}] = b \neq 0.
+\end{equation}
+
+\subsubsection*{停时分布的尾部行为}
+
+双边停时和单边停时的尾部行为有本质区别。对于双边障碍 $[-a, b]$，由生灭链的谱理论知 $\mathbb{P}(\tau_{\text{two}} > n)$ 以指数速率衰减（因为状态空间有限，转移矩阵的次大特征值严格小于 1）。指数衰减意味着所有阶矩有限，特别地 $\mathbb{E}[\tau_{\text{two}}] < \infty$。
+
+对于单边障碍 $\tau_{\text{one}} = \inf\{n: S_n = +b\}$，由随机游走理论可得（当 $b = 1$ 时）
+\begin{equation}\label{eq:tail_heavy}
+  \mathbb{P}(\tau_{\text{one}} > n) \sim \frac{\sqrt{2}}{\sqrt{\pi n}}, \quad n \to \infty.
+\end{equation}
+这是一个以 $n^{-1/2}$ 速率衰减的重尾分布，其积分 $\int_0^\infty \mathbb{P}(\tau > t) dt$ 发散，因此 $\mathbb{E}[\tau_{\text{one}}] = \infty$。重尾性使得``绝大多数''路径会在相对较短的时间内碰到 $+b$，但极少数``顽固''路径（游走先大幅下跌再缓慢回升）贡献了无穷的期望——这是期望与中位数之间存在巨大差异的典型案例。
+
+\subsubsection*{截断停时的收敛分析}
+
+为展示 OST 失效是连续而非突变的，引入截断停时 $\tau_N = \min(\tau_{\text{one}}, N)$。对任意固定的 $N$，$\tau_N$ 有界（$\leqslant N$），OST 的条件 1 满足，故 $\mathbb{E}[S_{\tau_N}] = 0$。但当 $N \to \infty$ 时，$\mathbb{E}[S_{\tau_N}]$ 收敛到 $\mathbb{E}[S_{\tau_{\text{one}}}] = b$。关键在于收敛速率：由 $\mathbb{P}(\tau_{\text{one}} > N) \sim 1/\sqrt{\pi N}$，在 $\tau_{\text{one}} > N$ 的条件下 $S_N$ 的条件期望为负（因为游走尚未碰到 $+b$，倾向于是净向下偏移的），其量级约为 $-\sqrt{N}$。因此当 $N$ 很大时，
+\begin{equation}\label{eq:trunc_rate}
+  \mathbb{E}[S_{\tau_N}] \approx b \cdot \mathbb{P}(\tau_{\text{one}} \leqslant N) + \mathbb{E}[S_N \mid \tau_{\text{one}} > N] \cdot \mathbb{P}(\tau_{\text{one}} > N)
+  \sim 0 \cdot \Big(1 - \frac{c}{\sqrt{N}}\Big) + (-\sqrt{N}) \cdot \frac{c}{\sqrt{N}} = -c',
+\end{equation}
+即偏误以 $O(1)$ 趋于一个非零常数而非以 $O(1/\sqrt{N})$ 收敛到 0——截断修正在 OST 反例中速度极慢。即使在 $N=10^5$ 的截断下，Monte Carlo 估计仍然显著偏离 0。
+
+\subsection{数值实验设计与参数设置}
+
+设置 $a = b = 10$（双方各有 10 元初始资金）。为了对比双边和单边停时的收敛行为，对不同的 Monte Carlo 路径数 $M \in \{10^2, 10^3, \dots, 10^4\}$（对数均匀分布），各重复 3 次独立实验估计 $\mathbb{E}[S_\tau]$。对于截断偏误实验，将单边停时 $\tau_{\text{one}}$ 截断在不同的 $N$ 值（对数均匀分布于 $10^1$ 至 $10^5$），每级用 1000 条路径估计 $\mathbb{E}[S_{\tau_N}]$。对于尾部实验，用 5000 条路径（最大步数 5000）估计双边和单边停时的生存函数 $\mathbb{P}(\tau > t)$。
+
+\subsection{结果与讨论}
+
+\textbf{图~\ref{fig:ch04_conv}} 是本章最核心的实验结果。横轴为 Monte Carlo 路径数 $M$（对数刻度），纵轴为 $\mathbb{E}[S_\tau]$ 的估计值（带 95\% CI）。蓝色曲线（双边障碍 $\tau_{\text{two}}$）快速收敛至水平虚线 $\mathbb{E}[S_\tau] = 0$（OST 预测），且置信区间随 $M$ 增大而缩小——这是典型的 Monte Carlo 收敛行为。红色曲线（单边障碍 $\tau_{\text{one}}$）则完全不同：估计值始终远离 0，围绕 $\mathbb{E}[S_\tau] \approx b = 10$ 波动。注意蓝色曲线收敛到的极限值``0''并非偶然——它被 OST 精确预测；而红色曲线的行为说明，无论增加多少模拟路径，$\mathbb{E}[S_\tau]$ 的估计值始终不会趋向 0。这是数值实验对 OST 失效最直接、最有力的展示了。
+
+\textbf{图~\ref{fig:ch04_trunc}} 展示了截断修正的局限。横轴为截断值 $N$（对数刻度），纵轴为 $\mathbb{E}[S_{\tau \wedge N}]$。在 $N$ 较小时（$N = 10$），绝大多数路径被截断，$\mathbb{E}[S_{\tau \wedge N}] \approx \mathbb{E}[S_N] = 0$（OST 在截断后重新成立）。随着 $N$ 增大，越来越多的原始路径在其自然停时 $\tau_{\text{one}}$ 处停止（已经碰到 $+b$），$\mathbb{E}[S_{\tau \wedge N}]$ 缓慢地向上漂离 0，趋向 $b = 10$。然而即使 $N = 10^5$（对于 $b=10$ 来说这是一个极大的截断值），偏误仍然显著——$\mathbb{E}[S_{\tau \wedge N}]$ 远未收敛到极限值 $b$。这从数值上直观地展示了重尾分布的顽抗性：即使在极大的截断值下，仍有不可忽视的路径比例尚未碰到 $+b$。
+
+\textbf{图~\ref{fig:ch04_tail}} 以双对数坐标展示了两种停时分布的尾部。双边停时 $\tau_{\text{two}}$（蓝色）的生存函数在对数-线性坐标下近似为一直线——即真正的指数衰减 $\sim e^{-\lambda t}$，故 $\mathbb{E}[\tau_{\text{two}}] < \infty$。单边停时 $\tau_{\text{one}}$（红色）在对数-对数坐标下呈现缓慢的线性衰减，与参考线 $\sim 1/\sqrt{\pi t}$（灰色虚线）平行——这是 $n^{-1/2}$ 型重尾衰减的特征签名。这一重尾性直接导致 $\mathbb{E}[\tau_{\text{one}}] = \infty$，而 $\mathbb{E}[\tau] < \infty$ 是 OST 三个充分条件之一。因此图~\ref{fig:ch04_tail} 实际上从微观层面解释了图~\ref{fig:ch04_conv} 中 OST 失效的根本机理。
 
 \begin{figure}[ht]
   \centering
   \includegraphics[width=\linewidth]{ch04_convergence}
-  \caption{$\mathbb{E}[S_\tau]$ 收敛对比：双边障碍快速收敛至 0，单边障碍锁定在远离 0 的值。}
+  \caption{双边停时与单边停时的 $\mathbb{E}[S_\tau]$ Monte Carlo 估计收敛对比。双边（蓝色）快速收敛至 OST 预测值 0（虚线）。单边（红色）估计值始终远离 0，且随路径数增加并未向 0 收敛——数值实验对 OST 失效的最直接证据。}
   \label{fig:ch04_conv}
 \end{figure}
 
 \begin{figure}[ht]
   \centering
   \includegraphics[width=\linewidth]{ch04_truncation}
-  \caption{截断停时偏误：$\mathbb{E}[S_{\tau \wedge N}]$ 随 $N$ 从 0 漂移到 $b=10$。}
+  \caption{截断停时偏误：$\mathbb{E}[S_{\tau \wedge N}]$ 随截断值 $N$ 的变化。尽管 OST 对任意固定 $N$ 成立（$\mathbb{E}[S_{\tau \wedge N}] = 0$），但 $\mathbb{E}[S_{\tau \wedge N}]$ 随 $N\to\infty$ 的收敛极慢，即便 $N=10^5$ 时仍显著偏离 0。两条参考线标明了 OST 预测值（0）和极限值（$b=10$）。}
   \label{fig:ch04_trunc}
 \end{figure}
 
 \begin{figure}[ht]
   \centering
   \includegraphics[width=\linewidth]{ch04_tail}
-  \caption{停时尾部对比（双对数）。双边指数衰减 vs 单边重尾 $\sim 1/\sqrt{\pi t}$。}
+  \caption{停时生存函数 $\mathbb{P}(\tau > t)$ 的双对数图。双边停时：指数衰减（轻尾），$\mathbb{E}[\tau] < \infty$。单边停时：$\sim 1/\sqrt{\pi t}$ 衰减（重尾），$\mathbb{E}[\tau] = \infty$。灰色虚线为参考线 $1/\sqrt{\pi t}$。重尾性是 OST 条件 3 失效的微观原因。}
   \label{fig:ch04_tail}
 \end{figure}

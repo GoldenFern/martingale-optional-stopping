@@ -2,51 +2,97 @@
 
 \subsection{背景介绍}
 
-美式期权是 OST 和最优停时理论在金融中最经典的应用。与只能在到期日行权的欧式期权不同，美式期权的持有者可以在到期前的任意时刻行权。这使定价问题本质上成为一个最优停时问题：
-\begin{equation}
-  V_0 = \sup_{\tau \in [0, T]} \mathbb{E}^{\mathbb{Q}}\left[e^{-r\tau} g(S_\tau)\right],
-\end{equation}
-其中 $g(S) = \max(K-S, 0)$ 为看跌期权的 payoff，$\mathbb{Q}$ 为风险中性测度。在 $\mathbb{Q}$ 下，折现的 Snell 包络 $e^{-rt}V_t$ 是一个上鞅。
+期权定价是金融数学的核心问题，而其数学本质——特别是在美式期权中——是一个最优停时问题。欧式看跌期权给予持有者在到期日 $T$ 以执行价 $K$ 卖出标的资产的权利，其 payoff 为 $\max(K - S_T, 0)$。美式看跌期权则赋予持有者在到期前\textbf{任意时刻}行权的权利，因此其价值必然不低于欧式期权。多出来的这部分价值正是\textbf{提前行权溢价}——即最优停时策略相对于固定行权时间的额外收益。
 
-Longstaff-Schwartz（LSM）算法是解决这一最优停时问题的经典数值方法。其核心思想是：用 Monte Carlo 模拟生成大量股价路径，从到期日倒推，在每个时间步用最小二乘回归估计 continuation value（继续持有的期望收益），与立即行权的 payoff 比较，从而逐步构建最优停时策略。
+在风险中性定价框架下，美式期权价格由以下最优停时问题给出\cite{longstaff2001valuing}：
+\begin{equation}\label{eq:am_option}
+  V_0 = \sup_{\tau \in [0, T]} \mathbb{E}^{\mathbb{Q}}\big[e^{-r\tau} g(S_\tau)\big],
+\end{equation}
+其中 $g(s) = \max(K - s, 0)$ 为看跌期权的 payoff 函数，$\mathbb{Q}$ 为风险中性测度，在 $\mathbb{Q}$ 下标的资产价格服从几何布朗运动：
+\begin{equation}\label{eq:gbm}
+  dS_t = r S_t dt + \sigma S_t dW_t.
+\end{equation}
+
+与秘书问题的离散有限状态空间不同，美式期权的状态空间是连续的且决策时间也是连续的（实践中可离散化为有限个时间步）。这使得 Snell 包络的递推计算无法通过简单的有限状态求和完成，需要借助 Monte Carlo 模拟和回归技术。Longstaff 和 Schwartz 于 2001 年提出的算法\cite{longstaff2001valuing}（简称 LSM）正是解决这一问题的经典方法。
 
 \subsection{理论分析}
 
-在风险中性测度下，股价服从几何布朗运动 $dS_t = r S_t dt + \sigma S_t dW_t$，其 Euler-Maruyama 离散化为 $S_{t+\Delta t} = S_t + r S_t \Delta t + \sigma S_t \sqrt{\Delta t} Z$。折现的 payoff 过程 $e^{-rt}g(S_t)$ 本身不是鞅，但折现的 Snell 包络 $e^{-rt}V_t$ 是一个上鞅。
+\subsubsection*{Snell 包络与行权边界}
 
-LSM 算法在倒推过程中的每一步估计条件期望
-\begin{equation}
-  C(S_t) = \mathbb{E}[e^{-r\Delta t} V_{t+\Delta t} \mid S_t],
+将时间 $[0, T]$ 离散为 $N$ 步，步长 $\Delta t = T/N$。在离散时间下，美式期权的 Snell 包络递推为
+\begin{equation}\label{eq:snell_option}
+  V_n(S_n) = \max\Big\{g(S_n),\; e^{-r\Delta t} \cdot \mathbb{E}^{\mathbb{Q}}[V_{n+1}(S_{n+1}) \mid S_n]\Big\},
 \end{equation}
-具体方法是以 $S_t$ 为自变量、以折现的未来 payoff 为因变量做多项式回归。\textbf{OST 在此处的角色是结构性的}：它保证了``比较 continuation value 和 payoff 以决定是否行权''这一逻辑的数学合法性。若折现价值不是上鞅，则无法保证 continuation value 估计的一致性。
+其中 $V_N(s) = g(s)$（到期日只能行权或作废）。$e^{-r\Delta t} \mathbb{E}^{\mathbb{Q}}[V_{n+1} \mid S_n]$ 称为 continuation value（继续持有的折现期望价值）。折现过程 $\{e^{-r n\Delta t} V_n\}$ 是 $\mathbb{Q}$-上鞅——这是 OST 的核心推广：上鞅的停止定理保证任意停时下的期望不超过初始值，支持了``延续区域中等价，停止区域内行权''的最优决策。
 
-\subsection{数值模拟}
+最优行权策略由一个\textbf{停时边界} $S^*(t)$ 完全刻画：当 $S_t \leqslant S^*(t)$ 时（即期权深度 in-the-money），立即行权；当 $S_t > S^*(t)$ 时，继续持有。这一边界将 $(t, S)$ 平面划分为\emph{停时区域}和\emph{延续区域}。
 
-设置 $S_0=40, K=40, r=0.06, \sigma=0.2, T=1, N=50, M=30000$。
+\subsubsection*{Longstaff-Schwartz 算法}
 
-图~\ref{fig:ch06_paths} 展示了 15 条股价路径，红色圆点标记每条路径经 LSM 算法判定为最优行权的时刻。可以看到，多数路径在到期日之前即触发行权——这正是美式期权可提前行权的直观体现。
+LSM 算法的核心创新在于用最小二乘回归估计 continuation value。算法流程如下：
 
-图~\ref{fig:ch06_boundary} 展示了 $(t, S)$ 平面上的行权概率热力图，暖色表示高行权概率区域。可以清楚地看到一条行权边界：当股价低于该边界时（即深度 in-the-money），持有者倾向于立即行权；当股价高于该边界时（out-of-the-money 或浅度 in-the-money），最优策略是继续持有等待。
+\begin{enumerate}
+  \item \textbf{前向模拟}：生成 $M$ 条独立的股价路径 $\{S_n^{(i)}\}_{n=0}^{N}$，$i = 1, \dots, M$，按式 \eqref{eq:gbm} 的 Euler-Maruyama 离散化递推：
+  \begin{equation}\label{eq:em}
+    S_{n+1}^{(i)} = S_n^{(i)} + r S_n^{(i)} \Delta t + \sigma S_n^{(i)} \sqrt{\Delta t} \cdot Z_n^{(i)}, \quad Z_n^{(i)} \stackrel{\text{iid}}{\sim} N(0, 1).
+  \end{equation}
+  \item \textbf{倒向递推}：从到期日 $n = N-1$ 倒推至 $n = 1$：
+  \begin{enumerate}
+    \item 筛选\emph{价内路径}：保留 $g(S_n^{(i)}) > 0$ 的路径索引集合 $\mathcal{I}_n$。
+    \item 计算这些路径上已实现的折现 payoff：$Y^{(i)} = e^{-r \Delta t} \cdot V_{n+1}^{(i)}$。
+    \item 以当前股价 $X^{(i)} = S_n^{(i)}$（$i \in \mathcal{I}_n$）为自变量，$Y^{(i)}$ 为因变量，做多项式回归（本文使用二阶多项式 $\beta_0 + \beta_1 S + \beta_2 S^2$）：
+    \begin{equation}\label{eq:lsm_reg}
+      \hat{C}(s) = \hat{\beta}_0 + \hat{\beta}_1 s + \hat{\beta}_2 s^2.
+    \end{equation}
+    回归系数 $\hat{\beta}$ 通过普通最小二乘法获得。
+    \item 比较：若 $g(S_n^{(i)}) > \hat{C}(S_n^{(i)})$，则在时刻 $n$ 行权，$V_n^{(i)} = g(S_n^{(i)})$；否则继续持有，$V_n^{(i)} = Y^{(i)}$。
+  \end{enumerate}
+  \item \textbf{定价}：美式期权价格的 Monte Carlo 估计为
+  \begin{equation}\label{eq:lsm_price}
+    \hat{V}_0 = \frac{1}{M} \sum_{i=1}^{M} e^{-r \tau^{(i)} \Delta t} \cdot g(S_{\tau^{(i)}}^{(i)}),
+  \end{equation}
+  其中 $\tau^{(i)}$ 为第 $i$ 条路径上 LSM 算法判定的最优停时指数。
+\end{enumerate}
 
-图~\ref{fig:ch06_price} 比较了美式（LSM）和欧式（Black-Scholes 公式）看跌期权的价格随初始股价的变化。美式期权价格始终高于或等于欧式期权，两者之差即为\emph{提前行权溢价}——这是最优停时策略相对于固定行权时间的价值。在 deep in-the-money 区域（$S_0 \ll K$），两者都接近 payoff 函数。
+\textbf{回归基函数的选择}是 LSM 算法的关键设计决策。Longstaff 和 Schwartz 的原始论文指出，仅需少数几个基函数（如常数项、$S$、$S^2$）就能给出良好的近似，因为 continuation value 作为 $S$ 的函数是充分光滑的（它满足 Black-Scholes 偏微分方程）。本文采用二阶多项式作为基函数。
+
+\textbf{OST 在 LSM 中的结构性角色}需要特别阐明：OST 并不直接用于导出美式期权的定价公式，但它是整个 Snell 包络理论合法性的基石。折现 Snell 包络 $\{e^{-r n \Delta t} V_n\}$ 是一个上鞅（由定义 $V_n = \max(g, e^{-r\Delta t} \mathbb{E}[V_{n+1} \mid \mathcal{F}_n]) \geqslant e^{-r\Delta t} \mathbb{E}[V_{n+1} \mid \mathcal{F}_n]$ 可直接验证）；上鞅的停止定理保证了在任意停时 $\tau$ 下，停止后的折现期望 $\mathbb{E}[e^{-r\tau} V_\tau]$ 不超过初始值——这是``比较 continuation value 和立即行权 payoff 以做最优决策''这一逻辑的数学依据。
+
+\subsection{数值实验设计与参数设置}
+
+实验参数设置如下：初始股价 $S_0 \in [36, 44]$（17 个取值），执行价 $K = 40$，无风险利率 $r = 6\%$，波动率 $\sigma = 20\%$，到期时间 $T = 1$ 年，时间步数 $N = 50$（步长 $\Delta t = 0.02$），模拟路径数 $M = 30000$，随机种子 42。欧式看跌期权的基准价格由 Black-Scholes 公式直接计算：
+\begin{equation}\label{eq:bs_put}
+  P_{\text{Eur}} = K e^{-rT} \Phi(-d_2) - S_0 \Phi(-d_1),
+\end{equation}
+其中 $d_{1,2} = [\ln(S_0/K) + (r \pm \sigma^2/2)T] / (\sigma\sqrt{T})$，$\Phi$ 为标准正态分布函数。
+
+\subsection{结果与讨论}
+
+\textbf{图~\ref{fig:ch06_paths}} 展示了 15 条几何布朗运动股价路径及 LSM 算法判定的最优行权时刻（红色圆点）。可以看到，LSM 判定的大多数行权发生在到期日之前——这是美式期权可提前行权的直接体现。行权时刻集中在股价显著低于执行价 $K = 40$ 的区域（即深度 in-the-money），此时继续等待的时间价值可能小于立即锁定收益的价值。而股价高于 $K$ 的路径（out-of-the-money）则自然选择不行权，最终在到期日放弃（payoff = 0）。
+
+\textbf{图~\ref{fig:ch06_boundary}} 以热力图的形式展示了 $(t, S)$ 平面上各位置被 LSM 算法判定为``行权''的频率。颜色从深蓝（行权概率接近 0，即延续区域）渐变至深红（行权概率接近 1，即停时区域）。可以清晰地看到一条分界线：在股价较低的区域（大约 $S \lessapprox 34$--$36$），行权概率高；在股价较高的区域，行权概率低。这条分界线并非垂直的——它在靠近到期日（$t \to 1$）时上移，意味着越接近到期日，持有者越愿意在相对高的股价水平行权（因为剩下的时间价值已经有限）。
+
+\textbf{图~\ref{fig:ch06_price}} 比较了美式（LSM Monte Carlo）和欧式（Black-Scholes 公式）看跌期权的价格随初始股价的变化。三条线/数据分别为：（1）美式 LSM 价格（蓝色圆点 + 95\% CI）——30000 条路径的估计结果，置信区间极窄，表明 Monte Carlo 精度很高；（2）欧式 Black-Scholes 价格（红色实线）；（3）立即行权 payoff $\max(K - S_0, 0)$（灰色虚线）——期权内在价值的下界。
+
+美式期权价格在所有 $S_0$ 取值下均不低于欧式期权价格——两者之差即为\emph{提前行权溢价}（early exercise premium）。在 deep in-the-money 区域（$S_0 \leqslant 37$），美式和欧式期权价格都接近 payoff 曲线，因为此时几乎可以确定期权会在到期日被执行，提前行权的额外价值相对较小。在 at-the-money 附近（$S_0 \approx 40$），美式期权的溢价最大（约 $2.32$ vs $2.07$，溢价约 12\%），因为此时不确定性最高，等待的选择权价值最大，提前行权的灵活性也最有价值。在 deep out-of-the-money 区域（$S_0 \geqslant 43$），两者都趋近于零。
 
 \begin{figure}[ht]
   \centering
   \includegraphics[width=\linewidth]{ch06_paths}
-  \caption{几何布朗运动股价路径与 LSM 判定行权时刻。}
+  \caption{几何布朗运动股价路径与 LSM 判定行权时刻（$S_0 = 40, K = 40$）。红色圆点标记 LSM 算法判定的最优行权位置。多数行权发生在股价低于执行价（in-the-money）且离到期日尚有一段时间时。水平虚线标记执行价 $K$。}
   \label{fig:ch06_paths}
 \end{figure}
 
 \begin{figure}[ht]
   \centering
   \includegraphics[width=\linewidth]{ch06_boundary}
-  \caption{美式看跌期权行权边界热力图。暖色=高行权概率，冷色=低行权概率。}
+  \caption{美式看跌期权的行权概率热力图。颜色越暖表示该位置被 LSM 判定为行权的概率越高。行权边界清晰可辨：股价低于约 $34$--$36$ 时为停时区域（高行权概率），高于此区间时为延续区域（低行权概率）。边界在靠近到期日（$t \to 1$）时向上弯曲，因为剩余时间价值减少。}
   \label{fig:ch06_boundary}
 \end{figure}
 
 \begin{figure}[ht]
   \centering
   \includegraphics[width=\linewidth]{ch06_price}
-  \caption{美式 vs 欧式看跌期权价格对比。美式价格始终高于欧式，差值为提前行权溢价。}
+  \caption{美式（LSM）与欧式（Black-Scholes）看跌期权价格对比。蓝色圆点为 LSM Monte Carlo 估计（$M = 30000$，$N = 50$），误差棒极小（95\% CI）。红色实线为欧式 BS 公式。灰色虚线为立即行权 payoff。美式期权在所有 $S_0$ 处均高于欧式期权，差额即为提前行权溢价。}
   \label{fig:ch06_price}
 \end{figure}

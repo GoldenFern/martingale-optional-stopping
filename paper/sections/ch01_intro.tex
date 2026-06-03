@@ -3,40 +3,108 @@
 
 \subsection{研究背景}
 
-鞅（martingale）是现代概率论的核心概念之一。简单来说，一个随机过程若满足
+鞅（martingale）是概率论中最重要的概念之一，最早由 Paul L\'{e}vy 于 1934 年引入，后经 Joseph L. Doob 在 20 世纪 40--50 年代系统发展，成为现代随机过程理论的基石。鞅刻画了直观上的``公平博弈''：设一个赌徒在第 $n$ 局结束后的财富为 $X_n$，若赌局公平，则在已知前 $n$ 局全部信息 $\mathcal{F}_n$ 的条件下，下一局后财富的条件期望应等于当前财富：
 \begin{equation}
-  \mathbb{E}[X_{t} \mid \mathcal{F}_s] = X_s, \quad \forall s < t,
+  \mathbb{E}[X_{n+1} \mid \mathcal{F}_n] = X_n.
 \end{equation}
-则称为鞅。鞅刻画了``公平博弈''：在已有信息的条件下，未来的期望值等于当前值。
+满足这一性质的随机过程即为鞅。需要强调的是，鞅是一类非常广泛的随机过程：独立同分布零均值随机变量的部分和、布朗运动、补偿泊松过程、Doob 鞅（$\mathbb{E}[X \mid \mathcal{F}_t]$ 的形式）等均为鞅。
 
-可选停止定理（Optional Stopping Theorem，OST）是鞅论中最深刻的结果之一。它指出：在适当的条件下，即使在一个随机停时 $\tau$ 处停止鞅过程，其期望仍然保持不变，即 $\mathbb{E}[X_\tau] = \mathbb{E}[X_0]$。然而，这些条件并非总是成立。当停时无界、过程无界或增量无界时，OST 可能失效。
+可选停止定理（Optional Stopping Theorem，OST）是鞅论中最深刻的结果之一，由 Doob 在其 1953 年的经典著作中首次完整给出\cite{williams1991probability}。OST 的核心陈述是：在适当的正则条件下，即使在一个随机停时 $\tau$ 处停止鞅过程，其期望仍然不变：
+\begin{equation}
+  \mathbb{E}[X_\tau] = \mathbb{E}[X_0].
+\end{equation}
+这一结论具有广泛的应用：从赌徒破产问题\cite{钱敏平2021随机过程论}到序贯假设检验（Wald 的序贯概率比检验）、从美式期权定价\cite{longstaff2001valuing}到种群遗传学中基因频率的固定概率\cite{moran1958random}，OST 提供了将这些看似不同的问题统一在同一数学框架下的工具。
 
-本文通过数值模拟方法，选取五个典型随机过程模型，系统验证和探索 OST 在不同条件下的表现，揭示其有效性的边界。
+然而，OST 并非无条件成立。Doob 给出了三个充分条件中的任何一个都可保证 OST 成立：（1）停时 $\tau$ 几乎必然有界；（2）在停时前的整个过程 $|X_{t \wedge \tau}|$ 几乎必然有界；（3）$\mathbb{E}[\tau] < \infty$ 且增量 $|X_t - X_{t-1}|$ 一致有界。当这三个条件全部不满足时，OST 可能失效——对称随机游走在单边首达时 $\tau = \inf\{n: S_n = +1\}$ 处的行为是这一失效的经典反例：$\tau$ 几乎必然有限，但 $\mathbb{E}[S_\tau] = 1 \neq 0 = \mathbb{E}[S_0]$。失效的深层原因在于一致可积性（uniform integrability）的缺失——被停过程 $\{X_{n \wedge \tau}\}$ 在 $\tau$ 无界时可能``泄漏''概率质量，使极限与期望无法交换。
 
-\subsection{理论基础}
+近年来，随着计算机性能的提升，Monte Carlo 数值模拟为研究 OST 在不同条件下的行为提供了强有力的工具。通过生成大量独立样本路径，可以以高精度估计 $\mathbb{E}[X_\tau]$，并与理论预测进行对比。更重要的是，数值模拟可以直观地展示 OST 失效的微观机制——例如单边停时下路径可以``先任意深地走负再回来''——这是纯解析推导难以传达的洞见。
 
-\begin{definition}[鞅]
-设 $\{X_t, t \in \mathbb{T}\}$ 为 $\{\mathcal{F}_t\}$-适应过程，若对任意 $s < t$，有 $\mathbb{E}[|X_t|] < \infty$ 且 $\mathbb{E}[X_t \mid \mathcal{F}_s] = X_s$，则称其为鞅。
-\end{definition}
+本文选取五个具有代表性的随机过程模型，逐一进行数值研究：Moran 种群遗传过程（OST 完美成立）、Cram\'{e}r-Lundberg 保险破产模型（需构造指数鞅）、赌徒破产过程（OST 条件失效分析）、秘书问题（引出 Snell 包络的最优停时理论）、以及美式期权定价（Longstaff-Schwartz Monte Carlo 算法）。这五个模型形成了一个从``OST 直接成立''到``OST 不适用，需要更一般的最优停时框架''的完整谱系。
 
-\begin{definition}[停时]
-随机变量 $\tau$ 取值于 $\mathbb{T} \cup \{+\infty\}$，若对任意 $t \in \mathbb{T}$，有 $\{\tau \leqslant t\} \in \mathcal{F}_t$，则称 $\tau$ 为停时。
-\end{definition}
+\subsection{理论准备}
 
-\begin{theorem}[可选停止定理]
-设 $\{X_t\}$ 为鞅，$\tau$ 为停时。若以下三个条件之一成立：
+\subsubsection{鞅与停时}
+
+设 $(\Omega, \mathcal{F}, \mathbb{P})$ 为概率空间，$\{\mathcal{F}_t\}_{t \in \mathbb{T}}$ 为单调递增的 $\sigma$-代数流（即信息流）。$\mathbb{T}$ 为时间参数空间，可以是 $\mathbb{N} = \{0,1,2,\dots\}$（离散时间）或 $[0, \infty)$（连续时间）。
+
+\begin{definition}[鞅]\label{def:mg}
+称 $\{\mathcal{F}_t\}$-适应过程 $\{X_t\}_{t \in \mathbb{T}}$ 为鞅（martingale），若：
 \begin{enumerate}[noitemsep]
-  \item $\tau$ 几乎必然有界；
-  \item $|X_{t \wedge \tau}|$ 几乎必然有界；
-  \item $\mathbb{E}[\tau] < \infty$ 且增量 $|X_t - X_{t-1}|$ 有界，
+  \item $\mathbb{E}[|X_t|] < \infty$ 对所有 $t \in \mathbb{T}$ 成立；
+  \item 对任意 $s < t$，$\mathbb{E}[X_t \mid \mathcal{F}_s] = X_s$（几乎必然）。
 \end{enumerate}
-则 $\mathbb{E}[X_\tau] = \mathbb{E}[X_0]$。
+若 $\mathbb{E}[X_t \mid \mathcal{F}_s] \geqslant X_s$，则称为下鞅（submartingale）；若 $\leqslant$，则称为上鞅（supermartingale）。
+\end{definition}
+
+对于离散时间 $\mathbb{T} = \mathbb{N}$，鞅性质等价于对任意 $n \geqslant 1$ 有 $\mathbb{E}[X_n \mid \mathcal{F}_{n-1}] = X_{n-1}$。常见的鞅例子包括：
+\begin{itemize}[noitemsep]
+  \item 独立零均值随机变量的部分和：$S_n = \sum_{k=1}^{n} \xi_k$，$\mathbb{E}[\xi_k] = 0$；
+  \item 独立增量平方的补偿和：$S_n^2 - \sum_{k=1}^{n} \mathbb{E}[\xi_k^2]$；
+  \item Doob 鞅：$X_t = \mathbb{E}[X \mid \mathcal{F}_t]$，其中 $X$ 为可积随机变量；
+  \item Wald 鞅：$W_n = (\phi(\lambda))^{-n} \exp\{\lambda S_n\}$，其中 $\phi(\lambda) = \mathbb{E}[e^{\lambda \xi_1}]$；
+  \item 布朗运动相关鞅：$B_t$，$B_t^2 - t$，$\exp(\lambda B_t - \frac{1}{2}\lambda^2 t)$。
+\end{itemize}
+
+\begin{definition}[停时]\label{def:stopping}
+取值于 $\mathbb{T} \cup \{+\infty\}$ 的随机变量 $\tau$ 称为 $\{\mathcal{F}_t\}$-停时（stopping time），若对任意 $t \in \mathbb{T}$，$\{\tau \leqslant t\} \in \mathcal{F}_t$。即``是否已经停止''这一事件仅依赖于到当前时刻为止的信息。
+\end{definition}
+
+停时的典型例子包括：$\tau \equiv t_0$（固定时刻）、$\tau = \inf\{t: X_t \geqslant a\}$（首达时）、$\tau = \inf\{t: X_t \notin (a, b)\}$（首出时）。对停时 $\tau$，定义被停过程（stopped process）$X_t^\tau = X_{t \wedge \tau}$。
+
+\subsubsection{可选停止定理}
+
+\begin{theorem}[可选停止定理 --- Doob]\label{thm:ost}
+设 $\{X_t\}$ 为鞅，$\tau$ 为停时。若以下三个条件之一成立，则 $\mathbb{E}[X_\tau] = \mathbb{E}[X_0]$：
+\begin{enumerate}[noitemsep]
+  \item $\tau$ 几乎必然有界，即存在常数 $K$ 使 $\mathbb{P}(\tau \leqslant K) = 1$；
+  \item $\{X_{t \wedge \tau}\}$ 有界，即存在常数 $M$ 使 $|X_{t \wedge \tau}| \leqslant M$ 几乎必然对所有 $t$ 成立；
+  \item $\mathbb{E}[\tau] < \infty$，且存在常数 $C$ 使 $\mathbb{E}[|X_{t+1} - X_t| \mid \mathcal{F}_t] \leqslant C$ 在 $\{\tau > t\}$ 上成立。
+\end{enumerate}
 \end{theorem}
 
-\subsection{数值方法}
+\textbf{证明（离散时间情形，条件 1）。} 设 $\tau \leqslant K$ 几乎必然。利用指示分解 $\mathbf{1}_{\{\tau < n\}} + \mathbf{1}_{\{\tau \geqslant n\}} = 1$：
+\begin{align}
+  \mathbb{E}[X_{\tau \wedge n}]
+  &= \mathbb{E}\Bigg[X_{\tau \wedge n} \Bigg(\sum_{k=0}^{n-1} \mathbf{1}_{\{\tau = k\}} + \mathbf{1}_{\{\tau \geqslant n\}}\Bigg)\Bigg] \\
+  &= \sum_{k=0}^{n-1} \mathbb{E}[X_k \mathbf{1}_{\{\tau = k\}}] + \mathbb{E}[X_n \mathbf{1}_{\{\tau \geqslant n\}}].
+\end{align}
+由于 $\{\tau = k\} \in \mathcal{F}_k$ 且 $\{X_n\}$ 为鞅，$\mathbb{E}[X_n \mid \mathcal{F}_k] = X_k$，故 $\mathbb{E}[X_n \mathbf{1}_{\{\tau = k\}}] = \mathbb{E}[X_k \mathbf{1}_{\{\tau = k\}}]$。代入得
+\begin{equation}
+  \mathbb{E}[X_{\tau \wedge n}] = \sum_{k=0}^{n} \mathbb{E}[X_n \mathbf{1}_{\{\tau = k\}}] = \mathbb{E}[X_n].
+\end{equation}
+当 $n$ 很大时 $X_{\tau \wedge n} = X_\tau$（因 $\tau \leqslant K$），取 $n \geqslant K$ 即得 $\mathbb{E}[X_\tau] = \mathbb{E}[X_n] = \mathbb{E}[X_0]$。\hfill $\square$
 
-本文统一采用 Monte Carlo 方法：对每个模型生成大量独立样本路径，记录每条路径在停时处的过程值，以样本均值估计 $\mathbb{E}[X_\tau]$，并给出 95\% 置信区间。所有代码以 Python 实现，绘图以 Matplotlib 完成。
+条件 2 和 3 的证明分别依赖有界收敛定理和 Wald 引理。这三个条件本质上共同保证了一致可积性（uniform integrability）——即极限与期望可以交换：
+\begin{equation}
+  \lim_{n \to \infty} \mathbb{E}[X_{\tau \wedge n}] = \mathbb{E}\Big[\lim_{n \to \infty} X_{\tau \wedge n}\Big] = \mathbb{E}[X_\tau].
+\end{equation}
+当一致可积性缺失时，被停过程的极限虽然几乎必然存在，但``概率质量''在未停止的路径上可能集中于极端值，破坏期望等式。
 
-\subsection{论文结构}
+\subsubsection{经典的 OST 反例}
 
-第二章至第六章分别研究五个模型：Moran 种群遗传过程（OST 完美成立）、Cramér-Lundberg 保险破产模型（需构造指数鞅）、赌徒破产过程（OST 条件失效分析）、秘书问题（引出 Snell 包络理论）、美式期权定价（LSM 算法）。第七章为全文总结。
+考虑对称随机游走 $S_n = \sum_{i=1}^{n} \eta_i$，$\eta_i = \pm 1$ 各概率 $1/2$，$S_0 = 0$。令 $\tau = \inf\{n: S_n = +1\}$。一维随机游走的常返性保证 $\tau < \infty$ 几乎必然。然而：
+\begin{itemize}[noitemsep]
+  \item $\tau$ 无界：对任意 $K$，存在正概率使 $\tau > K$——游走可以在达到 $+1$ 之前长时间在负半轴游荡。
+  \item $S_{n \wedge \tau}$ 无界：在 $\tau$ 之前，$S_n$ 可以取任意大的负值。
+  \item $\mathbb{E}[\tau] = \infty$：首达时期望为无穷（因停时分布的重尾性，$P(\tau > t) \sim 1/\sqrt{\pi t}$）。
+\end{itemize}
+因此三个充分条件全部失效。事实上 $S_\tau \equiv 1$ 以概率 1 成立，故 $\mathbb{E}[S_\tau] = 1 \neq 0 = \mathbb{E}[S_0]$。
+
+这一反例正是本文第四章数值研究的核心。
+
+\subsection{数值模拟方法论}
+
+本文统一采用 Monte Carlo 方法进行数值实验。对每个模型，基本流程如下：
+\begin{enumerate}[noitemsep]
+  \item 对模型参数进行设置（包括初始状态、边界条件等）；
+  \item 独立生成 $M$ 条样本路径，每条路径模拟至停时触发或达到预设的最大步数/时间；
+  \item 记录每条路径的停时 $\tau^{(i)}$ 和停时处的过程值 $X_{\tau^{(i)}}$；
+  \item 计算 $\mathbb{E}[X_\tau]$ 的 Monte Carlo 估计 $\hat{\mu} = \frac{1}{M} \sum_{i=1}^{M} X_{\tau^{(i)}}$，标准误 $\text{SE} = \hat{\sigma} / \sqrt{M}$（$\hat{\sigma}$ 为样本标准差）；
+  \item 以 $\hat{\mu} \pm 1.96 \times \text{SE}$ 构造 95\% 渐进置信区间。
+\end{enumerate}
+
+对于需要参数扫描的实验（如破产概率随初始资本的变化），对每个参数值重复上述过程。所有代码以 Python 3.13 编写，数值计算依赖 NumPy 和 SciPy，图形绘制使用 Matplotlib。代码采用面向对象架构：\texttt{core/} 模块提供抽象的 \texttt{Martingale}、\texttt{StoppingTime} 和 \texttt{MonteCarloSimulation} 基类，各章节代码通过继承和组合复用，避免重复实现。完整代码随论文附于项目仓库中。
+
+\subsection{章节安排}
+
+第二章至第六章依次研究五个模型，构成了 OST 从``完美成立''到``不再适用''的完整谱系：第二章的 Moran 模型展示 OST 在过程有界时无条件成立；第三章的保险破产模型展示如何通过指数变换构造辅助鞅来应用 OST（且只能得到上界而非等式）；第四章的赌徒破产模型展示 OST 三个充分条件全部失效时的反例行为；第五章的秘书问题展示 OST 为何不适用于最优停时问题，并引入 Snell 包络的统一框架；第六章的美式期权定价展示 Snell 包络的数值实现（Longstaff-Schwartz 算法）。第七章对全文进行总结和对比。

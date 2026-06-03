@@ -1,55 +1,109 @@
-\section{保险破产模型的破产概率}
+\section{保险破产模型与指数鞅}
 
 \subsection{背景介绍}
 
-保险精算的核心问题之一是评估保险公司的破产风险。Cramér-Lundberg 模型是描述保险盈余动态的经典随机模型：保险公司以恒定速率 $c$ 收取保费，索赔以强度为 $\lambda$ 的泊松过程到达，索赔额 $Y_i$ 独立同分布。时刻 $t$ 的盈余为
-\begin{equation}
-  U_t = u + ct - \sum_{i=1}^{N_t} Y_i,
+保险公司的基本商业模式依赖于大数定律：向大量投保人收取保费，对冲少数人的索赔风险。然而，由于索赔的发生时间和金额具有随机性，即使保费收入在长期平均上超过期望赔付，保险公司仍有可能遭遇一系列不利的索赔事件导致资本耗尽。评估这一``破产''风险是精算学的核心问题之一。Cram\'{e}r 和 Lundberg 在 20 世纪初期独立提出了描述保险盈余动态的经典数学模型\cite{asmussen2010ruin}，至今仍然是破产理论的基础框架。
+
+模型假设如下：（1）保费以恒定速率 $c > 0$ 连续流入；（2）索赔事件按强度为 $\lambda > 0$ 的泊松过程 $\{N_t\}_{t \geqslant 0}$ 发生；（3）第 $i$ 次索赔金额 $Y_i$ 独立同分布，与索赔到达过程独立，均值为 $\mu = \mathbb{E}[Y]$；（4）初始资本为 $u > 0$。时刻 $t$ 的盈余为
+\begin{equation}\label{eq:surplus}
+  U_t = u + c t - \sum_{i=1}^{N_t} Y_i.
 \end{equation}
-其中 $u > 0$ 为初始资本。破产时刻定义为 $\tau = \inf\{t > 0: U_t < 0\}$，破产概率为 $\psi(u) = P(\tau < \infty \mid U_0 = u)$。
+盈余过程的典型形态是``线性上升 + 随机跳跃下跌''。破产（ruin）定义为 $\tau = \inf\{t > 0: U_t < 0\}$，即盈余首次为负的时刻。核心问题是破产概率 $\psi(u) = \mathbb{P}(\tau < \infty \mid U_0 = u)$——初始资本为 $u$ 时最终破产的概率。
 
 \subsection{理论分析}
 
-盈余过程 $U_t$ 本身不是鞅——在安全负荷条件 $c > \lambda \mathbb{E}[Y]$ 下，它具有正的漂移。然而，通过指数变换可以构造一个鞅。设 $M_Y(r) = \mathbb{E}[e^{rY}]$ 为索赔额的矩母函数。寻找调整系数 $R > 0$ 使得
-\begin{equation}
-  \lambda(M_Y(R) - 1) = Rc.
+\subsubsection*{安全负荷条件}
+
+保险公司的长期期望盈余变化率为 $\mathbb{E}[U_t - u]/t = c - \lambda \mu$。若 $c \leqslant \lambda \mu$（保费收入不足以覆盖期望赔付，即``安全负荷''为零或负），则由强大数定律可证破产概率为 1——公司最终必然破产。因此我们始终假设安全负荷条件成立：
+\begin{equation}\label{eq:safety}
+  c > \lambda \mu, \quad \text{定义安全负荷系数}\ \theta = \frac{c}{\lambda \mu} - 1 > 0.
 \end{equation}
-可以验证 $M_t = e^{-R U_t}$ 是一个鞅。对停时 $\tau$（破产时刻）应用 OST，在适当的条件下可得 Lundberg 不等式：
+在安全负荷条件下，$U_t$ 具有向上的期望漂移，$\mathbb{E}[U_t] = u + (c - \lambda\mu)t$ 随时间线性增长。然而，$U_t$ 不是鞅——它的期望随时间增加。
+
+\subsubsection*{指数鞅构造}
+
+为应用 OST，我们需要一个与盈余过程相关的鞅。关键技巧是取指数变换。令 $M_t = e^{-r U_t}$，计算其期望：
+\begin{align}
+  \mathbb{E}[M_t] &= \mathbb{E}[e^{-r(u + ct - \sum_{i=1}^{N_t} Y_i)}] \notag\\
+  &= e^{-ru - rct} \cdot \mathbb{E}[e^{r \sum_{i=1}^{N_t} Y_i}].
+\end{align}
+由于 $N_t \sim \text{Poisson}(\lambda t)$ 且索赔独立，利用复合泊松分布的矩母函数：
 \begin{equation}
-  \psi(u) \leqslant e^{-Ru}.
+  \mathbb{E}[e^{r \sum_{i=1}^{N_t} Y_i}] = \exp\{\lambda t (\mathbb{E}[e^{r Y}] - 1)\} = \exp\{\lambda t (M_Y(r) - 1)\},
 \end{equation}
-与赌徒破产不同，此处停时是单边的——只有下界（破产线），没有上界——因此 OST 不能给出等式，只能给出上界。对于指数索赔 $Y \sim \text{Exp}(1/\mu)$，破产概率存在精确解：
+其中 $M_Y(r) = \mathbb{E}[e^{r Y}]$ 为索赔额的矩母函数。代入得
 \begin{equation}
-  \psi(u) = \frac{1}{1+\theta} \exp\left(-\frac{\theta u}{\mu(1+\theta)}\right), \quad \theta = \frac{c}{\lambda\mu} - 1.
+  \mathbb{E}[M_t] = e^{-ru} \cdot \exp\{t[\lambda(M_Y(r) - 1) - rc]\}.
 \end{equation}
+若存在 $r > 0$ 使指数项 $\lambda(M_Y(r) - 1) - r c = 0$，则 $\mathbb{E}[M_t] = e^{-ru}$ 为常数，且可进一步验证 $M_t$ 是一个鞅（利用泊松过程的独立增量性和指数函数的可乘性）。这个特殊的 $r$ 被称为调整系数（adjustment coefficient），记为 $R$。$R$ 满足方程
+\begin{equation}\label{eq:lundberg_eq}
+  \lambda(M_Y(R) - 1) = R c.
+\end{equation}
+在安全负荷条件 $c > \lambda\mu$ 下，函数 $f(r) = \lambda(M_Y(r) - 1) - r c$ 满足 $f(0)=0$、$f'(0) = \lambda \mathbb{E}[Y] - c < 0$，且当 $r$ 趋于 $M_Y$ 的收敛半径时 $f(r) \to +\infty$。故存在唯一的正根 $R > 0$。
 
-\subsection{数值模拟}
+\subsubsection*{Lundberg 不等式的 OST 推导}
 
-设置 $\lambda=1, \mu=1, \theta=0.2$（即 $c=1.2$），对每个初始资本 $u \in \{0, 1, \dots, 20\}$ 模拟 50000 条路径至 $T=100$ 或破产。
+考虑截断停时 $\tau \wedge T$（有界停时，OST 无条件成立），对鞅 $M_t = e^{-R U_t}$ 应用 OST：
+\begin{equation}
+  \mathbb{E}[e^{-R U_{\tau \wedge T}}] = M_0 = e^{-R u}.
+\end{equation}
+取期望的下界：
+\begin{align}
+  e^{-R u} &= \mathbb{E}[e^{-R U_{\tau \wedge T}}] \notag\\
+  &\geqslant \mathbb{E}[e^{-R U_{\tau \wedge T}} \mathbf{1}_{\{\tau \leqslant T\}}] \notag\\
+  &\geqslant \mathbb{E}[\mathbf{1}_{\{\tau \leqslant T\}}] = \mathbb{P}(\tau \leqslant T),
+\end{align}
+其中第一个不等式成立是因为 $e^{-R U_{\tau \wedge T}} \geqslant 0$ 且我们截取了 $\{\tau \leqslant T\}$ 上的积分；第二步利用了 $\tau \leqslant T$ 时 $U_\tau < 0$（破产），因此 $e^{-R U_\tau} \geqslant e^{-R \cdot 0} = 1$（因 $R > 0$ 且 $U_\tau$ 在破产瞬间略小于 0，严格不等但在极限下趋于 1）。令 $T \to \infty$，由单调收敛定理得
+\begin{equation}\label{eq:lundberg}
+  \boxed{\psi(u) = \mathbb{P}(\tau < \infty) \leqslant e^{-R u}}.
+\end{equation}
+这就是著名的 Lundberg 不等式：破产概率以指数速率随初始资本衰减。初始资本每增加一个单位，破产概率的上界缩小一个固定因子 $e^{-R}$。
 
-图~\ref{fig:ch03_paths} 展示了 15 条盈余轨迹。红色路径表示最终破产，灰色路径存活。每条路径呈现``线性上升 + 随机跳跃''的特征，水平虚线 $U=0$ 为破产线。
+这里有一个值得注意的技术细节：与第二章 Moran 模型中 OST 直接给出等式不同，此处 OST 只能给出不等式。原因在于破产是单边吸收（只有下界，没有上界），无法像双边吸收问题那样通过两个边界值的线性组合解出精确概率。从 OST 推导等式需要知道 $U_\tau$ 在破产时刻的精确分布（称为``破产赤字''分布），这通常没有简单的闭式解。
 
-图~\ref{fig:ch03_ruin}（半对数坐标）比较了 Monte Carlo 破产概率、Lundberg 指数上界和精确解。Monte Carlo 结果与精确解基本重合，且始终低于 Lundberg 上界，验证了指数鞅构造的正确性和 OST 推导的有效性。
+\subsubsection*{指数索赔分布的精确解}
 
-图~\ref{fig:ch03_martingale} 展示了同一条盈余路径及其对应的指数鞅 $M_t = e^{-RU_t}$。可以看到 $M_t$ 在没有破产的时间段内围绕其初始值波动（具有鞅的``无趋势''特征），直观地展示了指数变换如何将正向漂移的盈余过程转化为无漂移的鞅。
+当索赔额 $Y \sim \text{Exp}(1/\mu)$ 时，矩母函数为 $M_Y(r) = 1/(1 - \mu r)$（$r < 1/\mu$）。调整系数方程 $\lambda \cdot \frac{\mu R}{1 - \mu R} = R c$ 的解为
+\begin{equation}\label{eq:R_exp}
+  R = \frac{\theta}{\mu(1 + \theta)}.
+\end{equation}
+利用破产理论中更精细的分析方法（如更新方程或 Gerber-Shiu 函数），可以导出指数索赔下破产概率的精确解析表达式：
+\begin{equation}\label{eq:psi_exact}
+  \psi(u) = \frac{1}{1 + \theta} \exp\Bigg(-\frac{\theta u}{\mu (1 + \theta)}\Bigg).
+\end{equation}
+值得注意的是，$\psi(0) = 1/(1 + \theta) < 1$——即使没有初始资本，保险公司仍有正概率存活。这反映了泊松过程的性质：在破产发生前可能有幸``拖欠''了早期的索赔。随着 $u$ 增加，$\psi(u)$ 以指数速率衰减，其指数系数正是调整系数 $R$——验证了 Lundberg 上界的指数衰减速率是最优的（对于指数索赔而言甚至是紧的，即 Lundberg 上界恰等于精确解，因 $1/(1+\theta) < 1$ 且 $\exp(-R u) > \frac{1}{1+\theta} \exp(-R u)$；精确解与上界之间相差一个常数因子 $1/(1+\theta)$）。
+
+\subsection{数值实验设计与参数设置}
+
+实验设置索赔强度 $\lambda = 1$，索赔额服从指数分布 $Y \sim \text{Exp}(1)$（$\mu = 1$），安全负荷 $\theta = 0.2$（$c = 1.2$）。调整系数为 $R = \theta/(1+\theta) = 0.166667$。对每个初始资本 $u \in \{0, 1, \dots, 20\}$ 模拟 $M = 50000$ 条独立路径，每条路径模拟至时间 $T = 100$ 或触犯破产线。由于安全负荷为正，绝大多数破产事件（如果发生）会在较早的时间发生（破产概率随 $u$ 指数衰减），$T=100$ 足以捕获几乎所有破产事件。
+
+\subsection{结果与讨论}
+
+\textbf{图~\ref{fig:ch03_paths}} 展示了 15 条代表性的盈余轨迹。每条路径呈现``线性上升 + 偶发跳跃''的特征：保费收入推动盈余以速率 $c = 1.2$ 匀速增长，而随机到达的索赔（期望值 $\mathbb{E}[Y]=1$）不时将其下拉。在 15 条展示路径中有 3 条最终破产（红色 $\times$ 标记）。所有破产路径的共同特征是：在破产前经历了一连串密集且（或）大额的索赔，超过了线性保费收入的补偿能力。存活路径（灰色）则可以看到盈余在初始波动后稳定增长——安全负荷的长期效果使它们的期望盈余持续增加。
+
+\textbf{图~\ref{fig:ch03_ruin}} 以半对数坐标展示了破产概率随初始资本的变化。$y$ 轴为对数刻度，因此指数衰减的关系表现为一条直线。三条曲线/数据分别为：（1）Monte Carlo 估计（蓝色圆点 + 95\% 置信区间）——50000 条路径的模拟结果；（2）精确解（红色实线）——式 \eqref{eq:psi_exact} 的计算值；（3）Lundberg 上界（橙色虚线）——$e^{-R u}$。在 $u$ 较小的区域（$u \leqslant 10$），Monte Carlo 估计与精确解吻合极好，置信区间紧致。在 $u$ 较大的区域（$u \geqslant 15$），破产概率极低（$\sim 10^{-2}$ 量级），50000 条路径可能只观测到极少数的破产事件甚至为零，导致 Monte Carlo 估计的统计误差相对增大；从图中可以看到在 $u = 20$ 处 MC 散点略低于精确曲线，这是小概率事件 Monte Carlo 估计的典型行为——若破产事件极少发生，样本破产比例可能低估真实概率。增加模拟路径数（如至 500000 条）可以在一定程度上减少这种低频偏差，但计算成本的增加是显著的。
+
+Lundberg 上界（橙色虚线）确实始终位于 Monte Carlo 估计和精确解之上，验证了指数鞅构造和 OST 推导的正确性。同时注意到上界与精确解之间存在一个近乎恒定的垂直距离（在半对数图中对应常数比值 $1/(1+\theta) = 0.8333$），这反映了单边停时下 OST 只能给不等式而非等式的技术限制。
+
+\textbf{图~\ref{fig:ch03_martingale}} 通过一条具体路径展示了盈余过程 $U_t$ 与对应指数鞅 $M_t = e^{-R U_t}$ 的关系。这条路径幸运地没有破产，可以看到 $U_t$ 随时间平均上升（正向漂移使 $\mathbb{E}[U_t] = u + 0.2t$），但 $M_t$ 作为一个真正的鞅，没有明显的趋势——它围绕初始值 $e^{-Ru}$ 上下波动。在没有破产的时段内，$M_t$ 的行为确实呈现鞅的特征：无漂移、无明显趋势、通过条件期望约束在未来价值的预期上。
 
 \begin{figure}[ht]
   \centering
   \includegraphics[width=\linewidth]{ch03_paths}
-  \caption{Cramér-Lundberg 盈余过程轨迹（$\theta=0.2$，15 条路径中 3 条破产）。}
+  \caption{Cram\'{e}r-Lundberg 盈余过程轨迹（$\theta = 0.2$，$u=5$，$T=50$）。红色路径为最终破产的样本（3/15），标记 $\times$ 指示破产时刻。灰色路径为存活样本。水平虚线 $U=0$ 为破产线。}
   \label{fig:ch03_paths}
 \end{figure}
 
 \begin{figure}[ht]
   \centering
   \includegraphics[width=\linewidth]{ch03_ruin_prob}
-  \caption{破产概率 vs 初始资本（半对数）。Monte Carlo + Lundberg 上界 + 精确解。}
+  \caption{破产概率的半对数图。Monte Carlo 估计（蓝色圆点，$M=50000$）与指数索赔精确解（红色实线，式 \eqref{eq:psi_exact}）在 $u \leqslant 10$ 区域高度吻合。Lundberg 上界（橙色虚线）始终位于两者之上，且在半对数图中与精确解保持近似恒定的垂直距离，反映了因子 $1/(1+\theta)$。}
   \label{fig:ch03_ruin}
 \end{figure}
 
 \begin{figure}[ht]
   \centering
   \includegraphics[width=\linewidth]{ch03_martingale}
-  \caption{盈余过程与对应的指数鞅 $M_t = e^{-R U_t}$。}
+  \caption{同一路径的盈余过程与对应指数鞅（$R = 0.1667$）。上子图：盈余 $U_t$ 随时间平均上升（正向漂移 $c - \lambda\mu = 0.2$）。下子图：指数鞅 $M_t = e^{-R U_t}$，无趋势，围绕初始值波动——展示了指数变换如何将一个带有漂移的过程转化为鞅。}
   \label{fig:ch03_martingale}
 \end{figure}
