@@ -1,0 +1,55 @@
+\section{保险破产模型的破产概率}
+
+\subsection{背景介绍}
+
+保险精算的核心问题之一是评估保险公司的破产风险。Cramér-Lundberg 模型是描述保险盈余动态的经典随机模型：保险公司以恒定速率 $c$ 收取保费，索赔以强度为 $\lambda$ 的泊松过程到达，索赔额 $Y_i$ 独立同分布。时刻 $t$ 的盈余为
+\begin{equation}
+  U_t = u + ct - \sum_{i=1}^{N_t} Y_i,
+\end{equation}
+其中 $u > 0$ 为初始资本。破产时刻定义为 $\tau = \inf\{t > 0: U_t < 0\}$，破产概率为 $\psi(u) = P(\tau < \infty \mid U_0 = u)$。
+
+\subsection{理论分析}
+
+盈余过程 $U_t$ 本身不是鞅——在安全负荷条件 $c > \lambda \mathbb{E}[Y]$ 下，它具有正的漂移。然而，通过指数变换可以构造一个鞅。设 $M_Y(r) = \mathbb{E}[e^{rY}]$ 为索赔额的矩母函数。寻找调整系数 $R > 0$ 使得
+\begin{equation}
+  \lambda(M_Y(R) - 1) = Rc.
+\end{equation}
+可以验证 $M_t = e^{-R U_t}$ 是一个鞅。对停时 $\tau$（破产时刻）应用 OST，在适当的条件下可得 Lundberg 不等式：
+\begin{equation}
+  \psi(u) \leqslant e^{-Ru}.
+\end{equation}
+与赌徒破产不同，此处停时是单边的——只有下界（破产线），没有上界——因此 OST 不能给出等式，只能给出上界。对于指数索赔 $Y \sim \text{Exp}(1/\mu)$，破产概率存在精确解：
+\begin{equation}
+  \psi(u) = \frac{1}{1+\theta} \exp\left(-\frac{\theta u}{\mu(1+\theta)}\right), \quad \theta = \frac{c}{\lambda\mu} - 1.
+\end{equation}
+
+\subsection{数值模拟}
+
+设置 $\lambda=1, \mu=1, \theta=0.2$（即 $c=1.2$），对每个初始资本 $u \in \{0, 1, \dots, 20\}$ 模拟 50000 条路径至 $T=100$ 或破产。
+
+图~\ref{fig:ch03_paths} 展示了 15 条盈余轨迹。红色路径表示最终破产，灰色路径存活。每条路径呈现``线性上升 + 随机跳跃''的特征，水平虚线 $U=0$ 为破产线。
+
+图~\ref{fig:ch03_ruin}（半对数坐标）比较了 Monte Carlo 破产概率、Lundberg 指数上界和精确解。Monte Carlo 结果与精确解基本重合，且始终低于 Lundberg 上界，验证了指数鞅构造的正确性和 OST 推导的有效性。
+
+图~\ref{fig:ch03_martingale} 展示了同一条盈余路径及其对应的指数鞅 $M_t = e^{-RU_t}$。可以看到 $M_t$ 在没有破产的时间段内围绕其初始值波动（具有鞅的``无趋势''特征），直观地展示了指数变换如何将正向漂移的盈余过程转化为无漂移的鞅。
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=\linewidth]{ch03_paths}
+  \caption{Cramér-Lundberg 盈余过程轨迹（$\theta=0.2$，15 条路径中 3 条破产）。}
+  \label{fig:ch03_paths}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=\linewidth]{ch03_ruin_prob}
+  \caption{破产概率 vs 初始资本（半对数）。Monte Carlo + Lundberg 上界 + 精确解。}
+  \label{fig:ch03_ruin}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=\linewidth]{ch03_martingale}
+  \caption{盈余过程与对应的指数鞅 $M_t = e^{-R U_t}$。}
+  \label{fig:ch03_martingale}
+\end{figure}

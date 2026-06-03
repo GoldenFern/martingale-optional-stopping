@@ -1,0 +1,52 @@
+\section{美式期权定价与 Longstaff-Schwartz 算法}
+
+\subsection{背景介绍}
+
+美式期权是 OST 和最优停时理论在金融中最经典的应用。与只能在到期日行权的欧式期权不同，美式期权的持有者可以在到期前的任意时刻行权。这使定价问题本质上成为一个最优停时问题：
+\begin{equation}
+  V_0 = \sup_{\tau \in [0, T]} \mathbb{E}^{\mathbb{Q}}\left[e^{-r\tau} g(S_\tau)\right],
+\end{equation}
+其中 $g(S) = \max(K-S, 0)$ 为看跌期权的 payoff，$\mathbb{Q}$ 为风险中性测度。在 $\mathbb{Q}$ 下，折现的 Snell 包络 $e^{-rt}V_t$ 是一个上鞅。
+
+Longstaff-Schwartz（LSM）算法是解决这一最优停时问题的经典数值方法。其核心思想是：用 Monte Carlo 模拟生成大量股价路径，从到期日倒推，在每个时间步用最小二乘回归估计 continuation value（继续持有的期望收益），与立即行权的 payoff 比较，从而逐步构建最优停时策略。
+
+\subsection{理论分析}
+
+在风险中性测度下，股价服从几何布朗运动 $dS_t = r S_t dt + \sigma S_t dW_t$，其 Euler-Maruyama 离散化为 $S_{t+\Delta t} = S_t + r S_t \Delta t + \sigma S_t \sqrt{\Delta t} Z$。折现的 payoff 过程 $e^{-rt}g(S_t)$ 本身不是鞅，但折现的 Snell 包络 $e^{-rt}V_t$ 是一个上鞅。
+
+LSM 算法在倒推过程中的每一步估计条件期望
+\begin{equation}
+  C(S_t) = \mathbb{E}[e^{-r\Delta t} V_{t+\Delta t} \mid S_t],
+\end{equation}
+具体方法是以 $S_t$ 为自变量、以折现的未来 payoff 为因变量做多项式回归。\textbf{OST 在此处的角色是结构性的}：它保证了``比较 continuation value 和 payoff 以决定是否行权''这一逻辑的数学合法性。若折现价值不是上鞅，则无法保证 continuation value 估计的一致性。
+
+\subsection{数值模拟}
+
+设置 $S_0=40, K=40, r=0.06, \sigma=0.2, T=1, N=50, M=30000$。
+
+图~\ref{fig:ch06_paths} 展示了 15 条股价路径，红色圆点标记每条路径经 LSM 算法判定为最优行权的时刻。可以看到，多数路径在到期日之前即触发行权——这正是美式期权可提前行权的直观体现。
+
+图~\ref{fig:ch06_boundary} 展示了 $(t, S)$ 平面上的行权概率热力图，暖色表示高行权概率区域。可以清楚地看到一条行权边界：当股价低于该边界时（即深度 in-the-money），持有者倾向于立即行权；当股价高于该边界时（out-of-the-money 或浅度 in-the-money），最优策略是继续持有等待。
+
+图~\ref{fig:ch06_price} 比较了美式（LSM）和欧式（Black-Scholes 公式）看跌期权的价格随初始股价的变化。美式期权价格始终高于或等于欧式期权，两者之差即为\emph{提前行权溢价}——这是最优停时策略相对于固定行权时间的价值。在 deep in-the-money 区域（$S_0 \ll K$），两者都接近 payoff 函数。
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=\linewidth]{ch06_paths}
+  \caption{几何布朗运动股价路径与 LSM 判定行权时刻。}
+  \label{fig:ch06_paths}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=\linewidth]{ch06_boundary}
+  \caption{美式看跌期权行权边界热力图。暖色=高行权概率，冷色=低行权概率。}
+  \label{fig:ch06_boundary}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=\linewidth]{ch06_price}
+  \caption{美式 vs 欧式看跌期权价格对比。美式价格始终高于欧式，差值为提前行权溢价。}
+  \label{fig:ch06_price}
+\end{figure}

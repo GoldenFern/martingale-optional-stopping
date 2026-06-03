@@ -1,0 +1,44 @@
+\section{赌徒破产：OST 条件失效}
+
+\subsection{背景介绍}
+
+赌徒破产问题是 OST 最经典的测试场。设对称随机游走 $S_n = \sum_{i=1}^{n} \eta_i$，其中 $\eta_i = \pm 1$ 各概率 $1/2$，$S_0=0$。$\{S_n\}$ 是一个鞅。考虑两种停时：（A）双边障碍 $\tau_{\text{two}} = \inf\{n: S_n = -a\ \text{或}\ S_n = +b\}$；（B）单边障碍 $\tau_{\text{one}} = \inf\{n: S_n = +b\}$。对于（A），OST 的三个充分条件全部满足（过程在停时前有界），$\mathbb{E}[S_{\tau_{\text{two}}}] = 0$。对于（B），三个条件全部失效——过程在停时前无下界、停时期望无限 $\mathbb{E}[\tau_{\text{one}}] = \infty$、停时无界。因此 OST 不适用，$\mathbb{E}[S_{\tau_{\text{one}}}] \neq 0$。
+
+\subsection{理论分析}
+
+对于双边障碍，由 OST 可得破产概率 $P_a = b/(a+b)$ 和 $\mathbb{E}[\tau_{\text{two}}] = ab$。
+
+对于单边障碍，$\tau_{\text{one}}$ 几乎必然有限（一维随机游走的常返性），但 $\mathbb{E}[\tau_{\text{one}}] = \infty$（重尾分布）。OST 失效的根本原因在于被停过程 $\{S_{n \wedge \tau_{\text{one}}}\}$ 并非一致可积：虽然每条路径最终都会碰到 $+b$，但在碰到之前可以任意深度地进入负值区域，期望下的``质量泄漏''阻止了 OST 的成立。具体来说，$S_{\tau_{\text{one}}} \equiv b$ 以概率 1 成立，故 $\mathbb{E}[S_{\tau_{\text{one}}}] = b \neq 0 = \mathbb{E}[S_0]$。
+
+为展示 OST 失效并非``突变''而是``渐变''，引入截断停时 $\tau_N = \min(\tau_{\text{one}}, N)$。对任意固定的 $N$，$\tau_N$ 有界，OST 重新成立，$\mathbb{E}[S_{\tau_N}] = 0$。但随着 $N \to \infty$，$\mathbb{E}[S_{\tau_N}]$ 缓慢地收敛到 $\mathbb{E}[S_{\tau_{\text{one}}}] = b$。
+
+\subsection{数值模拟}
+
+设置 $a=b=10$。
+
+图~\ref{fig:ch04_conv} 对比了双边和单边停时下 $\mathbb{E}[S_\tau]$ 的 Monte Carlo 估计随样本量的收敛行为。双边障碍下估计值快速收敛到 0（置信区间窄），而单边障碍下估计值始终远离 0。
+
+图~\ref{fig:ch04_trunc} 展示了截断偏误。随截断值 $N$ 从 $10^1$ 增至 $10^5$，$\mathbb{E}[S_{\tau \wedge N}]$ 从接近 0 缓慢漂移至接近 $b=10$。即使在 $N=10^5$ 时偏误仍然显著，直观展示了单边停时下 OST 失效的``顽固性''。
+
+图~\ref{fig:ch04_tail}（双对数坐标）比较了两种停时的尾部行为。双边停时的生存函数呈指数衰减（轻尾），而单边停时的生存函数 $\sim 1/\sqrt{\pi t}$（重尾）。重尾直接导致 $\mathbb{E}[\tau_{\text{one}}] = \infty$，是 OST 失效的微观原因。
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=\linewidth]{ch04_convergence}
+  \caption{$\mathbb{E}[S_\tau]$ 收敛对比：双边障碍快速收敛至 0，单边障碍锁定在远离 0 的值。}
+  \label{fig:ch04_conv}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=\linewidth]{ch04_truncation}
+  \caption{截断停时偏误：$\mathbb{E}[S_{\tau \wedge N}]$ 随 $N$ 从 0 漂移到 $b=10$。}
+  \label{fig:ch04_trunc}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=\linewidth]{ch04_tail}
+  \caption{停时尾部对比（双对数）。双边指数衰减 vs 单边重尾 $\sim 1/\sqrt{\pi t}$。}
+  \label{fig:ch04_tail}
+\end{figure}

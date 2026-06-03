@@ -1,0 +1,58 @@
+\section{Moran 模型的固定概率与停时}
+
+\subsection{背景介绍}
+
+Moran 模型是种群遗传学中描述有限种群基因频率随机漂变的经典模型。考虑一个包含 $N$ 个单倍体个体的种群，每个个体携带等位基因 A 或 a。每代进行两步操作：随机选取一个个体繁殖，再随机选取一个个体被替换。令 $X_n$ 表示第 $n$ 代中等位基因 A 的个数，状态空间为 $\{0, 1, \dots, N\}$，其中 0 和 $N$ 为吸收态（分别对应灭绝和固定）。
+
+\subsection{理论分析}
+
+一步转移下，$X_n$ 变化的概率为
+\begin{equation}
+  P(X_{n+1} = i+1 \mid X_n = i) = P(X_{n+1} = i-1 \mid X_n = i) = \frac{i(N-i)}{N^2}.
+\end{equation}
+直接计算条件期望得
+\begin{equation}
+  \mathbb{E}[X_{n+1} \mid X_n = i] = i + \frac{i(N-i)}{N^2} \cdot 1 + \frac{i(N-i)}{N^2} \cdot (-1) = i,
+\end{equation}
+故 $\{X_n\}$ 是一个鞅。
+
+定义停时 $\tau = \inf\{n \geqslant 0: X_n = 0\ \text{或}\ X_n = N\}$。由于 $|X_n| \leqslant N$ 且有界 Markov 链几乎必然在有限时间内被吸收，OST 的两个条件（过程有界、$\tau$ 几乎必然有限）均满足，因此 OST 严格成立：
+\begin{equation}
+  \mathbb{E}[X_\tau] = \mathbb{E}[X_0] = x_0.
+\end{equation}
+由 $X_\tau \in \{0, N\}$ 得固定概率
+\begin{equation}
+  P(\text{固定}) = \frac{x_0}{N}.
+\end{equation}
+同时，利用 $\{X_n^2\}$ 的 Doob 分解可求解停时期望 $\mathbb{E}[\tau]$（通过三对角线性方程组数值求解）。
+
+\subsection{数值模拟}
+
+设置 $N=100$，对不同初始频率 $x_0/N \in \{0.1, 0.2, \dots, 0.9\}$ 各模拟 5000 条独立路径。
+
+图~\ref{fig:ch02_paths} 展示了 10 条代表性基因频率轨迹（5 条固定、5 条灭绝）。可以看到每条路径呈现锯齿状随机漂变，最终被 0 或 1 吸收——这是有限种群中随机性本身产生的``遗传漂变''现象的直观表现。
+
+图~\ref{fig:ch02_fixation} 比较了 Monte Carlo 估计的固定概率与理论值 $y = x_0/N$。模拟结果与理论预测高度吻合，验证了 OST 在这一模型中无条件成立。
+
+图~\ref{fig:ch02_tau} 展示了 $x_0 = 50$ 时停时 $\tau$ 的经验分布。由于 Moran 过程的吸收时间近似服从指数分布（在大 $N$ 下），直方图呈现典型的指数衰减形态。对于 $N=100$，停时均值约为 7000 代。
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=\linewidth]{ch02_paths}
+  \caption{Moran 模型基因频率轨迹（$N=100$，初始频率 0.5）。蓝色路径最终固定，红色路径最终灭绝。}
+  \label{fig:ch02_paths}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=\linewidth]{ch02_fixation}
+  \caption{固定概率 vs 初始频率（$N=100$）。Monte Carlo 结果与理论线 $y = x_0/N$ 高度一致。}
+  \label{fig:ch02_fixation}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=\linewidth]{ch02_tau_dist}
+  \caption{Moran 模型停时分布（$N=100, x_0=50$），叠加指数分布拟合曲线。}
+  \label{fig:ch02_tau}
+\end{figure}

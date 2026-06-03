@@ -1,0 +1,42 @@
+\section*{第一章 绪论}
+\addcontentsline{toc}{section}{第一章 绪论}
+
+\subsection{研究背景}
+
+鞅（martingale）是现代概率论的核心概念之一。简单来说，一个随机过程若满足
+\begin{equation}
+  \mathbb{E}[X_{t} \mid \mathcal{F}_s] = X_s, \quad \forall s < t,
+\end{equation}
+则称为鞅。鞅刻画了``公平博弈''：在已有信息的条件下，未来的期望值等于当前值。
+
+可选停止定理（Optional Stopping Theorem，OST）是鞅论中最深刻的结果之一。它指出：在适当的条件下，即使在一个随机停时 $\tau$ 处停止鞅过程，其期望仍然保持不变，即 $\mathbb{E}[X_\tau] = \mathbb{E}[X_0]$。然而，这些条件并非总是成立。当停时无界、过程无界或增量无界时，OST 可能失效。
+
+本文通过数值模拟方法，选取五个典型随机过程模型，系统验证和探索 OST 在不同条件下的表现，揭示其有效性的边界。
+
+\subsection{理论基础}
+
+\begin{definition}[鞅]
+设 $\{X_t, t \in \mathbb{T}\}$ 为 $\{\mathcal{F}_t\}$-适应过程，若对任意 $s < t$，有 $\mathbb{E}[|X_t|] < \infty$ 且 $\mathbb{E}[X_t \mid \mathcal{F}_s] = X_s$，则称其为鞅。
+\end{definition}
+
+\begin{definition}[停时]
+随机变量 $\tau$ 取值于 $\mathbb{T} \cup \{+\infty\}$，若对任意 $t \in \mathbb{T}$，有 $\{\tau \leqslant t\} \in \mathcal{F}_t$，则称 $\tau$ 为停时。
+\end{definition}
+
+\begin{theorem}[可选停止定理]
+设 $\{X_t\}$ 为鞅，$\tau$ 为停时。若以下三个条件之一成立：
+\begin{enumerate}[noitemsep]
+  \item $\tau$ 几乎必然有界；
+  \item $|X_{t \wedge \tau}|$ 几乎必然有界；
+  \item $\mathbb{E}[\tau] < \infty$ 且增量 $|X_t - X_{t-1}|$ 有界，
+\end{enumerate}
+则 $\mathbb{E}[X_\tau] = \mathbb{E}[X_0]$。
+\end{theorem}
+
+\subsection{数值方法}
+
+本文统一采用 Monte Carlo 方法：对每个模型生成大量独立样本路径，记录每条路径在停时处的过程值，以样本均值估计 $\mathbb{E}[X_\tau]$，并给出 95\% 置信区间。所有代码以 Python 实现，绘图以 Matplotlib 完成。
+
+\subsection{论文结构}
+
+第二章至第六章分别研究五个模型：Moran 种群遗传过程（OST 完美成立）、Cramér-Lundberg 保险破产模型（需构造指数鞅）、赌徒破产过程（OST 条件失效分析）、秘书问题（引出 Snell 包络理论）、美式期权定价（LSM 算法）。第七章为全文总结。
