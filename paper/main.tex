@@ -1,52 +1,51 @@
+% !TeX encoding = UTF-8
 % !TeX program = xelatex
-\documentclass[
-11pt,
-a4paper,
-oneside,
-headinclude,
-footinclude,
-BCOR=5mm
-]{scrartcl}
+\documentclass[type=bachelor,oneside,openany]{sjtuthesis}
 
-\input{structure.tex}
+\input{setup}
 
-\hypersetup{
-  pdftitle={鞅过程可选停止定理的数值模拟},
-  pdfauthor={GoldenFern},
-  pdfsubject={随机过程课程作业},
-  pdfkeywords={可选停止定理, 鞅, Monte Carlo, 最优停时, Snell 包络}
+\newcommand{\chapterinput}[1]{\clearpage\input{#1}}
+
+\newcommand{\makecoursecover}{
+  \begin{titlepage}
+    \thispagestyle{empty}
+    \centering
+    \vspace*{2.8cm}
+    {\zihao{-1}\bfseries 上海交通大学\par}
+    \vspace{1.8cm}
+    {\zihao{2}\bfseries 鞅过程可选停止定理的数值模拟\par}
+    \vspace{1.0cm}
+    {\zihao{3}\bfseries 随机过程课程大作业\par}
+    \vfill
+    {\zihao{4}
+    \begin{tabular}{rl}
+      作者： & GoldenFern \\
+      学号： & [redacted] \\
+      学院： & [redacted] \\
+      班级： & [redacted] \\
+    \end{tabular}\par}
+    \vfill
+    {\zihao{4} 2026 年 6 月\par}
+  \end{titlepage}
 }
-
-\title{\normalfont\bfseries 鞅过程可选停止定理的数值模拟}
-\subtitle{随机过程课程大作业}
-\author{GoldenFern}
-\date{2026 年 6 月}
 
 \begin{document}
 
-\renewcommand{\sectionmark}[1]{\markright{#1}}
-\lehead{\mbox{\llap{\small\thepage\kern1em\color{halfgray} \vline}\color{halfgray}\hspace{0.5em}\rightmark\hfil}}
-\pagestyle{scrheadings}
-\renewcommand{\contentsname}{目录}
-\renewcommand{\refname}{参考文献}
-\newcommand{\chapterinput}[1]{\clearpage\input{#1}}
+\makecoursecover
 
-\maketitle
+\frontmatter
 
-\begin{center}
-\small
-上海交通大学[redacted] \quad 学号：[redacted] \quad [redacted]
-\end{center}
-
-\section*{摘要}
+\begin{abstract}[zh]
 本文以可选停止定理（Optional Stopping Theorem, OST）为主线，结合 Monte Carlo 数值模拟研究鞅在不同停时结构下的表现。
 文章选取 Moran 种群遗传过程、Cram\'{e}r-Lundberg 保险破产过程、赌徒破产过程、秘书问题和美式期权定价五个模型，分别展示 OST 直接成立、需构造辅助鞅、条件失效以及向最优停时理论推广的情形。
 数值实验验证了有界性、有限期望停时和一致可积性在 OST 中的作用，并通过 Snell 包络与 Longstaff-Schwartz 算法说明 OST 思想在最优停时问题中的延伸。
-
-\paragraph{关键词}
-可选停止定理；鞅；Monte Carlo 模拟；最优停时；停时；Snell 包络
+\end{abstract}
 
 \tableofcontents
+\listoffigures
+\listoftables
+
+\mainmatter
 
 \chapterinput{sections/ch01_intro}
 \chapterinput{sections/ch02_moran}
@@ -56,8 +55,7 @@ BCOR=5mm
 \chapterinput{sections/ch06_option}
 \chapterinput{sections/ch07_conclusion}
 
-\clearpage
-\bibliographystyle{unsrt}
-\bibliography{references}
+\backmatter
+\printbibliography[heading=bibintoc]
 
 \end{document}

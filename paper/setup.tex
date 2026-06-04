@@ -1,0 +1,52 @@
+% !TEX root = ./main.tex
+
+\sjtusetup{
+  info = {
+    zh / title      = {鞅过程可选停止定理的数值模拟},
+    en / title      = {Numerical Simulation of the Optional Stopping Theorem for Martingales},
+    zh / subject    = {随机过程课程大作业},
+    en / subject    = {Stochastic Processes Course Project},
+    zh / keywords   = {可选停止定理, 鞅, Monte Carlo 模拟, 最优停时, 停时, Snell 包络},
+    en / keywords   = {optional stopping theorem, martingale, Monte Carlo simulation, optimal stopping, stopping time, Snell envelope},
+    zh / author     = {GoldenFern},
+    en / author     = {GoldenFern},
+    id              = {[redacted]},
+    zh / department = {[redacted]},
+    en / department = {[redacted]},
+    zh / major      = {随机过程课程大作业},
+    en / major      = {Stochastic Processes Course Project},
+    zh / degree     = {课程作业},
+    en / degree     = {Course Project},
+    date            = {2026-06-01},
+  },
+  style = {
+    keywords-format = hang,
+  },
+  name = {
+    bib = {参考文献},
+  },
+}
+
+\usepackage[backend=biber,style=gb7714-2015,gbnamefmt=uppercase,maxbibnames=3,minbibnames=3,doi=false]{biblatex}
+\renewcommand{\bibfont}{\zihao{5}\setbaselineskip{16bp}}
+\setlength{\bibitemsep}{3bp plus 1pt}
+\addbibresource{references.bib}
+
+\usepackage[perpage,bottom,hang]{footmisc}
+\usepackage{graphicx}
+\graphicspath{{figures/}}
+\DeclareGraphicsExtensions{.pdf,.eps,.png,.jpg,.jpeg}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{amsthm}
+\usepackage{indentfirst}
+
+\theoremstyle{definition}
+\newtheorem{definition}{定义}[section]
+
+\theoremstyle{plain}
+\newtheorem{theorem}{定理}[section]
+\newtheorem{lemma}[theorem]{引理}
+\newtheorem{corollary}[theorem]{推论}
+
+\theoremstyle{remark}
