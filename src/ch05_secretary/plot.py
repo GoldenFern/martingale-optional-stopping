@@ -1,119 +1,220 @@
-"""第五章绘图：秘书问题与 Snell 包络"""
+"""第五章绘图：秘书问题与 Snell 包络。"""
+
 import sys
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / 'src'))
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "src"))
 
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
+from matplotlib.ticker import FormatStrFormatter
 
 from core.visualization import (
-    set_style, new_figure, save_figure,
-    COLOR_BLUE, COLOR_RED, COLOR_GREEN, COLOR_ORANGE, COLOR_GRAY,
+    COLOR_BLUE,
+    COLOR_BLUE_LIGHT,
+    COLOR_GRAY,
+    COLOR_ORANGE,
+    COLOR_RED,
+    add_axes_note,
+    add_endpoint_label,
+    add_hline_label,
+    add_vline_label,
+    new_figure,
+    plot_box_series,
+    save_figure,
+    set_style,
+    write_figure_manifest,
 )
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-DATA_DIR = PROJECT_ROOT / 'output' / 'data'
+DATA_DIR = PROJECT_ROOT / "output" / "data"
+
+MANIFEST_ROWS = [
+    {
+        "figure": "ch05_success",
+        "chapter": "ch05_secretary",
+        "role": "hero quantitative",
+        "figure_type": "boxplot+theory",
+        "core_conclusion": "最优观察比例随 N 稳定逼近 1/e，最大成功率也靠近 1/e。",
+        "data_files": ["output/data/exp5_success.csv", "output/data/exp5_success_batches.npz"],
+        "statistics": "不同 N 下的批次箱线图叠加理论曲线，竖线和横线标记 1/e。",
+    },
+    {
+        "figure": "ch05_snell",
+        "chapter": "ch05_secretary",
+        "role": "supporting explanatory",
+        "figure_type": "mechanism",
+        "core_conclusion": "Snell 包络与即时 payoff 的交点给出最优停止阈值。",
+        "data_files": ["output/data/exp5_snell.npz"],
+        "statistics": "N=20 的离散动态规划结果，阴影区分继续等待和立即停止。",
+    },
+    {
+        "figure": "ch05_control",
+        "chapter": "ch05_secretary",
+        "role": "supporting explanatory",
+        "figure_type": "boxplot+comparison",
+        "core_conclusion": "秘书策略存在明显阈值结构，而随机基线仅围绕 1/N 波动。",
+        "data_files": [
+            "output/data/exp5_success.csv",
+            "output/data/exp5_success_batches.npz",
+            "output/data/exp5_control.csv",
+            "output/data/exp5_control_batches.npz",
+        ],
+        "statistics": "秘书策略与随机选择基线的批次箱线图对比。",
+    },
+]
 
 
-def fig5_1_success():
-    """图 5.1: 成功率 vs 观察比例 r/N。"""
+def _widths_from_x(x: np.ndarray, ratio: float = 0.35) -> list[float]:
+    x = np.asarray(x, dtype=float)
+    widths = []
+    for i, value in enumerate(x):
+        if len(x) == 1:
+            widths.append(0.03)
+        elif i == 0:
+            widths.append((x[i + 1] - value) * ratio)
+        elif i == len(x) - 1:
+            widths.append((value - x[i - 1]) * ratio)
+        else:
+            widths.append(min(value - x[i - 1], x[i + 1] - value) * ratio)
+    return widths
+
+
+def _sample_indices(n: int, target: int = 12) -> np.ndarray:
+    if n <= target:
+        return np.arange(n)
+    return np.unique(np.round(np.linspace(0, n - 1, target)).astype(int))
+
+
+def fig5_1_success() -> None:
+    """图 5.1：成功率与观察比例。"""
     set_style()
-    df = pd.read_csv(DATA_DIR / 'exp5_success.csv')
+    df = pd.read_csv(DATA_DIR / "exp5_success.csv")
+    batches = np.load(DATA_DIR / "exp5_success_batches.npz")
 
-    fig, ax = new_figure()
-    colors = [COLOR_BLUE, COLOR_RED, COLOR_ORANGE, COLOR_GREEN]
-    for color, (N, grp) in zip(colors, df.groupby('N')):
-        ax.errorbar(grp['r_frac'], grp['success_mc'],
-                     yerr=1.96 * grp['se'],
-                     fmt='o', color=color, capsize=1, markersize=2,
-                     lw=0, alpha=0.45, label=f'$N={N}$')
-        # 理论光滑曲线
-        idx = np.argsort(grp['r_frac'])
-        ax.plot(grp['r_frac'].iloc[idx], grp['theory'].iloc[idx],
-                '-', color=color, lw=1.0)
+    fig, ax = new_figure(kind="trend")
+    colors = [COLOR_BLUE, COLOR_BLUE_LIGHT, COLOR_GRAY, COLOR_ORANGE]
+    for color, (n_value, group) in zip(colors, df.groupby("N")):
+        group = group.sort_values("r_frac").drop_duplicates(subset="r", keep="first")
+        x_all = group["r_frac"].to_numpy()
+        keys_all = group["batch_key"].to_numpy()
+        keep = _sample_indices(len(x_all), target=13)
+        x = x_all[keep]
+        samples = [batches[key] for key in keys_all[keep]]
+        plot_box_series(
+            ax,
+            x,
+            samples,
+            width=_widths_from_x(x, ratio=0.22),
+            facecolor=color,
+            edgecolor=color,
+            median_color=COLOR_GRAY,
+            label=f"$N={n_value}$",
+        )
+        ax.plot(group["r_frac"], group["theory"], "-", color=color, lw=1.0)
 
-    ax.axvline(1 / np.e, color=COLOR_GRAY, lw=0.6, ls='--', alpha=0.6,
-               label='$r^*/N = 1/e$')
-    ax.axhline(1 / np.e, color=COLOR_GRAY, lw=0.6, ls=':', alpha=0.6)
+    ax.set_xlabel("观察比例 $r/N$")
+    ax.set_ylabel("选中最优者的概率")
+    ax.set_xlim(0.0, 1.0)
+    ax.set_xticks(np.linspace(0.0, 1.0, 6))
+    ax.xaxis.set_major_formatter(FormatStrFormatter("%.1f"))
+    add_vline_label(ax, 1 / np.e, "$r^*/N=1/e$", color=COLOR_GRAY, y_frac=0.97)
+    add_hline_label(ax, 1 / np.e, "$P^*=1/e$", color=COLOR_GRAY, linestyle=":", x_frac=0.98)
+    ax.legend(loc="upper right", fontsize=7)
+    save_figure(fig, "ch05_success.pdf")
 
-    ax.set_xlabel('观察比例 $r/N$')
-    ax.set_ylabel('选中最优者的概率')
-    ax.set_title('秘书问题成功率')
-    ax.legend(loc='upper right', fontsize=7)
-    save_figure(fig, 'ch05_success.pdf')
 
-
-def fig5_2_snell():
-    """图 5.2: Snell 包络 V_n 与即时 payoff g(n)。"""
+def fig5_2_snell() -> None:
+    """图 5.2：Snell 包络与即时收益。"""
     set_style()
-    data = np.load(DATA_DIR / 'exp5_snell.npz')
-    V, g = data['V'], data['g']
-    N = len(V)
-    n = np.arange(N)
+    data = np.load(DATA_DIR / "exp5_snell.npz")
+    v_vals, g_vals = data["V"], data["g"]
+    n = np.arange(len(v_vals))
 
-    fig, ax = new_figure()
-    ax.plot(n, V, '-', color=COLOR_BLUE, lw=1.25, label='Snell 包络 $V_n$')
-    ax.plot(n, g, '--', color=COLOR_RED, lw=1.0, label='即时收益 $g(n)$')
+    fig, ax = new_figure(kind="trend")
+    ax.plot(n, v_vals, "-", color=COLOR_BLUE, lw=1.25)
+    ax.plot(n, g_vals, "--", color=COLOR_RED, lw=1.0)
 
-    # 标注相交区域：V_n == g(n) 时应该停止
-    cross = np.where(np.isclose(V, g))[0]
+    cross = np.where(np.isclose(v_vals, g_vals))[0]
     if len(cross) > 0:
         r_star = cross[0]
         ax.axvspan(0, r_star, color=COLOR_BLUE, alpha=0.06, lw=0)
         ax.axvspan(r_star, n[-1], color=COLOR_RED, alpha=0.04, lw=0)
-        ax.axvline(r_star, color=COLOR_GRAY, lw=0.8, ls=':', alpha=0.8)
-        ax.annotate(f'$r^*={r_star}$',
-                    xy=(r_star, V[r_star]), xytext=(r_star + 1.0, V[r_star] + 0.08),
-                    arrowprops={'arrowstyle': '->', 'lw': 0.6, 'color': COLOR_GRAY},
-                    fontsize=8, color=COLOR_GRAY)
+        ax.axvline(r_star, color=COLOR_GRAY, lw=0.8, ls=":", alpha=0.8)
+        ax.annotate(
+            f"$r^*={r_star}$",
+            xy=(r_star, v_vals[r_star]),
+            xytext=(r_star + 1.0, v_vals[r_star] + 0.08),
+            arrowprops={"arrowstyle": "->", "lw": 0.6, "color": COLOR_GRAY},
+            fontsize=8,
+            color=COLOR_GRAY,
+        )
 
-    ax.set_xlabel('候选人序号 $n$')
-    ax.set_ylabel('条件成功概率')
-    ax.set_title(f'Snell 包络与停止阈值（$N={N}$）')
-    ax.legend(loc='lower left', fontsize=8)
-    save_figure(fig, 'ch05_snell.pdf')
+    ax.set_xlabel("候选人序号 $n$")
+    ax.set_ylabel("条件成功概率")
+    add_endpoint_label(ax, n[-1], v_vals[-1], "$V_n$", color=COLOR_BLUE, y_pad_frac=0.02)
+    add_endpoint_label(ax, n[-1], g_vals[-1], "$g(n)$", color=COLOR_RED, y_pad_frac=-0.02, va="top")
+    add_axes_note(ax, "蓝色：继续等待\n红色：立即停止")
+    save_figure(fig, "ch05_snell.pdf")
 
 
-def fig5_3_control():
-    """图 5.3: 鞅对照组 vs 秘书问题。"""
+def fig5_3_control() -> None:
+    """图 5.3：秘书策略与随机基线对比。"""
     set_style()
-    df_sec = pd.read_csv(DATA_DIR / 'exp5_success.csv')
-    df_ctrl = pd.read_csv(DATA_DIR / 'exp5_control.csv')
+    df_sec = pd.read_csv(DATA_DIR / "exp5_success.csv")
+    df_ctrl = pd.read_csv(DATA_DIR / "exp5_control.csv")
+    batches_sec = np.load(DATA_DIR / "exp5_success_batches.npz")
+    batches_ctrl = np.load(DATA_DIR / "exp5_control_batches.npz")
 
-    fig, ax = new_figure()
+    fig, ax = new_figure(kind="trend")
+    sub_sec = df_sec[df_sec["N"] == 100].sort_values("r_frac").drop_duplicates(subset="r", keep="first")
+    keep_sec = _sample_indices(len(sub_sec), target=13)
+    x_sec = sub_sec["r_frac"].to_numpy()[keep_sec]
+    sec_samples = [batches_sec[key] for key in sub_sec["batch_key"].to_numpy()[keep_sec]]
+    plot_box_series(
+        ax,
+        x_sec,
+        sec_samples,
+        width=_widths_from_x(x_sec, ratio=0.22),
+        facecolor=COLOR_BLUE,
+        edgecolor=COLOR_BLUE,
+        median_color=COLOR_GRAY,
+        label="秘书问题（$N=100$）",
+    )
+    ax.plot(sub_sec["r_frac"], sub_sec["theory"], "-", color=COLOR_BLUE, lw=1.0)
 
-    # 秘书问题 (N=100)
-    sub_sec = df_sec[df_sec['N'] == 100]
-    ax.errorbar(sub_sec['r_frac'], sub_sec['success_mc'],
-                 yerr=1.96 * sub_sec['se'],
-                 fmt='o', color=COLOR_BLUE, capsize=1, markersize=2,
-                 lw=0, alpha=0.45, label='秘书问题（$N=100$）')
-    idx = np.argsort(sub_sec['r_frac'])
-    ax.plot(sub_sec['r_frac'].iloc[idx], sub_sec['theory'].iloc[idx],
-            '-', color=COLOR_BLUE, lw=1.0)
+    sub_ctrl = df_ctrl[df_ctrl["N"] == 100].sort_values("r_frac").drop_duplicates(subset="r", keep="first")
+    keep_ctrl = _sample_indices(len(sub_ctrl), target=13)
+    x_ctrl = sub_ctrl["r_frac"].to_numpy()[keep_ctrl]
+    ctrl_samples = [batches_ctrl[key] for key in sub_ctrl["batch_key"].to_numpy()[keep_ctrl]]
+    plot_box_series(
+        ax,
+        x_ctrl,
+        ctrl_samples,
+        width=_widths_from_x(x_ctrl, ratio=0.22),
+        facecolor=COLOR_GRAY,
+        edgecolor=COLOR_GRAY,
+        median_color=COLOR_GRAY,
+        label="随机选择基线",
+    )
 
-    # 对照组 (N=100)
-    sub_ctrl = df_ctrl[df_ctrl['N'] == 100]
-    ax.errorbar(sub_ctrl['r_frac'], sub_ctrl['success_mc'],
-                 yerr=1.96 * sub_ctrl['se'],
-                 fmt='s', color=COLOR_RED, capsize=1, markersize=2,
-                 lw=0, alpha=0.55, label='鞅噪声对照')
-    ax.axhline(1.0 / 100, color=COLOR_RED, lw=0.6, ls=':', alpha=0.5)
-
-    ax.set_xlabel('观察比例 $r/N$')
-    ax.set_ylabel('成功概率')
-    ax.set_title('秘书问题与鞅对照')
-    ax.legend(loc='upper right', fontsize=8)
-    save_figure(fig, 'ch05_control.pdf')
+    ax.set_xlabel("观察比例 $r/N$")
+    ax.set_ylabel("成功概率")
+    ax.set_xlim(0.0, 1.0)
+    ax.set_xticks(np.linspace(0.0, 1.0, 6))
+    ax.xaxis.set_major_formatter(FormatStrFormatter("%.1f"))
+    add_hline_label(ax, 1.0 / 100, "$1/N$", color=COLOR_GRAY, linestyle=":", x_frac=0.98)
+    ax.legend(loc="upper right")
+    save_figure(fig, "ch05_control.pdf")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     set_style()
-    print("绘制图 5.1: 成功率 vs r/N...")
+    print("绘制图 5.1: 成功率与观察比例...")
     fig5_1_success()
     print("绘制图 5.2: Snell 包络...")
     fig5_2_snell()
-    print("绘制图 5.3: 鞅对照组...")
+    print("绘制图 5.3: 随机对照基线...")
     fig5_3_control()
+    write_figure_manifest(MANIFEST_ROWS)
     print("第五章三张图绘制完成。")

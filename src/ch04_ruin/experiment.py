@@ -15,10 +15,11 @@ DATA_DIR = PROJECT_ROOT / 'output' / 'data'
 
 def run_convergence_experiment(a=10, b=10,
                                path_counts=np.logspace(2, 4, 8).astype(int),
-                               max_steps=10000, n_repeats=3, seed=42):
+                               max_steps=10000, n_repeats=6, seed=42):
     """双边 vs 单边收敛对比。"""
     rw = SymmetricRW(0.5)
     rows = []
+    batches = {}
     for M in path_counts:
         # 双边
         tau_two = ExitInterval(-a, b)
@@ -34,6 +35,7 @@ def run_convergence_experiment(a=10, b=10,
             'mean': means_two.mean(), 'se': means_two.std(ddof=1),
             'reached_frac': 1.0,
         })
+        batches[f'two_{M}'] = means_two
         # 单边
         tau_one = HittingLevel(b, 'up')
         sim_one = MonteCarloSimulation(rw, tau_one)
@@ -51,26 +53,37 @@ def run_convergence_experiment(a=10, b=10,
             'mean': np.nanmean(means_one), 'se': np.nanstd(means_one, ddof=1),
             'reached_frac': reached_fracs.mean(),
         })
+        batches[f'one_{M}'] = means_one
     df = pd.DataFrame(rows)
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     df.to_csv(DATA_DIR / 'exp4_convergence.csv', index=False)
+    np.savez(DATA_DIR / 'exp4_convergence_batches.npz', **batches)
     return df
 
 
 def run_truncation_experiment(a=10, b=10,
                               N_values=np.logspace(1, 5, 20).astype(int),
-                              n_paths=1000, seed=42):
-    """截断偏误：E[S_{τ∧N}] vs N。"""
+                              n_paths=1000, seed=42, n_repeats=12):
+    """截断停时样本均值的批次分布。"""
     rw = SymmetricRW(0.5)
     hits = HittingLevel(b, 'up')
     rows = []
+    batches = {}
     for N in N_values:
         tau = Truncated(hits, N)
         sim = MonteCarloSimulation(rw, tau)
-        mean, se = sim.estimate_expectation(0.0, n_paths, N, seed)
+        batch_means = np.empty(n_repeats)
+        for r in range(n_repeats):
+            mean, _ = sim.estimate_expectation(0.0, n_paths, N, seed + 1000 * r + int(N))
+            batch_means[r] = mean
+        mean = batch_means.mean()
+        se = batch_means.std(ddof=1)
         rows.append({'N': N, 'mean': mean, 'se': se})
+        batches[f'N_{N}'] = batch_means
     df = pd.DataFrame(rows)
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
     df.to_csv(DATA_DIR / 'exp4_truncation.csv', index=False)
+    np.savez(DATA_DIR / 'exp4_truncation_batches.npz', **batches)
     return df
 
 
