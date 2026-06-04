@@ -77,33 +77,53 @@
 
 实验设置索赔强度 $\lambda = 1$，索赔额服从指数分布 $Y \sim \text{Exp}(1)$（$\mu = 1$），安全负荷 $\theta = 0.2$（$c = 1.2$）。调整系数为 $R = \theta/(1+\theta) = 0.166667$。对每个初始资本 $u \in \{0, 1, \dots, 20\}$ 模拟 $M = 50000$ 条独立路径，每条路径模拟至时间 $T = 100$ 或触犯破产线。因此 Monte Carlo 估计的是有限时窗破产概率 $\mathbb{P}(\tau \leqslant 100)$，它是最终破产概率 $\psi(u)=\mathbb{P}(\tau<\infty)$ 的下界。本文同时绘制指数索赔下的精确最终破产概率，用于区分有限时窗模拟误差与解析极限。
 
+\begin{table}[H]
+  \centering
+  \caption{保险破产模型数值实验条件}
+  \label{tab:insurance_params}
+  \begin{tabular}{llll}
+    \toprule
+    参数 & 图 3.1 & 图 3.2 & 图 3.3 \\
+    \midrule
+    索赔强度 $\lambda$ & 1.0 & 1.0 & 1.0 \\
+    索赔均值 $\mu$ & 1.0 & 1.0 & 1.0 \\
+    安全负荷 $\theta$ & 0.2 & 0.2 & 0.2 \\
+    保费率 $c$ & 1.2 & 1.2 & 1.2 \\
+    初始资本 $u$ & 5 & $0,1,\dots,20$ & 5 \\
+    时间上限 $T$ & 50 & 100 & 100 \\
+    路径数 $M$ & 15（展示） & 50000/每个 $u$ & 1（展示） \\
+    随机种子 & 42 & 42 & 123 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
 \subsection{结果与讨论}
 
 \textbf{图~\ref{fig:ch03_paths}} 展示了 15 条代表性的盈余轨迹。每条路径呈现``线性上升 + 偶发跳跃''的特征：保费收入推动盈余以速率 $c = 1.2$ 匀速增长，而随机到达的索赔（期望值 $\mathbb{E}[Y]=1$）不时将其下拉。在 15 条展示路径中有 3 条最终破产（红色 $\times$ 标记）。所有破产路径的共同特征是：在破产前经历了一连串密集且（或）大额的索赔，超过了线性保费收入的补偿能力。存活路径（灰色）则可以看到盈余在初始波动后稳定增长——安全负荷的长期效果使它们的期望盈余持续增加。
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{ch03_paths}
+  \caption{Cram\'{e}r-Lundberg 盈余过程轨迹（$\theta = 0.2$，$u=5$，$T=50$）。红色路径为最终破产的样本（3/15），标记 $\times$ 指示破产时刻。灰色路径为存活样本。水平虚线 $U=0$ 为破产线。}
+  \label{fig:ch03_paths}
+\end{figure}
 
 \textbf{图~\ref{fig:ch03_ruin}} 以半对数坐标展示了破产概率随初始资本的变化。$y$ 轴为对数刻度，因此指数衰减关系表现为近似直线。三条曲线/数据分别为：（1）有限时窗 Monte Carlo 估计（蓝色圆点 + 95\% 置信区间，$T=100$）；（2）最终破产概率的精确解（红色实线，式 \eqref{eq:psi_exact}）；（3）Lundberg 上界（橙色虚线，$e^{-Ru}$）。在 $u$ 较小的区域，破产通常较早发生，有限时窗估计与精确解吻合较好；当 $u$ 增大时，部分破产路径会在 $T=100$ 之后才发生，因此蓝色点系统性低于红色精确曲线。这不是 OST 或 Lundberg 上界的失败，而是有限模拟时窗对最终破产概率的右删失效应。若要用纯 Monte Carlo 逼近 $\psi(u)$，需要显著增加模拟时长或使用重要性抽样等方差缩减方法。
 
 Lundberg 上界（橙色虚线）确实始终位于 Monte Carlo 估计和精确解之上，验证了指数鞅构造和 OST 推导的正确性。同时注意到上界与精确解之间存在一个近乎恒定的垂直距离（在半对数图中对应常数比值 $1/(1+\theta) = 0.8333$），这反映了单边停时下 OST 只能给不等式而非等式的技术限制。
 
-\textbf{图~\ref{fig:ch03_martingale}} 通过一条具体路径展示了盈余过程 $U_t$ 与对应指数鞅 $M_t = e^{-R U_t}$ 的关系。这条路径幸运地没有破产，可以看到 $U_t$ 随时间平均上升（正向漂移使 $\mathbb{E}[U_t] = u + 0.2t$），但 $M_t$ 作为一个真正的鞅，没有明显的趋势——它围绕初始值 $e^{-Ru}$ 上下波动。在没有破产的时段内，$M_t$ 的行为确实呈现鞅的特征：无漂移、无明显趋势、通过条件期望约束在未来价值的预期上。
-
-\begin{figure}[ht]
+\begin{figure}[H]
   \centering
-  \includegraphics[width=\linewidth]{ch03_paths}
-  \caption{Cram\'{e}r-Lundberg 盈余过程轨迹（$\theta = 0.2$，$u=5$，$T=50$）。红色路径为最终破产的样本（3/15），标记 $\times$ 指示破产时刻。灰色路径为存活样本。水平虚线 $U=0$ 为破产线。}
-  \label{fig:ch03_paths}
-\end{figure}
-
-\begin{figure}[ht]
-  \centering
-  \includegraphics[width=\linewidth]{ch03_ruin_prob}
-\caption{破产概率的半对数图。Monte Carlo 估计（蓝色圆点，$M=50000$，$T=100$）对应有限时窗破产概率；红色实线为指数索赔下最终破产概率的精确解（式 \eqref{eq:psi_exact}）。Lundberg 上界（橙色虚线）始终位于精确解之上，且在半对数图中与精确解保持近似恒定的垂直距离，反映了因子 $1/(1+\theta)$。}
+  \includegraphics[width=0.9\textwidth]{ch03_ruin_prob}
+  \caption{破产概率的半对数图。Monte Carlo 估计（蓝色圆点，$M=50000$，$T=100$）对应有限时窗破产概率；红色实线为指数索赔下最终破产概率的精确解（式 \eqref{eq:psi_exact}）。Lundberg 上界（橙色虚线）始终位于精确解之上，且在半对数图中与精确解保持近似恒定的垂直距离，反映了因子 $1/(1+\theta)$。}
   \label{fig:ch03_ruin}
 \end{figure}
 
-\begin{figure}[ht]
+\textbf{图~\ref{fig:ch03_martingale}} 通过一条具体路径展示了盈余过程 $U_t$ 与对应指数鞅 $M_t = e^{-R U_t}$ 的关系。这条路径幸运地没有破产，可以看到 $U_t$ 随时间平均上升（正向漂移使 $\mathbb{E}[U_t] = u + 0.2t$），但 $M_t$ 作为一个真正的鞅，没有明显的趋势——它围绕初始值 $e^{-Ru}$ 上下波动。在没有破产的时段内，$M_t$ 的行为确实呈现鞅的特征：无漂移、无明显趋势、通过条件期望约束在未来价值的预期上。
+
+\begin{figure}[H]
   \centering
-  \includegraphics[width=\linewidth]{ch03_martingale}
+  \includegraphics[width=0.9\textwidth]{ch03_martingale}
   \caption{同一路径的盈余过程与对应指数鞅（$R = 0.1667$）。上子图：盈余 $U_t$ 随时间平均上升（正向漂移 $c - \lambda\mu = 0.2$）。下子图：指数鞅 $M_t = e^{-R U_t}$，无趋势，围绕初始值波动——展示了指数变换如何将一个带有漂移的过程转化为鞅。}
   \label{fig:ch03_martingale}
 \end{figure}

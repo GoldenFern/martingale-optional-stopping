@@ -2,7 +2,11 @@
 
 \subsection{背景介绍}
 
-期权定价是金融数学的核心问题，而其数学本质——特别是在美式期权中——是一个最优停时问题。欧式看跌期权给予持有者在到期日 $T$ 以执行价 $K$ 卖出标的资产的权利，其 payoff 为 $\max(K - S_T, 0)$。美式看跌期权则赋予持有者在到期前\textbf{任意时刻}行权的权利，因此其价值必然不低于欧式期权。多出来的这部分价值正是\textbf{提前行权溢价}——即最优停时策略相对于固定行权时间的额外收益。
+期权定价是金融数学的核心问题，而其数学本质——特别是在美式期权中——是一个最优停时问题。期权合约的买方支付一笔权利金，以换取在未来某个时间窗口内按约定价格交易标的资产的权利；卖方则收取权利金并承担履约义务。与远期或期货不同，期权的关键特征在于买方可以“选择是否执行”，因此其价值不仅取决于未来价格本身，还取决于决策时点的灵活性。
+
+欧式看跌期权给予持有者在到期日 $T$ 以执行价 $K$ 卖出标的资产的权利，其 payoff 为 $\max(K - S_T, 0)$。这种合约适合那些只关心到期风险暴露的投资者，例如希望在某一确定时点对冲股价下跌风险的持仓者。美式看跌期权则赋予持有者在到期前\textbf{任意时刻}行权的权利，因此其价值必然不低于欧式期权。多出来的这部分价值正是\textbf{提前行权溢价}——即最优停时策略相对于固定行权时间的额外收益。
+
+对看跌期权而言，提前行权何时有利与利率、剩余时间价值和标的价格水平密切相关。当标的价格大幅跌破执行价时，持有者已经处于深度价内状态；若此时继续持有所能获得的额外时间价值有限，而立即行权又可以更早锁定现金流，那么提前行权就可能成为最优选择。也正因为如此，美式看跌期权的定价不再只是一个终值贴现问题，而是一个带自由边界的动态决策问题。
 
 在风险中性定价框架下，美式期权价格由以下最优停时问题给出\cite{longstaff2001valuing}：
 \begin{equation}\label{eq:am_option}
@@ -77,33 +81,53 @@ LSM 算法的核心创新在于用最小二乘回归估计 continuation value。
 \end{equation}
 其中 $d_{1,2} = [\ln(S_0/K) + (r \pm \sigma^2/2)T] / (\sigma\sqrt{T})$，$\Phi$ 为标准正态分布函数。
 
+\begin{table}[H]
+  \centering
+  \caption{美式期权数值实验条件}
+  \label{tab:option_params}
+  \begin{tabular}{llll}
+    \toprule
+    参数 & 图 6.1 & 图 6.2 & 图 6.3 \\
+    \midrule
+    初始股价 $S_0$ & 40 & 40 & 36--44（17 点） \\
+    执行价 $K$ & 40 & 40 & 40 \\
+    无风险利率 $r$ & 6\% & 6\% & 6\% \\
+    波动率 $\sigma$ & 20\% & 20\% & 20\% \\
+    到期时间 $T$ & 1 年 & 1 年 & 1 年 \\
+    时间步数 $N$ & 50 & 50 & 50 \\
+    路径数 $M$ & 30000（截取 15 条展示） & 30000 & 30000 \\
+    随机种子 & 42 & 42 & 42 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
 \subsection{结果与讨论}
 
 \textbf{图~\ref{fig:ch06_paths}} 展示了 15 条几何布朗运动股价路径及 LSM 算法判定的行权时刻。红色圆点表示提前行权，橙色三角表示到期行权；若到期时仍为价外，则没有 payoff，图中不额外标记。可以看到，提前行权集中在股价显著低于执行价 $K = 40$ 的区域（即深度 in-the-money），此时继续等待的时间价值可能小于立即锁定收益的价值。这一区分也说明，美式期权的价值不仅来自到期 payoff，还来自可在路径中途选择停止的权利。
 
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{ch06_paths}
+  \caption{几何布朗运动股价路径与 LSM 判定行权时刻（$S_0 = 40, K = 40$）。红色圆点标记提前行权，橙色三角标记到期行权；到期价外且 payoff 为 0 的路径不额外标记。水平虚线为执行价 $K$。}
+  \label{fig:ch06_paths}
+\end{figure}
+
 \textbf{图~\ref{fig:ch06_boundary}} 以热力图的形式展示了 $(t, S)$ 平面上各位置被 LSM 算法判定为``立即行权''的经验频率。颜色越亮表示行权概率越高，白色等值线标记约 $50\%$ 的行权边界。可以清晰地看到一条分界带：在股价较低的区域（大约 $S \lessapprox 34$--$36$），行权概率高；在股价较高的区域，行权概率低。这条分界线并非垂直的——它在靠近到期日（$t \to 1$）时上移，意味着越接近到期日，持有者越愿意在相对高的股价水平行权（因为剩下的时间价值已经有限）。
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{ch06_boundary}
+  \caption{美式看跌期权的行权概率热力图。颜色越亮表示该位置被 LSM 判定为立即行权的概率越高，白色等值线对应约 $50\%$ 行权概率。股价低于约 $34$--$36$ 时为停时区域，高于此区间时为延续区域；边界在靠近到期日（$t \to 1$）时向上弯曲，因为剩余时间价值减少。}
+  \label{fig:ch06_boundary}
+\end{figure}
 
 \textbf{图~\ref{fig:ch06_price}} 比较了美式（LSM Monte Carlo）和欧式（Black-Scholes 公式）看跌期权的价格随初始股价的变化。三条线/数据分别为：（1）美式 LSM 价格（蓝色圆点 + 95\% CI）——30000 条路径的估计结果，置信区间极窄，表明 Monte Carlo 精度很高；（2）欧式 Black-Scholes 价格（红色实线）；（3）立即行权 payoff $\max(K - S_0, 0)$（灰色虚线）——期权内在价值的下界。
 
 美式期权价格在所有 $S_0$ 取值下均不低于欧式期权价格——两者之差即为\emph{提前行权溢价}（early exercise premium）。在 deep in-the-money 区域（$S_0 \leqslant 37$），美式和欧式期权价格都接近 payoff 曲线，因为此时几乎可以确定期权会在到期日被执行，提前行权的额外价值相对较小。在 at-the-money 附近（$S_0 \approx 40$），美式期权的溢价最大（约 $2.32$ vs $2.07$，溢价约 12\%），因为此时不确定性最高，等待的选择权价值最大，提前行权的灵活性也最有价值。在 deep out-of-the-money 区域（$S_0 \geqslant 43$），两者都趋近于零。
 
-\begin{figure}[ht]
+\begin{figure}[H]
   \centering
-  \includegraphics[width=\linewidth]{ch06_paths}
-  \caption{几何布朗运动股价路径与 LSM 判定行权时刻（$S_0 = 40, K = 40$）。红色圆点标记提前行权，橙色三角标记到期行权；到期价外且 payoff 为 0 的路径不额外标记。水平虚线为执行价 $K$。}
-  \label{fig:ch06_paths}
-\end{figure}
-
-\begin{figure}[ht]
-  \centering
-  \includegraphics[width=\linewidth]{ch06_boundary}
-  \caption{美式看跌期权的行权概率热力图。颜色越亮表示该位置被 LSM 判定为立即行权的概率越高，白色等值线对应约 $50\%$ 行权概率。股价低于约 $34$--$36$ 时为停时区域，高于此区间时为延续区域；边界在靠近到期日（$t \to 1$）时向上弯曲，因为剩余时间价值减少。}
-  \label{fig:ch06_boundary}
-\end{figure}
-
-\begin{figure}[ht]
-  \centering
-  \includegraphics[width=\linewidth]{ch06_price}
+  \includegraphics[width=0.9\textwidth]{ch06_price}
   \caption{美式（LSM）与欧式（Black-Scholes）看跌期权价格对比。蓝色圆点为 LSM Monte Carlo 估计（$M = 30000$，$N = 50$），误差棒极小（95\% CI）。红色实线为欧式 BS 公式。灰色虚线为立即行权 payoff。美式期权在所有 $S_0$ 处均高于欧式期权，差额即为提前行权溢价。}
   \label{fig:ch06_price}
 \end{figure}

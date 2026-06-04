@@ -50,35 +50,54 @@ $X_\tau$ 只能取两个值：0（灭绝）或 $N$（固定）。设 $P_N = \mat
 
 \subsubsection{$\mathbb{E}[\tau]$ 的数值求解}
 
-为利用 OST 求解停时期望，需使用 Doob 分解。注意到 $\{X_n\}$ 是鞅，由 Jensen 不等式知 $\{X_n^2\}$ 是下鞅。对 $X_n^2$ 做 Doob 分解 $X_n^2 = M_n + A_n$，其中 $M_n$ 为鞅，$A_n$ 为可料增过程。增过程的构造为：
+我们关心从状态 $i$ 出发时的平均吸收时间
+\begin{equation}
+  t_i = \mathbb{E}[\tau \mid X_0 = i], \qquad i = 0,1,\dots,N.
+\end{equation}
+为了说明 OST 与平均吸收时间之间的联系，先考察平方过程。注意到 $\{X_n\}$ 是鞅，由 Jensen 不等式知 $\{X_n^2\}$ 是下鞅。对其做 Doob 分解，
+\begin{equation}
+  X_n^2 = M_n + A_n,
+\end{equation}
+其中 $M_n$ 为鞅，$A_n$ 为可料增过程，且
 \begin{equation}
   A_n = \sum_{k=1}^{n} \mathbb{E}[X_k^2 - X_{k-1}^2 \mid \mathcal{F}_{k-1}].
 \end{equation}
-一步条件期望平方增量：
+一步条件期望平方增量为
 \begin{align}
   \mathbb{E}[X_{k}^2 \mid X_{k-1}=i] - i^2
-  &= \Big[(i+1)^2 + (i-1)^2\Big] \frac{i(N-i)}{N^2} \notag\\
-  &\quad + i^2 \Big(1 - \frac{2i(N-i)}{N^2}\Big) - i^2 \notag\\
+  &= \Big[(i+1)^2 + (i-1)^2\Big] \frac{i(N-i)}{N^2}
+   + i^2 \Big(1 - \frac{2i(N-i)}{N^2}\Big) - i^2 \notag\\
   &= \frac{2i(N-i)}{N^2}.
 \end{align}
-因此 $A_n = \sum_{k=1}^{n} \frac{2 X_{k-1} (N - X_{k-1})}{N^2}$。对停时 $\tau$ 应用 OST（因其满足条件 2），有 $\mathbb{E}[M_\tau] = \mathbb{E}[M_0] = \mathbb{E}[X_0^2]$。故
+因此
+\begin{equation}
+  A_n = \sum_{k=1}^{n} \frac{2 X_{k-1} (N - X_{k-1})}{N^2}.
+\end{equation}
+对停时 $\tau$ 应用 OST（因其满足条件 2），有 $\mathbb{E}[M_\tau] = \mathbb{E}[M_0] = x_0^2$，从而
 \begin{equation}
   \mathbb{E}[X_\tau^2] - x_0^2
   = \mathbb{E}[A_\tau]
   = \mathbb{E}\Bigg[\sum_{k=1}^{\tau} \frac{2 X_{k-1} (N - X_{k-1})}{N^2}\Bigg].
 \end{equation}
-由于 $X_\tau \in \{0, N\}$，$\mathbb{E}[X_\tau^2] = N^2 \cdot P_N = N x_0$。因此
+由于 $X_\tau \in \{0, N\}$，左端还可以写成
 \begin{equation}\label{eq:moran_tau_ost}
   N x_0 - x_0^2
   = \frac{2}{N^2}
   \mathbb{E}\Bigg[\sum_{k=1}^{\tau} X_{k-1} (N - X_{k-1})\Bigg].
 \end{equation}
+\eqref{eq:moran_tau_ost} 给出了一个关于停时的加权占时公式：吸收前在中间状态附近逗留得越久，右端的累计贡献越大。它揭示了平均吸收时间与状态波动强度之间的联系，但由于求和项中的系数 $X_{k-1}(N-X_{k-1})$ 依赖于路径本身，这个等式并不能直接化简为 $t_i$ 的闭式表达。
 
-更为直接的方法是利用出生-死亡链的标准结果。对于转移概率 $p_{i,i+1} = p_{i,i-1} = i(N-i)/N^2$ 的生灭过程，从状态 $i$ 出发的平均吸收时间 $t_i = \mathbb{E}[\tau \mid X_0 = i]$ 满足三对角线性方程组：
+因此在数值上，更直接且稳定的办法是对出生-死亡链做一步分析。设当前状态为 $i$（其中 $1 \leqslant i \leqslant N-1$），则下一步可能上升、下降或保持不变，于是
+\begin{equation}
+  t_i
+  = 1 + p_{i,i+1} t_{i+1} + p_{i,i-1} t_{i-1}
+    + \bigl(1-p_{i,i+1}-p_{i,i-1}\bigr)t_i.
+\end{equation}
+整理即得三对角线性方程组
 \begin{equation}\label{eq:moran_tri}
   p_{i,i-1} t_{i-1} + p_{i,i+1} t_{i+1} - (p_{i,i-1} + p_{i,i+1}) t_i = -1, \quad 1 \leqslant i \leqslant N-1,
 \end{equation}
-边界条件为 $t_0 = t_N = 0$。以 $A \mathbf{t} = -\mathbf{1}$ 的形式，该稀疏三对角系统可通过标准数值线性代数高效求解（本文使用 SciPy 的 \texttt{solve}）。
+边界条件为 $t_0 = t_N = 0$。以 $A \mathbf{t} = -\mathbf{1}$ 的形式，这个稀疏三对角系统可以通过标准数值线性代数高效求解（本文使用 SciPy 的 \texttt{solve}）。在后文的实验参数 $N=100, x_0=50$ 下，该线性系统给出的理论值与 Monte Carlo 均值高度一致，这也是图~\ref{fig:ch02_tau} 中停时分布讨论的依据。
 
 \subsection{数值实验设计与参数设置}
 
@@ -104,27 +123,27 @@ $X_\tau$ 只能取两个值：0（灭绝）或 $N$（固定）。设 $P_N = \mat
 
 \textbf{图~\ref{fig:ch02_paths}} 展示了在 $N=100$、初始频率 0.5 时 10 条代表性基因频率轨迹（5 条最终固定、5 条最终灭绝）。每条轨迹呈现典型的锯齿状随机漂变特征：频率在 0.5 附近波动，波动的幅度与当前频率有关——当频率接近 0.5 时波动最大（此时 $i(N-i)/N^2$ 最大），接近吸收边界时波动减小。最终所有轨迹被 0（灭绝）或 1（固定）吸收。注意到即使没有选择压力，固定和灭绝的发生也是必然的——随机漂变本身足以消除种群中的遗传多样性。从 $x_0 = 50$ 出发，固定的概率应为 $50/100 = 0.5$，在这 10 条展示路径中表现为 5 条固定、5 条灭绝，与理论值一致。
 
-\textbf{图~\ref{fig:ch02_fixation}} 比较了 $N=100$ 时 Monte Carlo 估计的固定概率与理论值 $P_{\text{fix}} = x_0/N$。九个不同初始频率下的 Monte Carlo 估计均紧密落在对角线 $y = x$ 上，最大偏差不超过 0.02，且所有数据点均位于 95\% 置信带宽内。这一结果验证了 OST 在这一模型中的精确成立——由于过程有界（$|X_n| \leqslant N$），OST 的条件 2 无保留地满足，等式 $\mathbb{E}[X_\tau] = \mathbb{E}[X_0]$ 严格成立，进而导出 $\mathbb{P}(\text{固定}) = x_0/N$ 这一简洁解析公式。
-
-\textbf{图~\ref{fig:ch02_tau}} 展示了 $N=100$、$x_0=50$ 时停时 $\tau$（代数）的经验分布。直方图呈现典型的右偏单峰形态，叠加指数分布拟合后可以看到拟合效果在大 $\tau$ 区域较好，在小 $\tau$ 区域存在系统性偏差——这是因为 Moran 过程的吸收不可能在极短时间内完成（从 $x_0=50$ 到 0 或 100，最少需要 50 步纯漂变），所以停时存在一个物理上的下界。停时均值为 6961 代，中位数为 5486 代，均值大于中位数反映了分布的右偏性质。这一数值可以通过前文所述的三对角线性系统精确求解来交叉验证，实验值与数值解的一致性很好（相对误差小于 1\%）。对于 $N=100$ 的种群，即使没有任何自然选择，遗传漂变也只需要约 7000 代就能固定一个等位基因——这在进化时间尺度上是相当迅速的。
-
-\begin{figure}[ht]
+\begin{figure}[H]
   \centering
-  \includegraphics[width=\linewidth]{ch02_paths}
+  \includegraphics[width=0.9\textwidth]{ch02_paths}
   \caption{Moran 模型基因频率轨迹（$N=100$，初始频率 0.5）。蓝色路径表示最终固定（A 取代 a），红色路径表示最终灭绝（a 取代 A）。每条轨迹为锯齿状随机游走，最终被 0 或 1 吸收。圆点标记停时位置。}
   \label{fig:ch02_paths}
 \end{figure}
 
-\begin{figure}[ht]
+\textbf{图~\ref{fig:ch02_fixation}} 比较了 $N=100$ 时 Monte Carlo 估计的固定概率与理论值 $P_{\text{fix}} = x_0/N$。九个不同初始频率下的 Monte Carlo 估计均紧密落在对角线 $y = x$ 上，最大偏差不超过 0.02，且所有数据点均位于 95\% 置信带宽内。这一结果验证了 OST 在这一模型中的精确成立——由于过程有界（$|X_n| \leqslant N$），OST 的条件 2 无保留地满足，等式 $\mathbb{E}[X_\tau] = \mathbb{E}[X_0]$ 严格成立，进而导出 $\mathbb{P}(\text{固定}) = x_0/N$ 这一简洁解析公式。
+
+\begin{figure}[H]
   \centering
-  \includegraphics[width=\linewidth]{ch02_fixation}
+  \includegraphics[width=0.9\textwidth]{ch02_fixation}
   \caption{固定概率与初始频率的关系（$N=100$）。散点为 Monte Carlo 估计（5000 条路径 $\times$ 9 个初始频率），误差棒为 95\% 置信区间。红色虚线为理论值 $y = x_0/N$，是 OST 的直接推论。模拟与理论高度吻合，所有误差棒均跨越对角线。}
   \label{fig:ch02_fixation}
 \end{figure}
 
-\begin{figure}[ht]
+\textbf{图~\ref{fig:ch02_tau}} 展示了 $N=100$、$x_0=50$ 时停时 $\tau$（代数）的经验分布。直方图呈现典型的右偏单峰形态，叠加指数分布拟合后可以看到拟合效果在大 $\tau$ 区域较好，在小 $\tau$ 区域存在系统性偏差——这是因为 Moran 过程的吸收不可能在极短时间内完成（从 $x_0=50$ 到 0 或 100，最少需要 50 步纯漂变），所以停时存在一个物理上的下界。停时均值为 6961 代，中位数为 5486 代，均值大于中位数反映了分布的右偏性质。这一数值可以通过前文所述的三对角线性系统精确求解来交叉验证，实验值与数值解的一致性很好（相对误差小于 1\%）。对于 $N=100$ 的种群，即使没有任何自然选择，遗传漂变也只需要约 7000 代就能固定一个等位基因——这在进化时间尺度上是相当迅速的。
+
+\begin{figure}[H]
   \centering
-  \includegraphics[width=\linewidth]{ch02_tau_dist}
+  \includegraphics[width=0.9\textwidth]{ch02_tau_dist}
   \caption{Moran 模型停时分布（$N=100, x_0=50$，10000 条路径）。直方图为经验密度，红色实线为指数分布拟合。均值为 6961 代，中位数为 5486 代。停时分布的右偏性反映了纯漂变过程的随机性：少数路径可能在吸收边界附近长时间``犹豫''。}
   \label{fig:ch02_tau}
 \end{figure}

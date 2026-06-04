@@ -22,9 +22,32 @@
 \end{equation}
 这就是经典的赌徒破产公式：甲的破产概率等于乙的初始资金占总资金的比例。
 
-进一步，利用 $\{S_n^2 - n\}$ 也是鞅（教材例 6.3.2），类似地应用 OST 可得
+为了求平均吸收时间，再考虑过程 $\{S_n^2-n\}$。记随机游走增量为 $\eta_n=S_n-S_{n-1}$，则 $\eta_n=\pm1$ 且
+\[
+\mathbb{E}[\eta_n\mid\mathcal{F}_{n-1}] = 0,\qquad \eta_n^2=1.
+\]
+于是对任意 $n\geqslant1$，
+\begin{align}
+  \mathbb{E}[S_n^2-n\mid\mathcal{F}_{n-1}]
+  &= \mathbb{E}\big[(S_{n-1}+\eta_n)^2-n \mid \mathcal{F}_{n-1}\big] \notag\\
+  &= S_{n-1}^2 + 2S_{n-1}\mathbb{E}[\eta_n\mid\mathcal{F}_{n-1}]
+     + \mathbb{E}[\eta_n^2\mid\mathcal{F}_{n-1}] - n \notag\\
+  &= S_{n-1}^2 - (n-1).
+\end{align}
+因此 $\{S_n^2-n\}$ 的确是鞅。对有界停时 $\tau_{\text{two}}\wedge m$ 应用 OST，有
+\[
+\mathbb{E}[S_{\tau_{\text{two}}\wedge m}^2-(\tau_{\text{two}}\wedge m)] = 0.
+\]
+当 $m\to\infty$ 时，由于 $|S_{\tau_{\text{two}}\wedge m}|\leqslant \max(a,b)$，可用控制收敛定理得到
+\[
+\mathbb{E}[S_{\tau_{\text{two}}}^2] = \mathbb{E}[\tau_{\text{two}}].
+\]
+再结合 $S_{\tau_{\text{two}}}\in\{-a,b\}$ 与式 \eqref{eq:gambler_prob}，
 \begin{equation}\label{eq:gambler_etau}
-  \mathbb{E}[\tau_{\text{two}}] = a b.
+  \mathbb{E}[\tau_{\text{two}}]
+  = a^2 P_a + b^2(1-P_a)
+  = a^2 \frac{b}{a+b} + b^2 \frac{a}{a+b}
+  = ab.
 \end{equation}
 例如，两人各有 10 元时，平均需要 100 局才有一方输光。
 
@@ -90,31 +113,49 @@ OST 失效的深层数学原因在于被停过程 $\{S_{n \wedge \tau_{\text{one
 
 设置 $a = b = 10$（双方各有 10 元初始资金）。为了对比双边和单边停时的收敛行为，对不同的 Monte Carlo 路径数 $M \in \{10^2, 10^3, \dots, 10^4\}$（对数均匀分布），各重复 3 次独立实验估计 $\mathbb{E}[S_\tau]$。单边自然停时实验只记录在模拟上限内已经命中 $+b$ 的路径；这些路径的停时值均为 $S_\tau=b$，未命中路径的比例由尾部实验单独解释。对于截断序列实验，将单边停时 $\tau_{\text{one}}$ 截断在不同的 $N$ 值（对数均匀分布于 $10^1$ 至 $10^5$），每级用 1000 条路径估计 $S_{\tau_N}$ 的样本均值。对于尾部实验，用 5000 条路径（最大步数 5000）估计双边和单边停时的生存函数 $\mathbb{P}(\tau > t)$。
 
+\begin{table}[H]
+  \centering
+  \caption{赌徒破产模型数值实验条件}
+  \label{tab:gambler_params}
+  \begin{tabular}{llll}
+    \toprule
+    参数 & 图 4.1 & 图 4.2 & 图 4.3 \\
+    \midrule
+    初始资金 $(a,b)$ & $(10,10)$ & $(10,10)$ & $(10,10)$ \\
+    胜率 $p$ & 0.5 & 0.5 & 0.5 \\
+    路径数 $M$ & $10^2\!\sim\!10^4$ & 1000 & 5000 \\
+    重复次数 & 3 & 1 & 1 \\
+    截断上限 / 最大步数 & 10000 & $10^1\!\sim\!10^5$ & 5000 \\
+    实验目标 & OST 收敛对比 & 截断序列行为 & 停时尾部比较 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
 \subsection{结果与讨论}
 
 \textbf{图~\ref{fig:ch04_conv}} 是本章最核心的实验结果。横轴为 Monte Carlo 路径数 $M$（对数刻度），纵轴为 $\mathbb{E}[S_\tau]$ 的估计值（带 95\% CI）。蓝色曲线（双边障碍 $\tau_{\text{two}}$）快速收敛至水平虚线 $\mathbb{E}[S_\tau] = 0$（OST 预测），且置信区间随 $M$ 增大而缩小——这是典型的 Monte Carlo 收敛行为。红色曲线（单边障碍 $\tau_{\text{one}}$）则完全不同：凡是命中 $+b$ 的自然停时路径都有 $S_\tau=b=10$，估计值稳定地落在 10 附近，而不是 0。注意蓝色曲线收敛到 0 并非偶然，它被 OST 精确预测；红色曲线则说明自然单边停时下 $\mathbb{E}[S_\tau]=b\neq0$，OST 不能直接应用。
 
-\textbf{图~\ref{fig:ch04_trunc}} 展示了截断序列的数值行为。横轴为截断值 $N$（对数刻度），纵轴为 $S_{\tau\wedge N}$ 的样本均值。灰色水平线标出理论事实 $\mathbb{E}[S_{\tau\wedge N}]=0$（对每个固定 $N$ 成立），红色虚线标出几乎处处极限 $S_\tau=b=10$。模拟点没有稳定地趋向红线，而是在 0 附近出现越来越宽的置信区间，这正是式 \eqref{eq:no_ui_limit} 的数值表现：几乎处处收敛并不保证期望收敛。对大 $N$，少数未命中路径携带极大的负值，显著放大样本方差；若有限样本没有充分覆盖这些极端路径，样本均值会出现明显波动。
-
-\textbf{图~\ref{fig:ch04_tail}} 以双对数坐标展示了两种停时分布的尾部。双边停时 $\tau_{\text{two}}$（蓝色）快速衰减，反映有限区间首出时的轻尾性质，故 $\mathbb{E}[\tau_{\text{two}}] < \infty$。单边停时 $\tau_{\text{one}}$（红色）在对数-对数坐标下呈现缓慢的近似线性衰减，与参考线 $C t^{-1/2}$（灰色虚线）平行——这是重尾衰减的特征签名。这里常数 $C$ 与上障碍 $b$ 有关，因此图中只强调斜率 $-1/2$。这一重尾性直接导致 $\mathbb{E}[\tau_{\text{one}}] = \infty$，而 $\mathbb{E}[\tau] < \infty$ 是 OST 三个充分条件之一。因此图~\ref{fig:ch04_tail} 从微观层面解释了图~\ref{fig:ch04_conv} 中 OST 失效的根本机理。
-
-\begin{figure}[ht]
+\begin{figure}[H]
   \centering
-  \includegraphics[width=\linewidth]{ch04_convergence}
+  \includegraphics[width=0.9\textwidth]{ch04_convergence}
   \caption{双边停时与单边自然停时的 $\mathbb{E}[S_\tau]$ Monte Carlo 估计对比。双边（蓝色）快速收敛至 OST 预测值 0（虚线）；单边（红色）命中 $+b$ 后恒有 $S_\tau=b=10$，因此不可能收敛到 0。}
   \label{fig:ch04_conv}
 \end{figure}
 
-\begin{figure}[ht]
+\textbf{图~\ref{fig:ch04_trunc}} 展示了截断序列的数值行为。横轴为截断值 $N$（对数刻度），纵轴为 $S_{\tau\wedge N}$ 的样本均值。灰色水平线标出理论事实 $\mathbb{E}[S_{\tau\wedge N}]=0$（对每个固定 $N$ 成立），红色虚线标出几乎处处极限 $S_\tau=b=10$。模拟点没有稳定地趋向红线，而是在 0 附近出现越来越宽的置信区间，这正是式 \eqref{eq:no_ui_limit} 的数值表现：几乎处处收敛并不保证期望收敛。对大 $N$，少数未命中路径携带极大的负值，显著放大样本方差；若有限样本没有充分覆盖这些极端路径，样本均值会出现明显波动。
+
+\begin{figure}[H]
   \centering
-  \includegraphics[width=\linewidth]{ch04_truncation}
+  \includegraphics[width=0.9\textwidth]{ch04_truncation}
   \caption{截断序列与不可交换极限。对每个固定 $N$，OST 给出 $\mathbb{E}[S_{\tau \wedge N}] = 0$（灰色线）；但随机变量本身几乎处处收敛到 $S_\tau=b=10$（红色虚线）。样本均值在大 $N$ 下方差显著增大，说明一致可积性缺失时不能将极限与期望交换。}
   \label{fig:ch04_trunc}
 \end{figure}
 
-\begin{figure}[ht]
+\textbf{图~\ref{fig:ch04_tail}} 以双对数坐标展示了两种停时分布的尾部。双边停时 $\tau_{\text{two}}$（蓝色）快速衰减，反映有限区间首出时的轻尾性质，故 $\mathbb{E}[\tau_{\text{two}}] < \infty$。单边停时 $\tau_{\text{one}}$（红色）在对数-对数坐标下呈现缓慢的近似线性衰减，与参考线 $C t^{-1/2}$（灰色虚线）平行——这是重尾衰减的特征签名。这里常数 $C$ 与上障碍 $b$ 有关，因此图中只强调斜率 $-1/2$。这一重尾性直接导致 $\mathbb{E}[\tau_{\text{one}}] = \infty$，而 $\mathbb{E}[\tau] < \infty$ 是 OST 三个充分条件之一。因此图~\ref{fig:ch04_tail} 从微观层面解释了图~\ref{fig:ch04_conv} 中 OST 失效的根本机理。
+
+\begin{figure}[H]
   \centering
-  \includegraphics[width=\linewidth]{ch04_tail}
+  \includegraphics[width=0.9\textwidth]{ch04_tail}
   \caption{停时生存函数 $\mathbb{P}(\tau > t)$ 的双对数图。双边停时为轻尾，$\mathbb{E}[\tau] < \infty$；单边停时呈 $C t^{-1/2}$ 型重尾，$\mathbb{E}[\tau] = \infty$。重尾性是 OST 条件 3 失效的微观原因。}
   \label{fig:ch04_tail}
 \end{figure}
