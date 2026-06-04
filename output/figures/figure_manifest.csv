@@ -1,0 +1,16 @@
+figure,chapter,role,figure_type,core_conclusion,data_files,statistics
+ch02_fixation,ch02_moran,hero quantitative,boxplot+theory,固定概率与初始频率线性一致，直接验证 OST 等式。,output/data/exp2_fixation.csv; output/data/exp2_fixation_batches.npz,每个频率使用 10 个独立批次箱线图，并与理论直线 y=x 对比。
+ch02_paths,ch02_moran,supporting explanatory,paths,Moran 路径在吸收边界 0 和 1 处终止，固定与灭绝由随机漂变驱动。,output/data/exp2_fixation.csv; output/data/exp2_tau_dist.csv,固定种子 42 的示意路径，停时用终点圆点标记。
+ch02_tau_dist,ch02_moran,supporting explanatory,distribution,停时分布呈显著右偏，均值高于中位数。,output/data/exp2_tau_dist.csv,10000 条路径的经验分布，叠加逆高斯拟合曲线。
+ch03_martingale,ch03_insurance,supporting explanatory,dual,指数变换把带正漂移的盈余过程转化为围绕 1 波动的指数鞅。,output/data/exp3_ruin_prob.csv,固定种子 123 的单路径示意；上下子图共用时间轴。
+ch03_paths,ch03_insurance,supporting explanatory,paths,盈余路径分为缓慢上升的存活样本与触及破产线的少数样本。,output/data/exp3_ruin_prob.csv,固定种子 42 的 15 条示意路径；破产时刻以 x 标记。
+ch03_ruin_prob,ch03_insurance,hero quantitative,boxplot+theory,精确解、Lundberg 上界与 Monte Carlo 共同呈现指数衰减结构。,output/data/exp3_ruin_prob.csv; output/data/exp3_ruin_prob_batches.npz,有限时窗 Monte Carlo 批次箱线图；与精确解和上界在半对数坐标下比较。
+ch04_convergence,ch04_ruin,hero quantitative,boxplot+reference,双边停时满足 OST 并收敛到 0，单边自然停时不收敛到 0。,output/data/exp4_convergence.csv; output/data/exp4_convergence_batches.npz,不同路径数下的批次箱线图，对照理论水平线 0 和 10。
+ch04_tail,ch04_ruin,supporting explanatory,loglog-trend,单边停时呈重尾，近似遵循 t^{-1/2}，双边停时则显著更轻尾。,output/data/exp4_tail.npz,双对数生存函数；灰色参考线为对齐后的 t^{-1/2}。
+ch04_truncation,ch04_ruin,supporting explanatory,boxplot+reference,每个固定 N 的期望仍为 0，但极限随机变量几乎处处趋于 10。,output/data/exp4_truncation.csv; output/data/exp4_truncation_batches.npz,12 个独立批次样本均值箱线图，展示极限与期望不可交换。
+ch05_control,ch05_secretary,supporting explanatory,boxplot+comparison,秘书策略存在明显阈值结构，而随机基线仅围绕 1/N 波动。,output/data/exp5_success.csv; output/data/exp5_success_batches.npz; output/data/exp5_control.csv; output/data/exp5_control_batches.npz,秘书策略与随机选择基线的批次箱线图对比。
+ch05_snell,ch05_secretary,supporting explanatory,mechanism,Snell 包络与即时 payoff 的交点给出最优停止阈值。,output/data/exp5_snell.npz,N=20 的离散动态规划结果，阴影区分继续等待和立即停止。
+ch05_success,ch05_secretary,hero quantitative,boxplot+theory,最优观察比例随 N 稳定逼近 1/e，最大成功率也靠近 1/e。,output/data/exp5_success.csv; output/data/exp5_success_batches.npz,不同 N 下的批次箱线图叠加理论曲线，竖线和横线标记 1/e。
+ch06_boundary,ch06_option,supporting explanatory,heatmap,行权概率在低股价区域明显升高，并形成随到期临近上弯的边界。,output/data/exp6_boundary.npz,二维行权概率热力图；白色等值线对应 50% 行权概率。
+ch06_paths,ch06_option,supporting explanatory,paths,提前行权主要发生在深度价内路径，而到期行权集中在边界附近。,output/data/exp6_paths.npz,15 条展示路径；红点为提前行权，橙色三角为到期行权。
+ch06_price,ch06_option,hero quantitative,boxplot+theory,美式价格始终高于欧式价格，差额即提前行权溢价。,output/data/exp6_price.csv; output/data/exp6_price_batches.npz,每个 S0 的 LSM 批次箱线图，对比欧式价格与立即行权 payoff。

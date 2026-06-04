@@ -75,7 +75,7 @@ LSM 算法的核心创新在于用最小二乘回归估计 continuation value。
 
 \subsection{数值实验设计与参数设置}
 
-实验参数设置如下：初始股价 $S_0 \in [36, 44]$（17 个取值），执行价 $K = 40$，无风险利率 $r = 6\%$，波动率 $\sigma = 20\%$，到期时间 $T = 1$ 年，时间步数 $N = 50$（步长 $\Delta t = 0.02$），模拟路径数 $M = 30000$，随机种子 42。欧式看跌期权的基准价格由 Black-Scholes 公式直接计算：
+实验参数设置如下：初始股价 $S_0 \in [36, 44]$（17 个取值），执行价 $K = 40$，无风险利率 $r = 6\%$，波动率 $\sigma = 20\%$，到期时间 $T = 1$ 年，时间步数 $N = 50$（步长 $\Delta t = 0.02$）。对于图~6.3，每个 $S_0$ 点总共模拟 30000 条路径，并拆分为 8 个独立批次；图中的美式价格箱线图与表格中的均值、标准误都由这同一组批次结果计算得到。欧式看跌期权的基准价格由 Black-Scholes 公式直接计算：
 \begin{equation}\label{eq:bs_put}
   P_{\text{Eur}} = K e^{-rT} \Phi(-d_2) - S_0 \Phi(-d_1),
 \end{equation}
@@ -95,7 +95,7 @@ LSM 算法的核心创新在于用最小二乘回归估计 continuation value。
     波动率 $\sigma$ & 20\% & 20\% & 20\% \\
     到期时间 $T$ & 1 年 & 1 年 & 1 年 \\
     时间步数 $N$ & 50 & 50 & 50 \\
-    路径数 $M$ & 30000（截取 15 条展示） & 30000 & 30000 \\
+    路径数 $M$ & 30000（截取 15 条展示） & 30000 & 30000（8 批次） \\
     随机种子 & 42 & 42 & 42 \\
     \bottomrule
   \end{tabular}
@@ -121,13 +121,13 @@ LSM 算法的核心创新在于用最小二乘回归估计 continuation value。
   \label{fig:ch06_boundary}
 \end{figure}
 
-\textbf{图~\ref{fig:ch06_price}} 比较了美式（LSM Monte Carlo）和欧式（Black-Scholes 公式）看跌期权的价格随初始股价的变化。三条线/数据分别为：（1）美式 LSM 价格（蓝色圆点 + 95\% CI）——30000 条路径的估计结果，置信区间极窄，表明 Monte Carlo 精度很高；（2）欧式 Black-Scholes 价格（红色实线）；（3）立即行权 payoff $\max(K - S_0, 0)$（灰色虚线）——期权内在价值的下界。
+\textbf{图~\ref{fig:ch06_price}} 比较了美式（LSM Monte Carlo）和欧式（Black-Scholes 公式）看跌期权的价格随初始股价的变化。三条线/数据分别为：（1）美式 LSM 价格的批次分布（蓝色箱线图）——每个 $S_0$ 对应 8 个独立 Monte Carlo 批次；（2）欧式 Black-Scholes 价格（红色实线）；（3）立即行权 payoff $\max(K - S_0, 0)$（灰色虚线）——期权内在价值的下界。由于图中的箱线图和表中的均值都来自同一组批次，图表和统计口径保持了一致。
 
 美式期权价格在所有 $S_0$ 取值下均不低于欧式期权价格——两者之差即为\emph{提前行权溢价}（early exercise premium）。在 deep in-the-money 区域（$S_0 \leqslant 37$），美式和欧式期权价格都接近 payoff 曲线，因为此时几乎可以确定期权会在到期日被执行，提前行权的额外价值相对较小。在 at-the-money 附近（$S_0 \approx 40$），美式期权的溢价最大（约 $2.32$ vs $2.07$，溢价约 12\%），因为此时不确定性最高，等待的选择权价值最大，提前行权的灵活性也最有价值。在 deep out-of-the-money 区域（$S_0 \geqslant 43$），两者都趋近于零。
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.9\textwidth]{ch06_price}
-  \caption{美式（LSM）与欧式（Black-Scholes）看跌期权价格对比。蓝色圆点为 LSM Monte Carlo 估计（$M = 30000$，$N = 50$），误差棒极小（95\% CI）。红色实线为欧式 BS 公式。灰色虚线为立即行权 payoff。美式期权在所有 $S_0$ 处均高于欧式期权，差额即为提前行权溢价。}
+  \caption{美式（LSM）与欧式（Black-Scholes）看跌期权价格对比。蓝色箱线图为每个 $S_0$ 下 8 个独立 LSM Monte Carlo 批次的价格分布（总路径数 30000，$N = 50$）；红色实线为欧式 BS 公式。灰色虚线为立即行权 payoff。美式期权在所有 $S_0$ 处均高于欧式期权，差额即为提前行权溢价。}
   \label{fig:ch06_price}
 \end{figure}
