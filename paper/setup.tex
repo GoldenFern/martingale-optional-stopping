@@ -68,7 +68,7 @@
 \titlecontents{section}
   [0pt]
   {\bfseries}
-  {第\contentslabel{2.8em}章\quad}
+  {\contentslabel{5.6em}}
   {}
   {\titlerule*[0.6pc]{.}\contentspage}
 
@@ -76,6 +76,13 @@
   [2.8em]
   {}
   {\contentslabel{2.8em}}
+  {}
+  {\titlerule*[0.6pc]{.}\contentspage}
+
+\titlecontents{subsubsection}
+  [5.6em]
+  {\small}
+  {\contentslabel{3.4em}}
   {}
   {\titlerule*[0.6pc]{.}\contentspage}
 
@@ -88,3 +95,6 @@
 \newtheorem{corollary}[theorem]{推论}
 
 \theoremstyle{remark}
+
+\setcounter{tocdepth}{3}
+\settocdepth{subsubsection}
