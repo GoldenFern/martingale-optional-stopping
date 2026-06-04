@@ -1,4 +1,4 @@
-\section{Moran 模型中的基因固定概率与停时}
+\section{Moran 模型中的固定概率与停时}
 
 \subsection{背景介绍}
 
@@ -8,7 +8,7 @@
 
 \subsection{理论分析}
 
-\subsubsection*{$X_n$ 的 Markov 链结构与鞅性质}
+\subsubsection{$X_n$ 的 Markov 链结构与鞅性质}
 
 首先分析 $X_n$ 的一步转移概率。若当前有 $i$ 个 A 型个体（$0 < i < N$），则：
 \begin{itemize}[noitemsep]
@@ -32,7 +32,7 @@
 \end{align}
 所以 $\mathbb{E}[X_{n+1} \mid \mathcal{F}_n] = X_n$，即 $\{X_n\}$ 是一个鞅。这是非常优美的性质：没有任何选择压力的有限种群中，等位基因的频率在期望意义下保持不变——尽管在单条轨迹上它必然漂变至吸收。
 
-\subsubsection*{OST 与固定概率}
+\subsubsection{OST 与固定概率}
 
 定义停时 $\tau = \inf\{n \geqslant 0: X_n = 0 \ \text{或}\ X_n = N\}$。由于 $X_n$ 是有限状态不可约 Markov 链（除去两个吸收态），$\tau$ 几乎必然有限。由于 $|X_{n \wedge \tau}| \leqslant N$（过程始终在吸收边界内），OST 的条件 2（过程有界）成立，因此
 \begin{equation}\label{eq:moran_ost}
@@ -48,7 +48,7 @@ $X_\tau$ 只能取两个值：0（灭绝）或 $N$（固定）。设 $P_N = \mat
 \end{equation}
 这是 OST 在这一模型中给出的最简洁且深刻的结论：\textbf{初始频率即固定概率}。假如初始时 A 的频率为 30\%，则其最终在种群中固定的概率就是 30\%。没有任何选择、突变或迁移时，所有等位基因的命运在期望意义上由初始频率唯一决定。
 
-\subsubsection*{$\mathbb{E}[\tau]$ 的数值求解}
+\subsubsection{$\mathbb{E}[\tau]$ 的数值求解}
 
 为利用 OST 求解停时期望，需使用 Doob 分解。注意到 $\{X_n\}$ 是鞅，由 Jensen 不等式知 $\{X_n^2\}$ 是下鞅。对 $X_n^2$ 做 Doob 分解 $X_n^2 = M_n + A_n$，其中 $M_n$ 为鞅，$A_n$ 为可料增过程。增过程的构造为：
 \begin{equation}

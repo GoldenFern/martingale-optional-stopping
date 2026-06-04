@@ -12,7 +12,7 @@
 
 \subsection{理论分析}
 
-\subsubsection*{安全负荷条件}
+\subsubsection{安全负荷条件}
 
 保险公司的长期期望盈余变化率为 $\mathbb{E}[U_t - u]/t = c - \lambda \mu$。若 $c \leqslant \lambda \mu$（保费收入不足以覆盖期望赔付，即``安全负荷''为零或负），则由强大数定律可证破产概率为 1——公司最终必然破产。因此我们始终假设安全负荷条件成立：
 \begin{equation}\label{eq:safety}
@@ -20,7 +20,7 @@
 \end{equation}
 在安全负荷条件下，$U_t$ 具有向上的期望漂移，$\mathbb{E}[U_t] = u + (c - \lambda\mu)t$ 随时间线性增长。然而，$U_t$ 不是鞅——它的期望随时间增加。
 
-\subsubsection*{指数鞅构造}
+\subsubsection{指数鞅构造}
 
 为应用 OST，我们需要一个与盈余过程相关的鞅。关键技巧是取指数变换。令 $M_t = e^{-r U_t}$，计算其期望：
 \begin{align}
@@ -41,7 +41,7 @@
 \end{equation}
 在安全负荷条件 $c > \lambda\mu$ 下，函数 $f(r) = \lambda(M_Y(r) - 1) - r c$ 满足 $f(0)=0$、$f'(0) = \lambda \mathbb{E}[Y] - c < 0$，且当 $r$ 趋于 $M_Y$ 的收敛半径时 $f(r) \to +\infty$。故存在唯一的正根 $R > 0$。
 
-\subsubsection*{Lundberg 不等式的 OST 推导}
+\subsubsection{Lundberg 不等式的 OST 推导}
 
 考虑截断停时 $\tau \wedge T$（有界停时，OST 无条件成立），对鞅 $M_t = e^{-R U_t}$ 应用 OST：
 \begin{equation}
@@ -61,7 +61,7 @@
 
 这里有一个值得注意的技术细节：与第二章 Moran 模型中 OST 直接给出等式不同，此处 OST 只能给出不等式。原因在于破产是单边吸收（只有下界，没有上界），无法像双边吸收问题那样通过两个边界值的线性组合解出精确概率。从 OST 推导等式需要知道 $U_\tau$ 在破产时刻的精确分布（称为``破产赤字''分布），这通常没有简单的闭式解。
 
-\subsubsection*{指数索赔分布的精确解}
+\subsubsection{指数索赔分布的精确解}
 
 当索赔额 $Y \sim \text{Exp}(1/\mu)$ 时，矩母函数为 $M_Y(r) = 1/(1 - \mu r)$（$r < 1/\mu$）。调整系数方程 $\lambda \cdot \frac{\mu R}{1 - \mu R} = R c$ 的解为
 \begin{equation}\label{eq:R_exp}

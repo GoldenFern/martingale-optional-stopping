@@ -10,7 +10,7 @@
 
 \subsection{理论分析}
 
-\subsubsection*{情形 A：双边障碍——OST 完美成立}
+\subsubsection{情形 A：双边障碍——OST 完美成立}
 
 定义停时 $\tau_{\text{two}} = \inf\{n: S_n = -a\ \text{或}\ S_n = +b\}$（甲输光或乙输光）。由于 $\tau_{\text{two}}$ 是双边首出时，$S_{n \wedge \tau_{\text{two}}}$ 始终被约束在 $[-a, b]$ 之内，故 $|S_{n \wedge \tau_{\text{two}}}| \leqslant \max(a, b)$。OST 的条件 2（被停过程有界）满足。此外，随机游走在有限区间内的首出时具有有限的期望值，$\mathbb{E}[\tau_{\text{two}}] < \infty$。因此 OST 无条件成立，$\mathbb{E}[S_{\tau_{\text{two}}}] = \mathbb{E}[S_0] = 0$，即
 \begin{equation}\label{eq:gambler_ost}
@@ -28,7 +28,7 @@
 \end{equation}
 例如，两人各有 10 元时，平均需要 100 局才有一方输光。
 
-\subsubsection*{情形 B：单边障碍——OST 的三个条件全部失效}
+\subsubsection{情形 B：单边障碍——OST 的三个条件全部失效}
 
 现在定义停时 $\tau_{\text{one}} = \inf\{n: S_n = +b\}$——甲停手不赌了，乙有无限资本。这是单边首达时。一维随机游走的常返性保证 $\tau_{\text{one}} < \infty$ 几乎必然（即甲最终一定会赢到 $b$ 元），然而：
 
@@ -42,7 +42,7 @@
   \mathbb{E}[S_{\tau_{\text{one}}}] = b \neq 0 = \mathbb{E}[S_0].
 \end{equation}
 
-\subsubsection*{一致可积性的缺失}
+\subsubsection{一致可积性的缺失}
 
 OST 失效的深层数学原因在于被停过程 $\{S_{n \wedge \tau_{\text{one}}}\}$ 不是一致可积的。回顾一致可积性的定义：一族随机变量 $\{X_\alpha\}$ 是一致可积的，若
 \begin{equation}
@@ -57,7 +57,7 @@ OST 失效的深层数学原因在于被停过程 $\{S_{n \wedge \tau_{\text{one
   \mathbb{E}\Big[\lim_{n \to \infty} S_{n \wedge \tau_{\text{one}}}\Big] = \mathbb{E}[S_{\tau_{\text{one}}}] = b \neq 0.
 \end{equation}
 
-\subsubsection*{停时分布的尾部行为}
+\subsubsection{停时分布的尾部行为}
 
 双边停时和单边停时的尾部行为有本质区别。对于双边障碍 $[-a, b]$，由生灭链的谱理论知 $\mathbb{P}(\tau_{\text{two}} > n)$ 以指数速率衰减（因为状态空间有限，转移矩阵的次大特征值严格小于 1）。指数衰减意味着所有阶矩有限，特别地 $\mathbb{E}[\tau_{\text{two}}] < \infty$。
 
@@ -67,7 +67,7 @@ OST 失效的深层数学原因在于被停过程 $\{S_{n \wedge \tau_{\text{one
 \end{equation}
 这是一个以 $n^{-1/2}$ 速率衰减的重尾分布，其积分 $\int_0^\infty \mathbb{P}(\tau > t) dt$ 发散，因此 $\mathbb{E}[\tau_{\text{one}}] = \infty$。重尾性使得``绝大多数''路径会在相对较短的时间内碰到 $+b$，但极少数``顽固''路径（游走先大幅下跌再缓慢回升）贡献了无穷的期望——这是期望与中位数之间存在巨大差异的典型案例。
 
-\subsubsection*{截断停时与不可交换极限}
+\subsubsection{截断停时与不可交换极限}
 
 为展示 OST 失效的精确机制，引入截断停时 $\tau_N = \min(\tau_{\text{one}}, N)$。对任意固定的 $N$，$\tau_N$ 有界（$\leqslant N$），OST 的条件 1 满足，因此
 \begin{equation}\label{eq:trunc_ost}

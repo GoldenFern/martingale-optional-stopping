@@ -17,7 +17,7 @@
 
 \subsection{理论分析}
 
-\subsubsection*{Snell 包络与行权边界}
+\subsubsection{Snell 包络与行权边界}
 
 将时间 $[0, T]$ 离散为 $N$ 步，步长 $\Delta t = T/N$。在离散时间下，美式期权的 Snell 包络递推为
 \begin{equation}\label{eq:snell_option}
@@ -27,7 +27,7 @@
 
 最优行权策略由一个\textbf{停时边界} $S^*(t)$ 完全刻画：当 $S_t \leqslant S^*(t)$ 时（即期权深度 in-the-money），立即行权；当 $S_t > S^*(t)$ 时，继续持有。这一边界将 $(t, S)$ 平面划分为\emph{停时区域}和\emph{延续区域}。
 
-\subsubsection*{Longstaff-Schwartz 算法}
+\subsubsection{Longstaff-Schwartz 算法}
 
 LSM 算法的核心创新在于用最小二乘回归估计 continuation value。算法流程如下：
 

@@ -63,6 +63,20 @@
   },
 }
 
+\titlecontents{section}
+  [0pt]
+  {\bfseries}
+  {第\contentslabel{2.8em}章\quad}
+  {}
+  {\titlerule*[0.6pc]{.}\contentspage}
+
+\titlecontents{subsection}
+  [2.8em]
+  {}
+  {\contentslabel{2.8em}}
+  {}
+  {\titlerule*[0.6pc]{.}\contentspage}
+
 \theoremstyle{definition}
 \newtheorem{definition}{定义}[section]
 
