@@ -29,6 +29,7 @@ BCOR=5mm
 \pagestyle{scrheadings}
 \renewcommand{\contentsname}{目录}
 \renewcommand{\refname}{参考文献}
+\newcommand{\chapterinput}[1]{\clearpage\input{#1}}
 
 \maketitle
 
@@ -47,13 +48,13 @@ BCOR=5mm
 
 \tableofcontents
 
-\input{sections/ch01_intro}
-\input{sections/ch02_moran}
-\input{sections/ch03_insurance}
-\input{sections/ch04_ruin}
-\input{sections/ch05_secretary}
-\input{sections/ch06_option}
-\input{sections/ch07_conclusion}
+\chapterinput{sections/ch01_intro}
+\chapterinput{sections/ch02_moran}
+\chapterinput{sections/ch03_insurance}
+\chapterinput{sections/ch04_ruin}
+\chapterinput{sections/ch05_secretary}
+\chapterinput{sections/ch06_option}
+\chapterinput{sections/ch07_conclusion}
 
 \clearpage
 \bibliographystyle{unsrt}
