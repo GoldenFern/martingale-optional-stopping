@@ -65,26 +65,27 @@
   },
 }
 
+\contentsmargin[2.55em]{0pt}
 \titlecontents{section}
   [0pt]
-  {\bfseries}
-  {\contentslabel{5.6em}}
+  {\addvspace{6bp}\bfseries}
+  {\contentspush{\thecontentslabel\enskip}}
   {}
-  {\titlerule*[0.6pc]{.}\contentspage}
+  {\titlerule*[4bp]{.}\contentspage}
 
 \titlecontents{subsection}
-  [2.8em]
+  [2em]
   {}
-  {\contentslabel{2.8em}}
+  {\contentspush{\thecontentslabel\enskip}}
   {}
-  {\titlerule*[0.6pc]{.}\contentspage}
+  {\titlerule*[4bp]{.}\contentspage}
 
 \titlecontents{subsubsection}
-  [5.6em]
-  {\small}
-  {\contentslabel{3.4em}}
+  [4em]
   {}
-  {\titlerule*[0.6pc]{.}\contentspage}
+  {\contentspush{\thecontentslabel\enskip}}
+  {}
+  {\titlerule*[4bp]{.}\contentspage}
 
 \theoremstyle{definition}
 \newtheorem{definition}{定义}[section]
