@@ -1,0 +1,67 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Arsclassica Article
+% Structure Specification File
+% Adapted for this project with XeLaTeX and Chinese content.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage[
+nochapters,
+beramono,
+pdfspacing,
+dottedtoc
+]{classicthesis}
+
+\usepackage{arsclassica}
+
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\usepackage{unicode-math}
+
+\setmainfont{TeX Gyre Pagella}
+\setsansfont{TeX Gyre Heros}
+\setmonofont{Consolas}
+\setCJKmainfont{SimSun}[BoldFont=SimHei]
+\setCJKsansfont{SimHei}[BoldFont=SimHei]
+\setCJKmonofont{KaiTi}
+\setmathfont{TeX Gyre Pagella Math}
+
+\usepackage{graphicx}
+\graphicspath{{figures/}{../output/figures/}}
+
+\usepackage{enumitem}
+\usepackage{subfig}
+\usepackage{amsthm}
+\usepackage{booktabs}
+\usepackage{xpatch}
+\usepackage{varioref}
+\usepackage{bookmark}
+
+\setlength{\parindent}{2em}
+\setlist{itemsep=0.2em, topsep=0.3em}
+
+\renewcommand{\contentsname}{目录}
+\renewcommand{\listfigurename}{插图目录}
+\renewcommand{\listtablename}{表格目录}
+\renewcommand{\abstractname}{摘要}
+\renewcommand{\refname}{参考文献}
+
+\theoremstyle{definition}
+\newtheorem{definition}{定义}[section]
+
+\theoremstyle{plain}
+\newtheorem{theorem}{定理}[section]
+\newtheorem{lemma}[theorem]{引理}
+\newtheorem{corollary}[theorem]{推论}
+
+\theoremstyle{remark}
+
+
+\hypersetup{
+colorlinks=true,
+breaklinks=true,
+bookmarks=true,
+bookmarksnumbered=true,
+urlcolor=webbrown,
+linkcolor=RoyalBlue,
+citecolor=webgreen
+}

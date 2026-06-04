@@ -12,7 +12,7 @@
 \begin{equation}
   \mathbb{E}[X_\tau] = \mathbb{E}[X_0].
 \end{equation}
-这一结论具有广泛的应用：从赌徒破产问题\cite{钱敏平2021随机过程论}到序贯假设检验（Wald 的序贯概率比检验）、从美式期权定价\cite{longstaff2001valuing}到种群遗传学中基因频率的固定概率\cite{moran1958random}，OST 提供了将这些看似不同的问题统一在同一数学框架下的工具。
+这一结论具有广泛的应用：从赌徒破产问题\cite{qian2021randomprocess}到序贯假设检验（Wald 的序贯概率比检验）、从美式期权定价\cite{longstaff2001valuing}到种群遗传学中基因频率的固定概率\cite{moran1958random}，OST 提供了将这些看似不同的问题统一在同一数学框架下的工具。
 
 然而，OST 并非无条件成立。Doob 给出了三个充分条件中的任何一个都可保证 OST 成立：（1）停时 $\tau$ 几乎必然有界；（2）在停时前的整个过程 $|X_{t \wedge \tau}|$ 几乎必然有界；（3）$\mathbb{E}[\tau] < \infty$ 且增量 $|X_t - X_{t-1}|$ 一致有界。当这三个条件全部不满足时，OST 可能失效——对称随机游走在单边首达时 $\tau = \inf\{n: S_n = +1\}$ 处的行为是这一失效的经典反例：$\tau$ 几乎必然有限，但 $\mathbb{E}[S_\tau] = 1 \neq 0 = \mathbb{E}[S_0]$。失效的深层原因在于一致可积性（uniform integrability）的缺失——被停过程 $\{X_{n \wedge \tau}\}$ 在 $\tau$ 无界时可能``泄漏''概率质量，使极限与期望无法交换。
 
@@ -71,7 +71,7 @@
 \begin{equation}
   \mathbb{E}[X_{\tau \wedge n}] = \sum_{k=0}^{n} \mathbb{E}[X_n \mathbf{1}_{\{\tau = k\}}] = \mathbb{E}[X_n].
 \end{equation}
-当 $n$ 很大时 $X_{\tau \wedge n} = X_\tau$（因 $\tau \leqslant K$），取 $n \geqslant K$ 即得 $\mathbb{E}[X_\tau] = \mathbb{E}[X_n] = \mathbb{E}[X_0]$。\hfill $\square$
+当 $n$ 很大时 $X_{\tau \wedge n} = X_\tau$（因 $\tau \leqslant K$），取 $n \geqslant K$ 即得 $\mathbb{E}[X_\tau] = \mathbb{E}[X_n] = \mathbb{E}[X_0]$。\hfill\rule{0.9ex}{0.9ex}
 
 条件 2 和 3 的证明分别依赖有界收敛定理和 Wald 引理。这三个条件本质上共同保证了一致可积性（uniform integrability）——即极限与期望可以交换：
 \begin{equation}
