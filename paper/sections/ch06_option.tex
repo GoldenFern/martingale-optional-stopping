@@ -34,8 +34,7 @@ LSM 算法的核心创新在于用最小二乘回归估计 continuation value。
 \begin{enumerate}
   \item \textbf{前向模拟}：生成 $M$ 条独立的股价路径 $\{S_n^{(i)}\}_{n=0}^{N}$，$i = 1, \dots, M$。由于几何布朗运动有显式解，本文使用保持正性的对数正态精确离散化：
   \begin{equation}\label{eq:em}
-    S_{n+1}^{(i)} = S_n^{(i)}
-    \exp\Big\{(r-\tfrac{1}{2}\sigma^2)\Delta t
+    S_{n+1}^{(i)} = S_n^{(i)} \exp\Big\{(r-\tfrac{1}{2}\sigma^2)\Delta t
     + \sigma\sqrt{\Delta t}\, Z_n^{(i)}\Big\},
     \quad Z_n^{(i)} \stackrel{\text{iid}}{\sim} N(0, 1).
   \end{equation}
@@ -44,9 +43,7 @@ LSM 算法的核心创新在于用最小二乘回归估计 continuation value。
     \item 筛选\emph{价内路径}：保留 $g(S_n^{(i)}) > 0$ 的路径索引集合 $\mathcal{I}_n$。
     \item 将每条路径当前记录的未来现金流折现回 $n$ 时刻：
     \begin{equation}
-      Y^{(i)} =
-      e^{-r(\tau^{(i)}-n)\Delta t}\,
-      g(S_{\tau^{(i)}}^{(i)}),
+      Y^{(i)} = e^{-r(\tau^{(i)}-n)\Delta t}\, g(S_{\tau^{(i)}}^{(i)}),
       \quad i\in \mathcal{I}_n.
     \end{equation}
     \item 以当前股价 $X^{(i)} = S_n^{(i)}$（$i \in \mathcal{I}_n$）为自变量，$Y^{(i)}$ 为因变量，做多项式回归（本文使用二阶多项式 $\beta_0 + \beta_1 S + \beta_2 S^2$）：
