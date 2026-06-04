@@ -39,7 +39,29 @@
 \usepackage{booktabs}
 \usepackage{float}
 \usepackage{amsthm}
+\usepackage{chngcntr}
 \usepackage{indentfirst}
+
+\ctexset{
+  section = {
+    format = \centering\zihao{2}\bfseries,
+    number = \arabic{section},
+    name = {第~,~章},
+    aftername = \quad,
+    beforeskip = 0pt,
+    afterskip = 24bp,
+  },
+  subsection = {
+    format = \zihao{3}\bfseries,
+    beforeskip = 18bp,
+    afterskip = 10bp,
+  },
+  subsubsection = {
+    format = \zihao{-3}\bfseries,
+    beforeskip = 12bp,
+    afterskip = 6bp,
+  },
+}
 
 \theoremstyle{definition}
 \newtheorem{definition}{定义}[section]
