@@ -5,33 +5,21 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / 'src'))
 
 import numpy as np
 import pandas as pd
-from core.batching import split_batch_sizes
-from ch06_option.lsm_pricer import LSMPricer, black_scholes_put
+from lsm_pricer import LSMPricer, black_scholes_put
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 DATA_DIR = PROJECT_ROOT / 'output' / 'data'
 
 
-def run_price_comparison(K=40, r=0.06, sigma=0.2, T=1.0, N=50, M=30000,
-                         seed=42, n_batches=8):
+def run_price_comparison(K=40, r=0.06, sigma=0.2, T=1.0, N=50, M=30000, seed=42):
     """美式 vs 欧式期权价格对比。"""
     S0_values = np.linspace(36, 44, 17)
     rows = []
-    batches = {}
-    batch_sizes = split_batch_sizes(M, n_batches)
     for S0 in S0_values:
+        pricer = LSMPricer(S0, K, r, sigma, T, N=N, M=M, seed=seed)
+        am_price, am_se, _, _, _ = pricer.price()
         eu_price = black_scholes_put(S0, K, r, sigma, T)
         payoff_val = max(K - S0, 0)
-        batch_vals = np.empty(n_batches)
-        for b, batch_size in enumerate(batch_sizes):
-            pricer_b = LSMPricer(
-                S0, K, r, sigma, T, N=N, M=batch_size, seed=seed + 1000 * b
-            )
-            price_b, _, _, _, _ = pricer_b.price()
-            batch_vals[b] = price_b
-        am_price = batch_vals.mean()
-        am_se = batch_vals.std(ddof=1) / np.sqrt(n_batches)
-        batches[f'S0_{S0:.1f}'] = batch_vals
         rows.append({
             'S0': S0, 'american': am_price, 'am_se': am_se,
             'european': eu_price, 'payoff': payoff_val,
@@ -39,7 +27,6 @@ def run_price_comparison(K=40, r=0.06, sigma=0.2, T=1.0, N=50, M=30000,
     df = pd.DataFrame(rows)
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     df.to_csv(DATA_DIR / 'exp6_price.csv', index=False)
-    np.savez(DATA_DIR / 'exp6_price_batches.npz', **batches)
     return df
 
 

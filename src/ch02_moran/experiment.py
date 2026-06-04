@@ -6,7 +6,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / 'src'))
 import numpy as np
 import pandas as pd
 from ch02_moran.moran_model import MoranProcess, expected_tau_moran
-from core.batching import split_batch_sizes
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 DATA_DIR = PROJECT_ROOT / 'output' / 'data'
@@ -17,32 +16,21 @@ def run_fixation_experiment(N=100, n_paths=5000, seed=42):
     np.random.seed(seed)
     freq_values = np.arange(0.1, 1.0, 0.1)
     rows = []
-    fixation_batches = {}
-    n_batches = 10
-    batch_sizes = split_batch_sizes(n_paths, n_batches)
-    total_paths = sum(batch_sizes)
     tau_exact = expected_tau_moran(N)
     for freq in freq_values:
         x0 = int(freq * N)
         model = MoranProcess(N)
         fixations = 0
         tau_samples = []
-        batch_vals = np.empty(n_batches)
-        for b, batch_size in enumerate(batch_sizes):
-            batch_fix = 0
-            for _ in range(batch_size):
-                model.reset(x0)
-                path = model.simulate_path()
-                fixed = int(path[-1] == N)
-                if fixed:
-                    fixations += 1
-                    batch_fix += 1
-                tau_samples.append(len(path) - 1)
-            batch_vals[b] = batch_fix / batch_size
-        p_fix = fixations / total_paths
+        for _ in range(n_paths):
+            model.reset(x0)
+            path = model.simulate_path()
+            if path[-1] == N:
+                fixations += 1
+            tau_samples.append(len(path) - 1)
+        p_fix = fixations / n_paths
         tau_mean = np.mean(tau_samples)
-        tau_se = np.std(tau_samples, ddof=1) / np.sqrt(total_paths)
-        fixation_batches[f'{freq:.1f}'] = batch_vals
+        tau_se = np.std(tau_samples, ddof=1) / np.sqrt(n_paths)
         rows.append({
             'N': N, 'initial_freq': freq, 'x0': x0,
             'p_fixation_mc': p_fix, 'p_fixation_theory': freq,
@@ -52,7 +40,6 @@ def run_fixation_experiment(N=100, n_paths=5000, seed=42):
     df = pd.DataFrame(rows)
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     df.to_csv(DATA_DIR / 'exp2_fixation.csv', index=False)
-    np.savez(DATA_DIR / 'exp2_fixation_batches.npz', **fixation_batches)
     return df
 
 
@@ -61,6 +48,7 @@ def run_tau_distribution(N=100, x0=None, n_paths=10000, seed=42):
     np.random.seed(seed)
     if x0 is None:
         x0 = N // 2
+    rng = np.random.default_rng(seed)
     model = MoranProcess(N)
     tau_samples = np.empty(n_paths, dtype=int)
     for i in range(n_paths):
