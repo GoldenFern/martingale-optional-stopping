@@ -62,10 +62,14 @@ class MonteCarloSimulation:
 
     def estimate_expectation(self, x0: float, n_paths: int, max_steps: int,
                              seed: Optional[int] = None) -> tuple[float, float]:
-        """估计 E[X_τ] 及其标准误差。"""
+        """估计 E[X_τ] 及其标准误差（仅使用在 max_steps 内触发停时的路径）。"""
         result = self.run(x0, n_paths, max_steps, seed)
-        mean = np.mean(result.stopped_values)
-        se = np.std(result.stopped_values, ddof=1) / np.sqrt(n_paths)
+        reached = result.reached_stop
+        if reached.sum() == 0:
+            return float('nan'), float('nan')
+        vals = result.stopped_values[reached]
+        mean = np.mean(vals)
+        se = np.std(vals, ddof=1) / np.sqrt(len(vals))
         return mean, se
 
     def estimate_convergence(self, x0: float, path_counts: np.ndarray,

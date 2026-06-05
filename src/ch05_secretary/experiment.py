@@ -64,7 +64,7 @@ def run_snell_experiment(N=20):
 
 def run_control_experiment(N_values=(20, 50, 100, 200),
                            n_r_points=30, n_trials=2000, seed=42, n_batches=10):
-    """实验3: 随机选择基线，保存批次成功率。"""
+    """实验3: 随机选择基线（模拟真实随机排列），保存批次成功率。"""
     np.random.seed(seed)
     rows = []
     batches = {}
@@ -74,19 +74,22 @@ def run_control_experiment(N_values=(20, 50, 100, 200),
         for point_idx, r_frac in enumerate(np.linspace(0.02, 0.98, n_r_points)):
             r = max(1, int(r_frac * N))
             batch_vals = np.empty(n_batches)
-            total_successes = 0
             for b, batch_size in enumerate(batch_sizes):
-                success_b = np.random.binomial(batch_size, 1.0 / N) / batch_size
-                batch_vals[b] = success_b
-                total_successes += success_b * batch_size
-            success = total_successes / total_trials
-            se = np.sqrt(success * (1 - success) / total_trials)
-            batch_key = _batch_key(N, point_idx)
-            batches[batch_key] = batch_vals
+                # 每批次模拟 batch_size 次随机排列，每次随机选一个位置
+                successes = 0
+                for _ in range(batch_size):
+                    best_pos = np.random.randint(0, N)  # 全局最优的随机位置
+                    pick_pos = np.random.randint(r, N)   # 在可选范围内随机选
+                    if pick_pos == best_pos:
+                        successes += 1
+                batch_vals[b] = successes / batch_size
+            batches[_batch_key(N, point_idx)] = batch_vals
+            success = batch_vals.mean()
+            se = batch_vals.std(ddof=1) / np.sqrt(n_batches)
             rows.append({
                 'N': N, 'r': r, 'r_frac': r / N,
                 'success_mc': success, 'se': se,
-                'batch_key': batch_key,
+                'batch_key': _batch_key(N, point_idx),
             })
     df = pd.DataFrame(rows)
     df.to_csv(DATA_DIR / 'exp5_control.csv', index=False)

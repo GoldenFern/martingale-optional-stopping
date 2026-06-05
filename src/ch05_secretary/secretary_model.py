@@ -58,15 +58,14 @@ def snell_envelope(N: int) -> tuple[np.ndarray, np.ndarray]:
 
 
 def theoretical_success_prob(r: int, N: int) -> float:
-    """N→∞ 时，策略 '前 r-1 个跳过' 的成功概率近似。
+    """策略 '前 r-1 个跳过' 的成功概率精确公式。
 
-    P(success) = (r/N) * sum_{k=r}^{N} 1/(k-1)
-               ≈ (r/N) * (ln(N) - ln(r))
+    P(success) = ((r-1)/N) * sum_{k=r}^{N} 1/(k-1)
     """
-    if r == 0:
+    if r <= 1:
         return 1.0 / N
-    s = sum(1.0 / (k - 1) for k in range(r + 1, N + 1))
-    return (r / N) * s
+    s = sum(1.0 / (k - 1) for k in range(r, N + 1))
+    return ((r - 1) / N) * s
 
 
 def simulate_noise_control(N: int, r: int, n_trials=2000) -> float:

@@ -77,15 +77,11 @@
 \end{enumerate}
 \end{theorem}
 
-在给出证明之前，先简要介绍指示分解（indicator decomposition）这一核心技巧。指示分解的基本思想是利用示性函数（indicator function）将随机变量的期望按互斥事件进行拆分。对任意停时 $\tau$ 和固定的 $n$，最基本的指示分解为
-\begin{equation}
-  \mathbf{1}_{\{\tau < n\}} + \mathbf{1}_{\{\tau \geqslant n\}} = 1,
-\end{equation}
-它将概率空间划分为``在 $n$ 之前已停止''和``到 $n$ 时刻仍未停止''两个互斥部分。更精细的分解则按停时的具体取值逐项展开：
+在给出证明之前，先回顾一个处理停时期望的基本技巧。对任意停时 $\tau$ 和固定的 $n$，利用示性函数（indicator function）可将概率空间划分为``在 $n$ 之前已停止''和``到 $n$ 时刻仍未停止''两个互斥部分：
 \begin{equation}
   \sum_{k=0}^{n-1} \mathbf{1}_{\{\tau = k\}} + \mathbf{1}_{\{\tau \geqslant n\}} = 1.
 \end{equation}
-利用这一分解，被停过程 $X_{\tau \wedge n}$ 的期望可以表达为各互斥事件上条件期望的加权和，从而将随机停时处的期望转化为一系列固定时刻期望的组合。这一技巧在鞅论中反复出现，是处理停时期望的基本工具，以下 OST 的证明即为其典型应用。
+由此，被停过程 $X_{\tau \wedge n}$ 的期望可以表达为各互斥事件上条件期望的加权和，从而将随机停时处的期望转化为一系列固定时刻期望的组合。这一技巧在鞅论中反复出现，以下 OST 的证明即为其典型应用。
 
 \textbf{证明（离散时间情形，条件 1）。} 设 $\tau \leqslant K$ 几乎必然。利用上述指示分解：
 \begin{align}
@@ -93,9 +89,11 @@
   &= \mathbb{E}\Bigg[X_{\tau \wedge n} \Bigg(\sum_{k=0}^{n-1} \mathbf{1}_{\{\tau = k\}} + \mathbf{1}_{\{\tau \geqslant n\}}\Bigg)\Bigg] \\
   &= \sum_{k=0}^{n-1} \mathbb{E}[X_k \mathbf{1}_{\{\tau = k\}}] + \mathbb{E}[X_n \mathbf{1}_{\{\tau \geqslant n\}}].
 \end{align}
-由于 $\{\tau = k\} \in \mathcal{F}_k$ 且 $\{X_n\}$ 为鞅，$\mathbb{E}[X_n \mid \mathcal{F}_k] = X_k$，故 $\mathbb{E}[X_n \mathbf{1}_{\{\tau = k\}}] = \mathbb{E}[X_k \mathbf{1}_{\{\tau = k\}}]$。代入得
+由于 $\{\tau = k\} \in \mathcal{F}_k$ 且 $\{X_n\}$ 为鞅，$\mathbb{E}[X_n \mid \mathcal{F}_k] = X_k$，故对 $k < n$ 有 $\mathbb{E}[X_n \mathbf{1}_{\{\tau = k\}}] = \mathbb{E}[X_k \mathbf{1}_{\{\tau = k\}}]$。代入得
 \begin{equation}
-  \mathbb{E}[X_{\tau \wedge n}] = \sum_{k=0}^{n} \mathbb{E}[X_n \mathbf{1}_{\{\tau = k\}}] = \mathbb{E}[X_n].
+  \mathbb{E}[X_{\tau \wedge n}]
+  = \mathbb{E}\Bigg[X_n\Bigg(\sum_{k=0}^{n-1}\mathbf{1}_{\{\tau = k\}} + \mathbf{1}_{\{\tau \geqslant n\}}\Bigg)\Bigg]
+  = \mathbb{E}[X_n].
 \end{equation}
 当 $n$ 很大时 $X_{\tau \wedge n} = X_\tau$（因 $\tau \leqslant K$），取 $n \geqslant K$ 即得 $\mathbb{E}[X_\tau] = \mathbb{E}[X_n] = \mathbb{E}[X_0]$。\hfill\rule{0.9ex}{0.9ex}
 

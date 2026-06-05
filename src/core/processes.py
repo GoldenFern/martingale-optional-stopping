@@ -83,9 +83,10 @@ class AsymmetricRW(Martingale):
 
 
 class GeometricBrownianMotion:
-    """几何布朗运动 dS = r·S·dt + σ·S·dW（非鞅），Euler-Maruyama 离散化。
+    """几何布朗运动 dS = r·S·dt + σ·S·dW（非鞅），精确对数正态离散化。
 
-    dS_t = r S_t dt + σ S_t dW_t  →  S_{t+Δt} = S_t + r S_t Δt + σ S_t √Δt · Z
+    在风险中性测度 Q 下，GBM 有显式解：
+    S_{t+Δt} = S_t · exp{(r − σ²/2)Δt + σ√Δt · Z}，  Z ∼ N(0,1)
     """
 
     def __init__(self, r: float, sigma: float):
@@ -97,8 +98,11 @@ class GeometricBrownianMotion:
         self._state = x0
 
     def step(self, dt: float) -> float:
-        self._state += (self.r * self._state * dt
-                        + self.sigma * self._state * np.sqrt(dt) * np.random.randn())
+        """精确对数正态离散化，保持 S > 0 且分布上精确。"""
+        self._state *= np.exp(
+            (self.r - 0.5 * self.sigma**2) * dt
+            + self.sigma * np.sqrt(dt) * np.random.randn()
+        )
         return self._state
 
     def simulate_path(self, T: float, N: int) -> np.ndarray:

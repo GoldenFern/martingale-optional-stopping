@@ -69,9 +69,9 @@
   &\geqslant \mathbb{E}[e^{-R U_{\tau \wedge T}} \mathbf{1}_{\{\tau \leqslant T\}}] \notag\\
   &\geqslant \mathbb{E}[\mathbf{1}_{\{\tau \leqslant T\}}] = \mathbb{P}(\tau \leqslant T),
 \end{align}
-其中第一个不等式成立是因为 $e^{-R U_{\tau \wedge T}} \geqslant 0$ 且我们截取了 $\{\tau \leqslant T\}$ 上的积分；第二步利用了 $\tau \leqslant T$ 时 $U_\tau < 0$（破产），因此 $e^{-R U_\tau} \geqslant e^{-R \cdot 0} = 1$（因 $R > 0$ 且 $U_\tau$ 在破产瞬间略小于 0，严格不等但在极限下趋于 1）。令 $T \to \infty$，由单调收敛定理得
+其中第一个不等式成立是因为 $e^{-R U_{\tau \wedge T}} \geqslant 0$ 且我们截取了 $\{\tau \leqslant T\}$ 上的积分；第二步利用了 $\tau \leqslant T$ 时 $U_\tau < 0$（破产），因此 $e^{-R U_\tau} > 1$（因 $R > 0$ 且 $U_\tau < 0$，指数函数严格大于 1）。令 $T \to \infty$，由单调收敛定理得
 \begin{equation}\label{eq:lundberg}
-  \boxed{\psi(u) = \mathbb{P}(\tau < \infty) \leqslant e^{-R u}}.
+  \psi(u) = \mathbb{P}(\tau < \infty) \leqslant e^{-R u}.
 \end{equation}
 这就是著名的 Lundberg 不等式：破产概率以指数速率随初始资本衰减。初始资本每增加一个单位，破产概率的上界缩小一个固定因子 $e^{-R}$。
 
@@ -96,7 +96,6 @@
     初始资本 $u$ & 5 & $0,1,\dots,20$ & 5 \\
     时间上限 $T$ & 200 & 200 & 50 \\
     路径数 $M$ & 15（展示） & 16000/每个 $u$（8 批次） & 4（左上）+ 2（右上）+ 16000（下图） \\
-    随机种子 & 42 & 42 & 固定种子搜索（上图），24680（下图） \\
     \bottomrule
   \end{tabular}
 \end{table}
