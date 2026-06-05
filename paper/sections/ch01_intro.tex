@@ -2,6 +2,8 @@
 
 \subsection{研究背景}
 
+\subsubsection{鞅与可选停止定理}
+
 鞅（martingale）是概率论中最重要的概念之一，最早由 Paul L\'{e}vy 于 1934 年引入，后经 Joseph L. Doob 在 20 世纪 40--50 年代系统发展，成为现代随机过程理论的基石。鞅刻画了直观上的``公平博弈''：设一个赌徒在第 $n$ 局结束后的财富为 $X_n$，若赌局公平，则在已知前 $n$ 局全部信息 $\mathcal{F}_n$ 的条件下，下一局后财富的条件期望应等于当前财富：
 \begin{equation}
   \mathbb{E}[X_{n+1} \mid \mathcal{F}_n] = X_n.
@@ -14,11 +16,25 @@
 \end{equation}
 这一结论具有广泛的应用：从赌徒破产问题\cite{qian2021randomprocess}到序贯假设检验（Wald 的序贯概率比检验）、从美式期权定价\cite{longstaff2001valuing}到种群遗传学中基因频率的固定概率\cite{moran1958random}，OST 提供了将这些看似不同的问题统一在同一数学框架下的工具。
 
-然而，OST 并非无条件成立。Doob 给出了三个充分条件中的任何一个都可保证 OST 成立：（1）停时 $\tau$ 几乎必然有界；（2）在停时前的整个过程 $|X_{t \wedge \tau}|$ 几乎必然有界；（3）$\mathbb{E}[\tau] < \infty$ 且增量 $|X_t - X_{t-1}|$ 一致有界。当这三个条件全部不满足时，OST 可能失效——对称随机游走在单边首达时 $\tau = \inf\{n: S_n = +1\}$ 处的行为是这一失效的经典反例：$\tau$ 几乎必然有限，但 $\mathbb{E}[S_\tau] = 1 \neq 0 = \mathbb{E}[S_0]$。失效的深层原因在于一致可积性（uniform integrability）的缺失——被停过程 $\{X_{n \wedge \tau}\}$ 在 $\tau$ 无界时可能``泄漏''概率质量，使极限与期望无法交换。
+然而，OST 并非无条件成立。Doob 给出了三个充分条件中的任何一个都可保证 OST 成立：（1）停时 $\tau$ 几乎必然有界；（2）在停时前的整个过程 $|X_{t \wedge \tau}|$ 几乎必然有界；（3）$\mathbb{E}[\tau] < \infty$ 且增量 $|X_t - X_{t-1}|$ 一致有界。当这三个条件全部不满足时，OST 可能失效——对称随机游走在单边首达时 $\tau = \inf\{n: S_n = +1\}$ 处的行为是这一失效的经典反例：$\tau$ 几乎必然有限，但 $\mathbb{E}[S_\tau] = 1 \neq 0 = \mathbb{E}[S_0]$。失效的深层原因在于一致可积性的缺失：虽然 $\tau < \infty$ 几乎必然成立，但 $\mathbb{E}[\tau] = \infty$；被停过程 $\{X_{n \wedge \tau}\}$ 在事件 $\{\tau > n\}$ 上的路径可以长时间停留在负半轴并累积任意大的负值，使得该族随机变量无法满足一致可积性条件 $\lim_{M \to \infty} \sup_n \mathbb{E}[|X_{n \wedge \tau}| \mathbf{1}_{\{|X_{n \wedge \tau}| > M\}}] = 0$，从而极限与期望的交换缺乏数学依据。
 
 近年来，随着计算机性能的提升，Monte Carlo 数值模拟为研究 OST 在不同条件下的行为提供了强有力的工具。通过生成大量独立样本路径，可以以高精度估计 $\mathbb{E}[X_\tau]$，并与理论预测进行对比。更重要的是，数值模拟可以直观地展示 OST 失效的微观机制——例如单边停时下路径可以``先任意深地走负再回来''——这是纯解析推导难以传达的洞见。
 
-本文选取五个具有代表性的随机过程模型，逐一进行数值研究：Moran 种群遗传过程（OST 完美成立）、Cram\'{e}r-Lundberg 保险破产模型（需构造指数鞅）、赌徒破产过程（OST 条件失效分析）、秘书问题（引出 Snell 包络的最优停时理论）、以及美式期权定价（Longstaff-Schwartz Monte Carlo 算法）。这五个模型形成了一个从``OST 直接成立''到``OST 不适用，需要更一般的最优停时框架''的完整谱系。
+\subsubsection{数值实验的模型选择}
+
+本文选取五个具有代表性的随机过程模型进行数值实验，每个模型对应 OST 理论谱系中的一个特定位置。以下逐一说明各模型的选择原因及其在本文中的分析目标。
+
+\textbf{Moran 种群遗传过程。} Moran 模型描述有限种群中基因频率的随机演化。在这一模型中，种群个体数 $N$ 固定，基因频率 $X_n$ 仅在有限状态空间 $\{0, 1/N, \dots, 1\}$ 中取值，因此过程天然有界。OST 的条件 2（被停过程有界）自动满足，使得对任意停时 $\tau$ 均有 $\mathbb{E}[X_\tau] = \mathbb{E}[X_0]$ 严格成立。该模型的数值实验目的为：在无需担忧 OST 适用条件的前提下，验证停时期望的数值估计与解析公式 $x_0/N$ 的一致性，为后续模型提供基准。
+
+\textbf{Cram\'{e}r-Lundberg 保险破产模型。} 保险公司的盈余过程 $U_t = u + ct - \sum_{i=1}^{N_t} Y_i$ 本身并非鞅（具有正漂移 $c > \lambda \mathbb{E}[Y_1]$），因此不能直接对 $U_t$ 应用 OST。但可以通过指数变换构造辅助鞅 $M_t = \exp\{-r U_t\}$（其中 $r$ 为调节系数），进而对 $M_t$ 应用 OST 得到 Lundberg 破产概率上界。该模型的数值实验目的为：展示如何通过鞅的构造性方法将 OST 应用于非鞅过程，并验证模拟破产概率与理论上界之间的关系。
+
+\textbf{赌徒破产模型（单边首达时）。} 对称随机游走在单边首达时 $\tau = \inf\{n: S_n = +b\}$ 处，OST 的三个充分条件全部失效：$\tau$ 无界、$S_{n \wedge \tau}$ 无界（可趋近 $-\infty$）、$\mathbb{E}[\tau] = \infty$。该模型是理解 OST 适用边界的经典反例。数值实验目的为：通过对比截断停时 $\tau \wedge N$（OST 成立，$\mathbb{E}[S_{\tau \wedge N}] = 0$）与自然停时 $\tau$（OST 失效，$\mathbb{E}[S_\tau] = b$）的期望行为，直观展示一致可积性缺失导致的极限--期望不可交换现象，并分析停时分布的重尾性对收敛速率的影响。
+
+\textbf{秘书问题。} 前述三个模型的停时均由过程首次触及某一边界而触发（``被动停时''），而秘书问题的核心在于决策者根据已观测的相对排名主动选择何时停止（``主动停时''）。此时，问题从``给定停时下 OST 是否成立''转变为``如何选择停时以最优化期望收益''，即最优停时问题。该模型的数值实验目的为：引出 Snell 包络和后向动态规划的统一框架，展示 OST 的局限性以及向更一般理论过渡的必要性，并通过 Monte Carlo 模拟验证最优策略的渐近性质（观测比例 $\approx 1/e$）。
+
+\textbf{美式看跌期权定价。} 美式期权的行权决策是一个连续状态空间下的最优停时问题，无法解析求解。Longstaff 和 Schwartz（2001）提出的最小二乘 Monte Carlo（LSM）算法通过逆向回归估计条件期望（即 Snell 包络的数值逼近），是目前应用最广泛的美式期权定价数值方法之一。该模型的数值实验目的为：展示 Snell 包络框架在连续状态空间中的数值实现方法，并量化提前行权溢价（美式期权相对于欧式期权的价值增益）。
+
+综上，五个模型构成了从``OST 直接成立''（Moran）到``需构造辅助鞅''（保险破产）、到``OST 条件失效''（赌徒破产）、再到``需要最优停时理论''（秘书问题）、最终到``最优停时的数值算法''（美式期权）的完整谱系，逐步展示了鞅论中停时理论从基本定理到工程应用的逻辑脉络。
 
 \subsection{理论准备}
 
@@ -61,7 +77,17 @@
 \end{enumerate}
 \end{theorem}
 
-\textbf{证明（离散时间情形，条件 1）。} 设 $\tau \leqslant K$ 几乎必然。利用指示分解 $\mathbf{1}_{\{\tau < n\}} + \mathbf{1}_{\{\tau \geqslant n\}} = 1$：
+在给出证明之前，先简要介绍指示分解（indicator decomposition）这一核心技巧。指示分解的基本思想是利用示性函数（indicator function）将随机变量的期望按互斥事件进行拆分。对任意停时 $\tau$ 和固定的 $n$，最基本的指示分解为
+\begin{equation}
+  \mathbf{1}_{\{\tau < n\}} + \mathbf{1}_{\{\tau \geqslant n\}} = 1,
+\end{equation}
+它将概率空间划分为``在 $n$ 之前已停止''和``到 $n$ 时刻仍未停止''两个互斥部分。更精细的分解则按停时的具体取值逐项展开：
+\begin{equation}
+  \sum_{k=0}^{n-1} \mathbf{1}_{\{\tau = k\}} + \mathbf{1}_{\{\tau \geqslant n\}} = 1.
+\end{equation}
+利用这一分解，被停过程 $X_{\tau \wedge n}$ 的期望可以表达为各互斥事件上条件期望的加权和，从而将随机停时处的期望转化为一系列固定时刻期望的组合。这一技巧在鞅论中反复出现，是处理停时期望的基本工具，以下 OST 的证明即为其典型应用。
+
+\textbf{证明（离散时间情形，条件 1）。} 设 $\tau \leqslant K$ 几乎必然。利用上述指示分解：
 \begin{align}
   \mathbb{E}[X_{\tau \wedge n}]
   &= \mathbb{E}\Bigg[X_{\tau \wedge n} \Bigg(\sum_{k=0}^{n-1} \mathbf{1}_{\{\tau = k\}} + \mathbf{1}_{\{\tau \geqslant n\}}\Bigg)\Bigg] \\
@@ -73,7 +99,7 @@
 \end{equation}
 当 $n$ 很大时 $X_{\tau \wedge n} = X_\tau$（因 $\tau \leqslant K$），取 $n \geqslant K$ 即得 $\mathbb{E}[X_\tau] = \mathbb{E}[X_n] = \mathbb{E}[X_0]$。\hfill\rule{0.9ex}{0.9ex}
 
-条件 2 和 3 的证明分别依赖有界收敛定理和 Wald 引理。这三个条件本质上共同保证了一致可积性（uniform integrability）——即极限与期望可以交换：
+条件 2 和 3 的证明分别依赖有界收敛定理和 Wald 引理。这三个条件本质上共同保证了一致可积性——即极限与期望可以交换：
 \begin{equation}
   \lim_{n \to \infty} \mathbb{E}[X_{\tau \wedge n}] = \mathbb{E}\Big[\lim_{n \to \infty} X_{\tau \wedge n}\Big] = \mathbb{E}[X_\tau].
 \end{equation}
@@ -102,7 +128,9 @@
   \item 以 $\hat{\mu} \pm 1.96 \times \text{SE}$ 构造 95\% 渐进置信区间。
 \end{enumerate}
 
-对于需要参数扫描的实验（如破产概率随初始资本的变化），对每个参数值重复上述过程。所有代码以 Python 3.13 编写，数值计算依赖 NumPy 和 SciPy，图形绘制使用 Matplotlib。代码采用面向对象架构：\texttt{core/} 模块提供过程、停时和 Monte Carlo 模拟引擎等公共组件，各章节代码通过组合复用，避免重复实现。完整代码随论文附于项目仓库中。
+对于需要参数扫描的实验（如破产概率随初始资本的变化），对每个参数值重复上述过程。所有代码以 Python 3.13 编写，数值计算依赖 NumPy 和 SciPy，图形绘制使用 Matplotlib。
+
+在代码架构上，项目采用面向对象的模块化设计，分为公共核心层与各章实验层两级结构。核心层（\texttt{src/core/}）提供三类可复用的基础组件：（1）\texttt{processes.py}——鞅过程的抽象基类 \texttt{Martingale} 及其具体实现（对称/非对称随机游走、几何布朗运动），统一了路径生成与增量接口；（2）\texttt{stopping\_times.py}——停时的抽象基类 \texttt{StoppingTime} 及常用停时子类（固定时刻、首达水平、区间退出、截断停时、首次记录值），支持任意嵌套组合；（3）\texttt{simulation.py}——通用的 Monte Carlo 模拟引擎 \texttt{MonteCarloSimulation}，接受过程对象与停时对象后自动执行大批量路径模拟并计算期望估计与置信区间；此外，\texttt{batching.py} 提供批次估计的标准误计算，\texttt{visualization.py} 统一各章图表的绘图风格与配色方案。实验层（\texttt{src/ch02\_moran/} 至 \texttt{src/ch06\_option/}）每章遵循相同的模块分工：模型定义（如 \texttt{moran\_model.py}、\texttt{secretary\_model.py}）负责构造该章特定的随机过程与停时；实验脚本（\texttt{experiment.py}）调用核心引擎执行批量模拟并保存数据；绘图脚本（\texttt{plot.py}）从数据文件生成论文插图。整套架构使得新增模型的实验仅需编写模型定义与参数配置，无需重复实现模拟逻辑，完整代码随论文附于项目仓库中。
 
 \subsection{章节安排}
 
