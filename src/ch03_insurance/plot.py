@@ -49,7 +49,8 @@ def fig3_1_surplus_paths(seed: int = 42) -> None:
             n_ruined += 1
         else:
             color, alpha, zorder = COLOR_GRAY, 0.4, 1
-        ax.step(times, values, where="post", color=color, alpha=alpha, lw=0.6, zorder=zorder)
+        # Use plot (not step) to show continuous premium growth between claims
+        ax.plot(times, values, color=color, alpha=alpha, lw=0.6, zorder=zorder)
         if ruined:
             ax.scatter(times[-1], values[-1], color=COLOR_RED, s=15, marker="x", zorder=6)
 
@@ -103,17 +104,17 @@ def fig3_3_martingale_dual(seed: int = 777) -> None:
     claim_dist = expon(scale=mu)
     mgf = exp_claim_mgf_factory("exponential", rate=1 / mu)
     R = find_adjustment_R(lam, c, mgf)
-    u, T = 5.0, 200.0
+    u, T = 5.0, 50.0  # Shorter horizon to keep M_t visible
 
-    # Try multiple seeds to find a path where M_t stays visible
+    # Try seeds to find a path where M_t stays visible
     best_path = None
-    for seed_try in [777, 42, 123, 999, 333, 555, 888, 111, 222, 444]:
+    for seed_try in [777, 42, 123, 999, 333, 555, 888, 111, 222, 444, 666, 101, 202, 303]:
         np.random.seed(seed_try)
         proc = SurplusProcess(u, c, lam, claim_dist)
         times, u_vals = proc.simulate_path(T)
         m_vals = np.exp(-R * u_vals)
-        # Pick a path that doesn't go bankrupt and has M_t in a visible range
-        if u_vals[-1] >= 0 and np.max(m_vals) < 5.0:
+        # Want: not bankrupt, M_t stays in [0.02, 5] range (visible on linear scale)
+        if u_vals[-1] >= 0 and 0.01 < np.min(m_vals) and np.max(m_vals) < 8.0:
             best_path = (times, u_vals, m_vals)
             break
 
@@ -128,7 +129,8 @@ def fig3_3_martingale_dual(seed: int = 777) -> None:
     m0 = np.exp(-R * u)
 
     fig, (ax1, ax2) = new_figure_dual()
-    ax1.step(times, u_vals, where="post", color=COLOR_BLUE, lw=0.6)
+    # Use plot for continuous premium growth visualization
+    ax1.plot(times, u_vals, color=COLOR_BLUE, lw=0.6)
     t_line = np.linspace(0, T, 500)
     expected = u + (c - lam * mu) * t_line
     ax1.plot(t_line, expected, "k--", lw=1.0, alpha=0.7, label="$\\mathbb{E}[U_t]$")
@@ -138,7 +140,7 @@ def fig3_3_martingale_dual(seed: int = 777) -> None:
     ax1.set_title("盈余过程")
     ax1.legend(loc="upper left", fontsize=7)
 
-    ax2.step(times, m_vals, where="post", color=COLOR_GREEN, lw=0.6)
+    ax2.plot(times, m_vals, color=COLOR_GREEN, lw=0.6)
     ax2.axhline(m0, color=COLOR_GRAY, lw=0.6, ls=":", alpha=0.6,
                 label=f"初始值 $M_0 = e^{{-R u}} = {m0:.3f}$")
     ax2.set_xlim(0, None)
