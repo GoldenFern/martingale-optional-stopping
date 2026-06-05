@@ -10,13 +10,16 @@ import numpy as np
 import pandas as pd
 from scipy.stats import expon
 
-from ch03_insurance.surplus_model import SurplusProcess, exp_claim_mgf_factory, find_adjustment_R
+from ch03_insurance.surplus_model import SurplusProcess
 from core.visualization import (
     COLOR_BLUE,
     COLOR_GRAY,
     COLOR_GREEN,
     COLOR_ORANGE,
+    COLOR_PURPLE,
     COLOR_RED,
+    FIG_H,
+    FIG_W,
     emphasize_log_grid,
     new_figure,
     new_figure_dual,
@@ -27,6 +30,27 @@ from core.visualization import (
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 DATA_DIR = PROJECT_ROOT / "output" / "data"
+
+
+def _unpack_saved_paths(path_data, prefix: str) -> list[dict]:
+    """Load padded sample paths back into variable-length arrays."""
+    times = path_data[f"{prefix}_times"]
+    m_vals = path_data[f"{prefix}_m_vals"]
+    lengths = path_data[f"{prefix}_lengths"]
+    seeds = path_data[f"{prefix}_seeds"]
+    taus = path_data[f"{prefix}_taus"]
+
+    records = []
+    for i, length in enumerate(lengths):
+        records.append(
+            {
+                "times": times[i, :length],
+                "m_vals": m_vals[i, :length],
+                "seed": int(seeds[i]),
+                "tau": float(taus[i]),
+            }
+        )
+    return records
 
 
 def fig3_1_surplus_paths(seed: int = 42) -> None:
@@ -96,58 +120,59 @@ def fig3_2_ruin_prob() -> None:
     save_figure(fig, "ch03_ruin_prob.pdf")
 
 
-def fig3_3_martingale_dual(seed: int = 777) -> None:
-    """图 3.3：双子图，盈余轨迹与指数鞅。"""
+def fig3_3_martingale_dual() -> None:
+    """图 3.3：未破产路径、破产路径与均值曲线。"""
     set_style()
-    lam, mu, theta = 1.0, 1.0, 0.5
-    c = lam * mu * (1 + theta)
-    claim_dist = expon(scale=mu)
-    mgf = exp_claim_mgf_factory("exponential", rate=1 / mu)
-    R = find_adjustment_R(lam, c, mgf)
-    u, T = 5.0, 50.0  # Shorter horizon to keep M_t visible
+    mean_df = pd.read_csv(DATA_DIR / "exp3_martingale_mean.csv")
+    path_data = np.load(DATA_DIR / "exp3_martingale_paths.npz")
+    survived_paths = _unpack_saved_paths(path_data, "survived")
+    ruined_paths = _unpack_saved_paths(path_data, "ruined")
+    m0 = float(path_data["m0"])
+    R = float(path_data["R"])
+    T = float(path_data["T"])
+    x = mean_df["t"].to_numpy()
+    mean_vals = mean_df["m_mean"].to_numpy()
 
-    # Try seeds to find a path where M_t stays visible
-    best_path = None
-    for seed_try in [777, 42, 123, 999, 333, 555, 888, 111, 222, 444, 666, 101, 202, 303]:
-        np.random.seed(seed_try)
-        proc = SurplusProcess(u, c, lam, claim_dist)
-        times, u_vals = proc.simulate_path(T)
-        m_vals = np.exp(-R * u_vals)
-        # Want: not bankrupt, M_t stays in [0.02, 5] range (visible on linear scale)
-        if u_vals[-1] >= 0 and 0.01 < np.min(m_vals) and np.max(m_vals) < 8.0:
-            best_path = (times, u_vals, m_vals)
-            break
+    fig = plt.figure(figsize=(FIG_W * 1.16, FIG_H * 1.9), constrained_layout=True)
+    grid = fig.add_gridspec(2, 2, height_ratios=[1.0, 1.08])
+    ax1 = fig.add_subplot(grid[0, 0])
+    ax2 = fig.add_subplot(grid[0, 1])
+    ax3 = fig.add_subplot(grid[1, :])
 
-    if best_path is None:
-        np.random.seed(seed)
-        proc = SurplusProcess(u, c, lam, claim_dist)
-        times, u_vals = proc.simulate_path(T)
-        m_vals = np.exp(-R * u_vals)
-    else:
-        times, u_vals, m_vals = best_path
+    survive_colors = [COLOR_BLUE, COLOR_GREEN, COLOR_GRAY, COLOR_PURPLE]
+    ruin_colors = [COLOR_RED, COLOR_ORANGE]
+    all_path_values = np.concatenate(
+        [
+            np.concatenate([rec["m_vals"] for rec in survived_paths]),
+            np.concatenate([rec["m_vals"] for rec in ruined_paths]),
+        ]
+    )
+    y_min = max(np.min(all_path_values) * 0.75, 1e-6)
+    y_max = np.max(all_path_values) * 1.2
 
-    m0 = np.exp(-R * u)
+    for color, rec in zip(survive_colors, survived_paths):
+        ax1.plot(rec["times"], rec["m_vals"], color=color, lw=0.85, label=f"seed={rec['seed']}")
+    ax1.set_yscale("log")
+    ax1.set_xlim(0, T)
+    ax1.set_ylim(y_min, y_max)
+    ax1.set_ylabel("$M_t = e^{-R U_t}$")
+    ax1.set_title("未破产样本路径")
+    emphasize_log_grid(ax1)
 
-    fig, (ax1, ax2) = new_figure_dual()
-    # Use plot for continuous premium growth visualization
-    ax1.plot(times, u_vals, color=COLOR_BLUE, lw=0.6)
-    t_line = np.linspace(0, T, 500)
-    expected = u + (c - lam * mu) * t_line
-    ax1.plot(t_line, expected, "k--", lw=1.0, alpha=0.7, label="$\\mathbb{E}[U_t]$")
-    ax1.axhline(0, color=COLOR_RED, lw=0.6, ls="--", alpha=0.5)
-    ax1.set_xlim(0, None)
-    ax1.set_ylabel("盈余 $U_t$")
-    ax1.set_title("盈余过程")
-    ax1.legend(loc="upper left", fontsize=7)
+    for color, rec in zip(ruin_colors, ruined_paths):
+        ax2.plot(rec["times"], rec["m_vals"], color=color, lw=0.85, label=f"seed={rec['seed']}")
+        ax2.scatter(rec["times"][-1], rec["m_vals"][-1], color=color, marker="x", s=22, zorder=5)
+    ax2.set_yscale("log")
+    ax2.set_xlim(0, T)
+    ax2.set_ylim(y_min, y_max)
+    ax2.set_title("破产样本路径")
+    emphasize_log_grid(ax2)
 
-    ax2.plot(times, m_vals, color=COLOR_GREEN, lw=0.6)
-    ax2.axhline(m0, color=COLOR_GRAY, lw=0.6, ls=":", alpha=0.6,
-                label=f"初始值 $M_0 = e^{{-R u}} = {m0:.3f}$")
-    ax2.set_xlim(0, None)
-    ax2.set_xlabel("时间 $t$")
-    ax2.set_ylabel("$M_t = e^{-R U_t}$")
-    ax2.set_title(f"指数鞅（$R={R:.4f}$）")
-    ax2.legend(loc="upper right", fontsize=7)
+    ax3.plot(x, mean_vals, color=COLOR_BLUE, lw=1.35)
+    ax3.set_xlim(0, T)
+    ax3.set_xlabel("时间 $t$")
+    ax3.set_ylabel("$\\widehat{\\mathbb{E}}[M_{t \\wedge \\tau}]$")
+    ax3.set_title(f"停止指数鞅的均值曲线（理论初值 $M_0={m0:.3f}$，$R={R:.4f}$）")
     save_figure(fig, "ch03_martingale.pdf")
 
 
@@ -157,6 +182,6 @@ if __name__ == "__main__":
     fig3_1_surplus_paths()
     print("绘制图 3.2: 破产概率 vs 初始资本 ...")
     fig3_2_ruin_prob()
-    print("绘制图 3.3: 盈余 + 指数鞅双子图 ...")
+    print("绘制图 3.3: 三组指数鞅诊断路径 ...")
     fig3_3_martingale_dual()
     print("第三章三张图绘制完成。")

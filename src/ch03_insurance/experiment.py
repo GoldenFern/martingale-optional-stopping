@@ -77,6 +77,230 @@ def run_ruin_prob_experiment(lam=1.0, mu=1.0, theta=0.5,
     return df
 
 
+def _simulate_stopped_exp_martingale_grid(
+    u: float,
+    c: float,
+    lam: float,
+    claim_dist,
+    R: float,
+    t_grid: np.ndarray,
+) -> np.ndarray:
+    r"""Simulate one path of M_{t \wedge \tau} = exp(-R U_{t \wedge \tau}) on a fixed grid."""
+    values = np.empty_like(t_grid, dtype=float)
+    current_t = 0.0
+    current_u = u
+    next_claim_t = np.random.exponential(1 / lam)
+    ruined = False
+    frozen_value = np.nan
+
+    for i, t_target in enumerate(t_grid):
+        if ruined:
+            values[i] = frozen_value
+            continue
+
+        while next_claim_t <= t_target:
+            current_u += c * (next_claim_t - current_t)
+            current_t = next_claim_t
+            current_u -= claim_dist.rvs()
+            if current_u < 0:
+                ruined = True
+                frozen_value = np.exp(-R * current_u)
+                break
+            next_claim_t += np.random.exponential(1 / lam)
+
+        if ruined:
+            values[i] = frozen_value
+        else:
+            values[i] = np.exp(-R * (current_u + c * (t_target - current_t)))
+
+    return values
+
+
+def _select_spread_records(records: list[dict], key: str, n_select: int) -> list[dict]:
+    """Pick a few representative records spread across a sorted summary statistic."""
+    ordered = sorted(records, key=lambda rec: rec[key])
+    quantiles = np.linspace(0.15, 0.85, n_select)
+    positions = quantiles * (len(ordered) - 1)
+    indices = []
+    for pos in positions:
+        idx = int(round(pos))
+        if idx in indices:
+            for step in range(1, len(ordered)):
+                right = idx + step
+                left = idx - step
+                if right < len(ordered) and right not in indices:
+                    idx = right
+                    break
+                if left >= 0 and left not in indices:
+                    idx = left
+                    break
+        indices.append(idx)
+    indices.sort()
+    return [ordered[idx] for idx in indices]
+
+
+def _pack_path_records(records: list[dict]) -> dict[str, np.ndarray]:
+    """Store variable-length paths in padded arrays for reproducible plotting."""
+    max_len = max(len(rec['times']) for rec in records)
+    n_records = len(records)
+    times = np.full((n_records, max_len), np.nan)
+    u_vals = np.full((n_records, max_len), np.nan)
+    m_vals = np.full((n_records, max_len), np.nan)
+    lengths = np.empty(n_records, dtype=int)
+    seeds = np.empty(n_records, dtype=int)
+    taus = np.empty(n_records, dtype=float)
+
+    for i, rec in enumerate(records):
+        length = len(rec['times'])
+        lengths[i] = length
+        seeds[i] = rec['seed']
+        taus[i] = rec['tau']
+        times[i, :length] = rec['times']
+        u_vals[i, :length] = rec['u_vals']
+        m_vals[i, :length] = rec['m_vals']
+
+    return {
+        'times': times,
+        'u_vals': u_vals,
+        'm_vals': m_vals,
+        'lengths': lengths,
+        'seeds': seeds,
+        'taus': taus,
+    }
+
+
+def _collect_martingale_path_examples(
+    u: float,
+    c: float,
+    lam: float,
+    claim_dist,
+    R: float,
+    T: float,
+    n_survived: int = 4,
+    n_ruined: int = 2,
+    candidate_pool: int = 15,
+    max_seed: int = 5000,
+) -> tuple[list[dict], list[dict]]:
+    """Collect representative survived and ruined sample paths."""
+    survived_candidates = []
+    ruined_candidates = []
+
+    for seed in range(1, max_seed + 1):
+        np.random.seed(seed)
+        proc = SurplusProcess(u, c, lam, claim_dist)
+        times, u_vals = proc.simulate_path(T)
+        m_vals = np.exp(-R * u_vals)
+        record = {
+            'seed': seed,
+            'times': times,
+            'u_vals': u_vals,
+            'm_vals': m_vals,
+            'tau': float(times[-1]),
+            'm_end': float(m_vals[-1]),
+            'ruined': bool(u_vals[-1] < 0),
+        }
+        if record['ruined']:
+            ruined_candidates.append(record)
+        else:
+            survived_candidates.append(record)
+
+        if (
+            len(survived_candidates) >= candidate_pool
+            and len(ruined_candidates) >= candidate_pool
+        ):
+            break
+
+    if len(survived_candidates) < n_survived or len(ruined_candidates) < n_ruined:
+        raise RuntimeError("Unable to find enough representative martingale paths.")
+
+    survived = _select_spread_records(survived_candidates, key='m_end', n_select=n_survived)
+    ruined = _select_spread_records(ruined_candidates, key='tau', n_select=n_ruined)
+    return survived, ruined
+
+
+def run_martingale_mean_experiment(
+    lam=1.0,
+    mu=1.0,
+    theta=0.5,
+    u=5.0,
+    T=50.0,
+    n_paths=16000,
+    n_grid=101,
+    seed=24680,
+):
+    r"""Estimate E[M_{t \wedge \tau}] and save representative survived/ruined paths."""
+    np.random.seed(seed)
+    c = lam * mu * (1 + theta)
+    claim_dist = expon(scale=mu)
+    mgf = exp_claim_mgf_factory('exponential', rate=1 / mu)
+    R = find_adjustment_R(lam, c, mgf)
+    t_grid = np.linspace(0.0, T, n_grid)
+    m0 = np.exp(-R * u)
+
+    sum_vals = np.zeros_like(t_grid)
+    sum_sq_vals = np.zeros_like(t_grid)
+    for _ in range(n_paths):
+        vals = _simulate_stopped_exp_martingale_grid(u, c, lam, claim_dist, R, t_grid)
+        sum_vals += vals
+        sum_sq_vals += vals * vals
+
+    mean_vals = sum_vals / n_paths
+    if n_paths > 1:
+        sample_var = (sum_sq_vals - n_paths * mean_vals * mean_vals) / (n_paths - 1)
+        sample_var = np.maximum(sample_var, 0.0)
+        se_vals = np.sqrt(sample_var / n_paths)
+    else:
+        se_vals = np.zeros_like(mean_vals)
+
+    rows = []
+    for t, mean_val, se_val in zip(t_grid, mean_vals, se_vals):
+        rows.append({
+            't': t,
+            'm_mean': mean_val,
+            'm_se': se_val,
+            'm0': m0,
+            'R': R,
+            'u': u,
+            'T': T,
+            'n_paths': n_paths,
+        })
+
+    survived_paths, ruined_paths = _collect_martingale_path_examples(
+        u=u,
+        c=c,
+        lam=lam,
+        claim_dist=claim_dist,
+        R=R,
+        T=T,
+    )
+    survived_pack = _pack_path_records(survived_paths)
+    ruined_pack = _pack_path_records(ruined_paths)
+
+    df = pd.DataFrame(rows)
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    df.to_csv(DATA_DIR / 'exp3_martingale_mean.csv', index=False)
+    np.savez(
+        DATA_DIR / 'exp3_martingale_paths.npz',
+        survived_times=survived_pack['times'],
+        survived_u_vals=survived_pack['u_vals'],
+        survived_m_vals=survived_pack['m_vals'],
+        survived_lengths=survived_pack['lengths'],
+        survived_seeds=survived_pack['seeds'],
+        survived_taus=survived_pack['taus'],
+        ruined_times=ruined_pack['times'],
+        ruined_u_vals=ruined_pack['u_vals'],
+        ruined_m_vals=ruined_pack['m_vals'],
+        ruined_lengths=ruined_pack['lengths'],
+        ruined_seeds=ruined_pack['seeds'],
+        ruined_taus=ruined_pack['taus'],
+        m0=m0,
+        R=R,
+        u=u,
+        T=T,
+    )
+    return df
+
+
 if __name__ == '__main__':
     print("=== 第三章实验：保险破产模型 ===")
     print("实验1: 调整系数 R ...")
@@ -91,4 +315,11 @@ if __name__ == '__main__':
         print(f"  u={u_check:2d}, psi_MC={row['psi_mc']:.4f} +/- {1.96*row['psi_se']:.4f}, "
               f"psi_exact={row['psi_exact']:.4f}")
     print("  保存到 output/data/exp3_ruin_prob.csv")
+    print("实验3: 指数鞅的样本路径与均值曲线 (theta=0.5, 16000 paths)...")
+    df_m = run_martingale_mean_experiment()
+    m0 = df_m['m0'].iloc[0]
+    for t_check in [0, 10, 20, 30, 40, 50]:
+        row = df_m[np.isclose(df_m['t'], t_check)].iloc[0]
+        print(f"  t={t_check:2d}, mean={row['m_mean']:.4f}, theory={m0:.4f}")
+    print("  保存到 output/data/exp3_martingale_mean.csv")
     print("第三章实验完成。")
