@@ -66,7 +66,7 @@
 
 停时的典型例子包括：$\tau \equiv t_0$（固定时刻）、$\tau = \inf\{t: X_t \geqslant a\}$（首达时）、$\tau = \inf\{t: X_t \notin (a, b)\}$（首出时）。对停时 $\tau$，定义被停过程（stopped process）$X_t^\tau = X_{t \wedge \tau}$。
 
-\subsubsection{可选停止定理}
+\subsubsection{可选停止定理及其反例}
 
 \begin{theorem}[可选停止定理 --- Doob]\label{thm:ost}
 设 $\{X_t\}$ 为鞅，$\tau$ 为停时。若以下三个条件之一成立，则 $\mathbb{E}[X_\tau] = \mathbb{E}[X_0]$：
@@ -105,17 +105,13 @@
 \end{equation}
 当一致可积性缺失时，被停过程的极限虽然几乎必然存在，但``概率质量''在未停止的路径上可能集中于极端值，破坏期望等式。
 
-\subsubsection{经典的 OST 反例}
-
-考虑对称随机游走 $S_n = \sum_{i=1}^{n} \eta_i$，$\eta_i = \pm 1$ 各概率 $1/2$，$S_0 = 0$。令 $\tau = \inf\{n: S_n = +1\}$。一维随机游走的常返性保证 $\tau < \infty$ 几乎必然。然而：
+为具体说明三个条件全部失效时的后果，考虑一个经典的 OST 反例。令 $S_n = \sum_{i=1}^{n} \eta_i$ 为对称随机游走，$\eta_i = \pm 1$ 各概率 $1/2$，$S_0 = 0$。定义停时 $\tau = \inf\{n: S_n = +1\}$。一维随机游走的常返性保证 $\tau < \infty$ 几乎必然。然而：
 \begin{itemize}[noitemsep]
   \item $\tau$ 无界：对任意 $K$，存在正概率使 $\tau > K$——游走可以在达到 $+1$ 之前长时间在负半轴游荡。
   \item $S_{n \wedge \tau}$ 无界：在 $\tau$ 之前，$S_n$ 可以取任意大的负值。
   \item $\mathbb{E}[\tau] = \infty$：首达时期望为无穷（因停时分布的重尾性，$P(\tau > t) \sim 1/\sqrt{\pi t}$）。
 \end{itemize}
-因此三个充分条件全部失效。事实上 $S_\tau \equiv 1$ 以概率 1 成立，故 $\mathbb{E}[S_\tau] = 1 \neq 0 = \mathbb{E}[S_0]$。
-
-这一反例正是本文第四章数值研究的核心。
+因此三个充分条件全部失效。事实上 $S_\tau \equiv 1$ 以概率 1 成立，故 $\mathbb{E}[S_\tau] = 1 \neq 0 = \mathbb{E}[S_0]$。这一反例正是本文第四章数值研究的核心，也是理解 OST 适用边界的关键入口。
 
 \subsection{数值模拟方法论}
 
