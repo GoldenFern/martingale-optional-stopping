@@ -75,22 +75,15 @@ def fig3_1_surplus_paths(seed: int = 42) -> None:
 
 
 def fig3_2_ruin_prob() -> None:
-    """图 3.2：破产概率 vs 初始资本（半对数），使用误差棒。"""
+    """图 3.2：破产概率 vs 初始资本（半对数）。"""
     set_style()
     df = pd.read_csv(DATA_DIR / "exp3_ruin_prob.csv")
 
     fig, ax = new_figure()
     x = df["u"].to_numpy()
     y = df["psi_mc"].to_numpy()
-    se = df["psi_se"].to_numpy()
 
-    from core.visualization import plot_with_ci
-    plot_with_ci(
-        ax, x, y, se,
-        label="有限时窗 Monte Carlo 估计（$P(\\tau \\leqslant 200)$）",
-        color=COLOR_BLUE,
-        marker="o",
-    )
+    ax.plot(x, y, "o", color=COLOR_BLUE, markersize=5, label="有限时窗 Monte Carlo 估计（$P(\\tau \\leqslant 200)$）")
     ax.plot(df["u"], df["psi_lundberg"], "--", color=COLOR_ORANGE, lw=1.2, label="Lundberg 上界 $e^{-Ru}$")
 
     ax.set_yscale("log")
@@ -102,10 +95,9 @@ def fig3_2_ruin_prob() -> None:
     save_figure(fig, "ch03_ruin_prob.pdf")
 
 
-def fig3_3_martingale_dual(seed: int = 123) -> None:
+def fig3_3_martingale_dual(seed: int = 777) -> None:
     """图 3.3：双子图，盈余轨迹与指数鞅。"""
     set_style()
-    np.random.seed(seed)
     lam, mu, theta = 1.0, 1.0, 0.5
     c = lam * mu * (1 + theta)
     claim_dist = expon(scale=mu)
@@ -113,13 +105,30 @@ def fig3_3_martingale_dual(seed: int = 123) -> None:
     R = find_adjustment_R(lam, c, mgf)
     u, T = 5.0, 200.0
 
-    proc = SurplusProcess(u, c, lam, claim_dist)
-    times, u_vals = proc.simulate_path(T)
-    m_vals = np.exp(-R * u_vals)
+    # Try multiple seeds to find a path where M_t stays visible
+    best_path = None
+    for seed_try in [777, 42, 123, 999, 333, 555, 888, 111, 222, 444]:
+        np.random.seed(seed_try)
+        proc = SurplusProcess(u, c, lam, claim_dist)
+        times, u_vals = proc.simulate_path(T)
+        m_vals = np.exp(-R * u_vals)
+        # Pick a path that doesn't go bankrupt and has M_t in a visible range
+        if u_vals[-1] >= 0 and np.max(m_vals) < 5.0:
+            best_path = (times, u_vals, m_vals)
+            break
+
+    if best_path is None:
+        np.random.seed(seed)
+        proc = SurplusProcess(u, c, lam, claim_dist)
+        times, u_vals = proc.simulate_path(T)
+        m_vals = np.exp(-R * u_vals)
+    else:
+        times, u_vals, m_vals = best_path
+
+    m0 = np.exp(-R * u)
 
     fig, (ax1, ax2) = new_figure_dual()
     ax1.step(times, u_vals, where="post", color=COLOR_BLUE, lw=0.6)
-    # Expected value line
     t_line = np.linspace(0, T, 500)
     expected = u + (c - lam * mu) * t_line
     ax1.plot(t_line, expected, "k--", lw=1.0, alpha=0.7, label="$\\mathbb{E}[U_t]$")
@@ -130,11 +139,13 @@ def fig3_3_martingale_dual(seed: int = 123) -> None:
     ax1.legend(loc="upper left", fontsize=7)
 
     ax2.step(times, m_vals, where="post", color=COLOR_GREEN, lw=0.6)
-    ax2.axhline(1.0, color=COLOR_GRAY, lw=0.5, ls=":", alpha=0.5)
+    ax2.axhline(m0, color=COLOR_GRAY, lw=0.6, ls=":", alpha=0.6,
+                label=f"初始值 $M_0 = e^{{-R u}} = {m0:.3f}$")
     ax2.set_xlim(0, None)
     ax2.set_xlabel("时间 $t$")
     ax2.set_ylabel("$M_t = e^{-R U_t}$")
     ax2.set_title(f"指数鞅（$R={R:.4f}$）")
+    ax2.legend(loc="upper right", fontsize=7)
     save_figure(fig, "ch03_martingale.pdf")
 
 

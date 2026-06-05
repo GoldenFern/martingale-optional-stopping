@@ -34,6 +34,8 @@ def fig4_1_paths(seed: int = 42) -> None:
 
     fig, ax = new_figure()
     n_display = 12
+    n_up_target = 8   # P(up) = a/(a+b) = 20/30 = 2/3
+    n_down_target = 4  # P(down) = b/(a+b) = 10/30 = 1/3
     n_up, n_down = 0, 0
     for _ in range(200):
         rw.reset(0.0)
@@ -43,19 +45,19 @@ def fig4_1_paths(seed: int = 42) -> None:
             if path[-1] >= B or path[-1] <= -A:
                 break
         path_arr = np.array(path)
-        if path_arr[-1] >= B and n_up < n_display // 2:
+        if path_arr[-1] >= B and n_up < n_up_target:
             color = COLOR_BLUE
             tau_val = len(path_arr) - 1
             ax.plot(path_arr, color=color, alpha=0.55, lw=0.45)
             ax.scatter(tau_val, path_arr[-1], color=color, s=8, zorder=5)
             n_up += 1
-        elif path_arr[-1] <= -A and n_down < n_display // 2:
+        elif path_arr[-1] <= -A and n_down < n_down_target:
             color = COLOR_RED
             tau_val = len(path_arr) - 1
             ax.plot(path_arr, color=color, alpha=0.55, lw=0.45)
             ax.scatter(tau_val, path_arr[-1], color=color, s=8, zorder=5)
             n_down += 1
-        if n_up >= n_display // 2 and n_down >= n_display // 2:
+        if n_up >= n_up_target and n_down >= n_down_target:
             break
 
     ax.axhline(B, color=COLOR_BLUE, lw=0.6, ls="--", alpha=0.5)
@@ -75,7 +77,7 @@ def fig4_1_paths(seed: int = 42) -> None:
     save_figure(fig, "ch04_paths.pdf")
 
 
-def fig4_2_unilateral_paths(max_steps: int = 5000, seed: int = 43) -> None:
+def fig4_2_unilateral_paths(max_steps: int = 10000, seed: int = 43) -> None:
     """图 4.2：单边障碍下的样本轨道，左右子图。"""
     set_style()
     np.random.seed(seed)
@@ -119,9 +121,8 @@ def fig4_2_unilateral_paths(max_steps: int = 5000, seed: int = 43) -> None:
     ax2.set_xlim(0, None)
     ax2.set_xlabel("步数 $n$")
     ax2.set_ylabel("$S_n$")
-    ax2.set_title(f"未达到 $+10$ 的路径（截断，$N={max_steps}$）")
+    ax2.set_title(f"未达到 $+10$ 的路径（截断 $N={max_steps}$）")
 
-    fig.suptitle(f"单边障碍样本轨道（$b={B}$）", y=1.01, fontsize=11)
     save_figure(fig, "ch04_unilateral.pdf")
 
 

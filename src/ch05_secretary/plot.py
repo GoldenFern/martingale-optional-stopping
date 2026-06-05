@@ -49,7 +49,7 @@ def _sample_indices(n: int, target: int = 12) -> np.ndarray:
 
 
 def fig5_1_success() -> None:
-    """图 5.1：成功率 vs 观察比例 r/N，使用误差棒。"""
+    """图 5.1：成功率 vs 观察比例 r/N。"""
     set_style()
     df = pd.read_csv(DATA_DIR / "exp5_success.csv")
 
@@ -59,23 +59,11 @@ def fig5_1_success() -> None:
         group = group.sort_values("r_frac").drop_duplicates(subset="r", keep="first")
         x_all = group["r_frac"].to_numpy()
         y_all = group["success_mc"].to_numpy()
-        se_all = group["se"].to_numpy()
-        keep = _sample_indices(len(x_all), target=15)
+        keep = _sample_indices(len(x_all), target=18)
         x = x_all[keep]
         y = y_all[keep]
-        se = se_all[keep]
-        theory_all = group["theory"].to_numpy()
-        from core.visualization import plot_with_ci
-        plot_with_ci(
-            ax, x, y, se,
-            label=f"$N={n_value}$",
-            color=color,
-            marker="o",
-            theory_y=theory_all[keep],
-            theory_label=f"$N={n_value}$ 理论" if n_value == 20 else "",
-            theory_color=color,
-            theory_style="-",
-        )
+        ax.plot(x, y, "o", color=color, markersize=3.5, label=f"$N={n_value}$")
+        ax.plot(group["r_frac"], group["theory"], "-", color=color, lw=1.0)
 
     ax.axvline(1 / np.e, color=COLOR_GRAY, lw=0.6, ls="--", alpha=0.6, label="$r^*/N = 1/e$")
     ax.axhline(1 / np.e, color=COLOR_GRAY, lw=0.6, ls=":", alpha=0.6)

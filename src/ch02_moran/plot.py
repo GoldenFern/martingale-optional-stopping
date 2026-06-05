@@ -69,20 +69,9 @@ def fig2_2_fixation(n_paths: int = 5000) -> None:
     fig, ax = new_figure()
     x = sub["initial_freq"].to_numpy()
     y = sub["p_fixation_mc"].to_numpy()
-    # Compute SE of fixation probability from batch data
-    batches = np.load(DATA_DIR / "exp2_fixation_batches.npz")
-    se = np.array([np.std(batches[f"{freq:.1f}"], ddof=1) / np.sqrt(len(batches[f"{freq:.1f}"])) for freq in x])
 
-    from core.visualization import plot_with_ci
-    plot_with_ci(
-        ax, x, y, se,
-        label="Monte Carlo 估计（95\\% CI）",
-        color=COLOR_BLUE,
-        marker="o",
-        theory_y=x,
-        theory_label="理论值 $y=x_0/N$",
-        theory_color=COLOR_RED,
-    )
+    ax.plot(x, y, "o", color=COLOR_BLUE, markersize=5, label="Monte Carlo 估计")
+    ax.plot(x, x, "--", color=COLOR_RED, lw=1.15, label="理论值 $y=x_0/N$")
 
     ax.set_xlabel("初始频率 $x_0/N$")
     ax.set_ylabel("固定概率")
@@ -105,19 +94,8 @@ def fig2_3_tau_comparison() -> None:
     y_mc = sub["tau_mc_mean"].to_numpy()
     y_theory = sub["tau_theory"].to_numpy()
 
-    # Compute SE from the tau samples (use tau_mc_se from CSV)
-    se = sub["tau_mc_se"].to_numpy()
-
-    from core.visualization import plot_with_ci
-    plot_with_ci(
-        ax, x, y_mc, se,
-        label="Monte Carlo 估计",
-        color=COLOR_BLUE,
-        marker="o",
-        theory_y=y_theory,
-        theory_label="理论值（三对角系统求解）",
-        theory_color=COLOR_RED,
-    )
+    ax.plot(x, y_mc, "o", color=COLOR_BLUE, markersize=5, label="Monte Carlo 估计")
+    ax.plot(x, y_theory, "--", color=COLOR_RED, lw=1.15, label="理论值（三对角系统求解）")
 
     ax.set_xlabel("初始频率 $x_0/N$")
     ax.set_ylabel("期望停时 $\\mathbb{E}[\\tau]$")
