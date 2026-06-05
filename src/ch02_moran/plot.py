@@ -18,7 +18,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 DATA_DIR = PROJECT_ROOT / "output" / "data"
 
 
-def fig2_1_paths(N: int = 100, x0: int = 50, n_display: int = 10, seed: int = 42) -> None:
+def fig2_1_paths(N: int = 50, x0: int = 25, n_display: int = 10, seed: int = 42) -> None:
     """图 2.1：基因频率轨迹叠加。"""
     set_style()
     np.random.seed(seed)
@@ -60,33 +60,33 @@ def fig2_1_paths(N: int = 100, x0: int = 50, n_display: int = 10, seed: int = 42
 
 
 def fig2_2_fixation(n_paths: int = 5000) -> None:
-    """图 2.2：固定概率 vs 初始频率，仅 N=100。"""
+    """图 2.2：固定概率 vs 初始频率，仅 N=50，使用误差棒。"""
     _ = n_paths
     set_style()
     df = pd.read_csv(DATA_DIR / "exp2_fixation.csv")
-    batches = np.load(DATA_DIR / "exp2_fixation_batches.npz")
-    sub = df[df["N"] == 100]
+    sub = df[df["N"] == 50]
 
     fig, ax = new_figure()
     x = sub["initial_freq"].to_numpy()
-    samples = [batches[f"{freq:.1f}"] for freq in x]
-    plot_box_series(
-        ax,
-        x,
-        samples,
-        width=0.035,
-        facecolor=COLOR_BLUE,
-        edgecolor=COLOR_BLUE,
-        median_color=COLOR_RED,
-        label="Monte Carlo 批次分布",
-    )
+    y = sub["p_fixation_mc"].to_numpy()
+    # Compute SE of fixation probability from batch data
+    batches = np.load(DATA_DIR / "exp2_fixation_batches.npz")
+    se = np.array([np.std(batches[f"{freq:.1f}"], ddof=1) / np.sqrt(len(batches[f"{freq:.1f}"])) for freq in x])
 
-    xs = np.linspace(0, 1, 50)
-    ax.plot(xs, xs, "--", color=COLOR_RED, lw=1.15, label="理论值 $y=x_0/N$")
+    from core.visualization import plot_with_ci
+    plot_with_ci(
+        ax, x, y, se,
+        label="Monte Carlo 估计（95\\% CI）",
+        color=COLOR_BLUE,
+        marker="o",
+        theory_y=x,
+        theory_label="理论值 $y=x_0/N$",
+        theory_color=COLOR_RED,
+    )
 
     ax.set_xlabel("初始频率 $x_0/N$")
     ax.set_ylabel("固定概率")
-    ax.set_title("固定概率与初始频率（$N=100$）")
+    ax.set_title("固定概率与初始频率（$N=50$）")
     ax.legend(loc="upper left", fontsize=8)
     ax.set_xlim(-0.02, 1.02)
     ax.set_ylim(-0.02, 1.02)
@@ -94,8 +94,41 @@ def fig2_2_fixation(n_paths: int = 5000) -> None:
     save_figure(fig, "ch02_fixation.pdf")
 
 
-def fig2_3_tau_dist() -> None:
-    """图 2.3：停时分布直方图，N=100。"""
+def fig2_3_tau_comparison() -> None:
+    """图 2.3：不同初始频率下 Monte Carlo 停时均值与理论解对比。"""
+    set_style()
+    df = pd.read_csv(DATA_DIR / "exp2_fixation.csv")
+    sub = df[df["N"] == 50]
+
+    fig, ax = new_figure()
+    x = sub["initial_freq"].to_numpy()
+    y_mc = sub["tau_mc_mean"].to_numpy()
+    y_theory = sub["tau_theory"].to_numpy()
+
+    # Compute SE from the tau samples (use tau_mc_se from CSV)
+    se = sub["tau_mc_se"].to_numpy()
+
+    from core.visualization import plot_with_ci
+    plot_with_ci(
+        ax, x, y_mc, se,
+        label="Monte Carlo 估计",
+        color=COLOR_BLUE,
+        marker="o",
+        theory_y=y_theory,
+        theory_label="理论值（三对角系统求解）",
+        theory_color=COLOR_RED,
+    )
+
+    ax.set_xlabel("初始频率 $x_0/N$")
+    ax.set_ylabel("期望停时 $\\mathbb{E}[\\tau]$")
+    ax.set_title("停时期望：Monte Carlo 与理论解对比（$N=50$）")
+    ax.legend(loc="upper left", fontsize=8)
+    ax.xaxis.set_major_formatter(FormatStrFormatter("%.1f"))
+    save_figure(fig, "ch02_tau_sim.pdf")
+
+
+def fig2_4_tau_dist() -> None:
+    """图 2.4：停时分布直方图，N=50。"""
     set_style()
     tau = np.loadtxt(DATA_DIR / "exp2_tau_dist.csv", delimiter=",")
 
@@ -111,7 +144,7 @@ def fig2_3_tau_dist() -> None:
         label="模拟",
     )
 
-    min_tau = 50
+    min_tau = 25
     mu_hat, loc_hat, scale_hat = invgauss.fit(tau, floc=min_tau)
     xs = np.linspace(0, tau.max(), 300)
     ax.plot(
@@ -125,7 +158,7 @@ def fig2_3_tau_dist() -> None:
     ax.set_xlim(0, None)
     ax.set_xlabel("停时 $\\tau$（代）")
     ax.set_ylabel("概率密度")
-    ax.set_title("停时分布（$N=100, x_0=50$）")
+    ax.set_title("停时分布（$N=50, x_0=25$）")
     ax.legend(loc="upper right", fontsize=8)
     save_figure(fig, "ch02_tau_dist.pdf")
 
@@ -136,6 +169,8 @@ if __name__ == "__main__":
     fig2_1_paths()
     print("绘制图 2.2: 固定概率 vs 初始频率 ...")
     fig2_2_fixation()
-    print("绘制图 2.3: 停时分布 ...")
-    fig2_3_tau_dist()
-    print("第二章三张图绘制完成。")
+    print("绘制图 2.3: 停时期望对比 ...")
+    fig2_3_tau_comparison()
+    print("绘制图 2.4: 停时分布 ...")
+    fig2_4_tau_dist()
+    print("第二章四张图绘制完成。")

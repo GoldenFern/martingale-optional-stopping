@@ -12,8 +12,8 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 DATA_DIR = PROJECT_ROOT / 'output' / 'data'
 
 
-def run_fixation_experiment(N=100, n_paths=5000, seed=42):
-    """实验：固定概率 vs 初始频率，仅 N=100。"""
+def run_fixation_experiment(N=50, n_paths=5000, seed=42):
+    """实验：固定概率 vs 初始频率，仅 N=50。"""
     np.random.seed(seed)
     freq_values = np.arange(0.1, 1.0, 0.1)
     rows = []
@@ -56,7 +56,7 @@ def run_fixation_experiment(N=100, n_paths=5000, seed=42):
     return df
 
 
-def run_tau_distribution(N=100, x0=None, n_paths=10000, seed=42):
+def run_tau_distribution(N=50, x0=None, n_paths=10000, seed=42):
     """实验：停时分布。"""
     np.random.seed(seed)
     if x0 is None:
@@ -74,10 +74,10 @@ def run_tau_distribution(N=100, x0=None, n_paths=10000, seed=42):
 
 if __name__ == '__main__':
     print("=== 第二章实验：Moran 模型 ===")
-    print("实验1: 固定概率 vs 初始频率 (N=100)...")
+    print("实验1: 固定概率 vs 初始频率 (N=50)...")
     df = run_fixation_experiment()
     print(f"  保存 {len(df)} 行到 output/data/exp2_fixation.csv")
-    print("实验2: 停时分布 (N=100, x0=50)...")
+    print("实验2: 停时分布 (N=50, x0=25)...")
     tau = run_tau_distribution()
     print(f"  停时均值={tau.mean():.0f}, 中位数={np.median(tau):.0f}, "
           f"最大={tau.max()}")
