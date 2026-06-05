@@ -15,7 +15,7 @@ warnings.filterwarnings("ignore", message=".*substituting with a dummy symbol.*"
 
 FIG_W, FIG_H = 6.3, 3.55
 
-COLOR_BLUE = "#2166AC"
+COLOR_BLUE = "#0ba1f8"
 COLOR_RED = "#B2182B"
 COLOR_GREEN = "#1B7837"
 COLOR_GRAY = "#737373"
