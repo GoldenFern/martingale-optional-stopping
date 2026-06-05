@@ -1,4 +1,4 @@
-"""第二章实验：Moran 模型固定概率与停时"""
+"""第二章实验：Moran 模型中固定概率与停时"""
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / 'src'))
@@ -13,7 +13,7 @@ DATA_DIR = PROJECT_ROOT / 'output' / 'data'
 
 
 def run_fixation_experiment(N=50, n_paths=5000, seed=42):
-    """实验：固定概率 vs 初始频率，仅 N=50。"""
+    """实验：固定概率 vs A等位基因初始频率，仅 N=50。"""
     np.random.seed(seed)
     freq_values = np.arange(0.1, 1.0, 0.1)
     rows = []
@@ -74,7 +74,7 @@ def run_tau_distribution(N=50, x0=None, n_paths=10000, seed=42):
 
 if __name__ == '__main__':
     print("=== 第二章实验：Moran 模型 ===")
-    print("实验1: 固定概率 vs 初始频率 (N=50)...")
+    print("实验1: 固定概率 vs A等位基因初始频率 (N=50)...")
     df = run_fixation_experiment()
     print(f"  保存 {len(df)} 行到 output/data/exp2_fixation.csv")
     print("实验2: 停时分布 (N=50, x0=25)...")

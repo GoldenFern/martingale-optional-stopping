@@ -35,8 +35,8 @@ def fig2_1_paths(N: int = 50, x0: int = 25, n_display: int = 10, seed: int = 42)
 
     fig, ax = new_figure()
     for idx_list, color, label in [
-        (fix_idx, COLOR_BLUE, "固定"),
-        (ext_idx, COLOR_RED, "灭绝"),
+        (fix_idx, COLOR_BLUE, "A固定"),
+        (ext_idx, COLOR_RED, "a固定"),
     ]:
         chosen = np.random.choice(idx_list, min(n_each, len(idx_list)), replace=False)
         for idx in chosen:
@@ -52,15 +52,15 @@ def fig2_1_paths(N: int = 50, x0: int = 25, n_display: int = 10, seed: int = 42)
     ax.set_ylabel("A 等位基因频率")
     ax.set_title(f"Moran 模型样本路径（$N={N}$）")
     handles = [
-        plt.Line2D([0], [0], color=COLOR_BLUE, lw=1, label="固定"),
-        plt.Line2D([0], [0], color=COLOR_RED, lw=1, label="灭绝"),
+        plt.Line2D([0], [0], color=COLOR_BLUE, lw=1, label="A固定"),
+        plt.Line2D([0], [0], color=COLOR_RED, lw=1, label="a固定"),
     ]
     ax.legend(handles=handles, loc="best")
     save_figure(fig, "ch02_paths.pdf")
 
 
 def fig2_2_fixation(n_paths: int = 5000) -> None:
-    """图 2.2：固定概率 vs 初始频率，仅 N=50，使用误差棒。"""
+    """图 2.2：固定概率 vs A等位基因初始频率，仅 N=50。"""
     _ = n_paths
     set_style()
     df = pd.read_csv(DATA_DIR / "exp2_fixation.csv")
@@ -73,9 +73,9 @@ def fig2_2_fixation(n_paths: int = 5000) -> None:
     ax.plot(x, y, "o", color=COLOR_BLUE, markersize=5, label="Monte Carlo 估计")
     ax.plot(x, x, "--", color=COLOR_RED, lw=1.15, label="理论值 $y=x_0/N$")
 
-    ax.set_xlabel("初始频率 $x_0/N$")
+    ax.set_xlabel("A 等位基因初始频率 $x_0/N$")
     ax.set_ylabel("固定概率")
-    ax.set_title("固定概率与初始频率（$N=50$）")
+    ax.set_title("固定概率与 A 等位基因初始频率（$N=50$）")
     ax.legend(loc="upper left", fontsize=8)
     ax.set_xlim(-0.02, 1.02)
     ax.set_ylim(-0.02, 1.02)
@@ -84,7 +84,7 @@ def fig2_2_fixation(n_paths: int = 5000) -> None:
 
 
 def fig2_3_tau_comparison() -> None:
-    """图 2.3：不同初始频率下 Monte Carlo 停时均值与理论解对比。"""
+    """图 2.3：不同 A等位基因初始频率下 Monte Carlo 停时均值与理论解对比。"""
     set_style()
     df = pd.read_csv(DATA_DIR / "exp2_fixation.csv")
     sub = df[df["N"] == 50]
@@ -97,7 +97,7 @@ def fig2_3_tau_comparison() -> None:
     ax.plot(x, y_mc, "o", color=COLOR_BLUE, markersize=5, label="Monte Carlo 估计")
     ax.plot(x, y_theory, "--", color=COLOR_RED, lw=1.15, label="理论值（三对角系统求解）")
 
-    ax.set_xlabel("初始频率 $x_0/N$")
+    ax.set_xlabel("A 等位基因初始频率 $x_0/N$")
     ax.set_ylabel("期望停时 $\\mathbb{E}[\\tau]$")
     ax.set_title("停时期望：Monte Carlo 与理论解对比（$N=50$）")
     ax.legend(loc="upper left", fontsize=8)
@@ -145,7 +145,7 @@ if __name__ == "__main__":
     set_style()
     print("绘制图 2.1: 基因频率轨迹 ...")
     fig2_1_paths()
-    print("绘制图 2.2: 固定概率 vs 初始频率 ...")
+    print("绘制图 2.2: 固定概率 vs A等位基因初始频率 ...")
     fig2_2_fixation()
     print("绘制图 2.3: 停时期望对比 ...")
     fig2_3_tau_comparison()

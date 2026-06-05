@@ -168,7 +168,7 @@ def fig3_3_martingale_dual() -> None:
     ax2.set_title("破产样本路径")
     emphasize_log_grid(ax2)
 
-    ax3.plot(x, mean_vals, color=COLOR_BLUE, lw=1.35)
+    ax3.plot(x, mean_vals, color="black", lw=1.35)
     ax3.set_xlim(0, T)
     ax3.set_xlabel("时间 $t$")
     ax3.set_ylabel("$\\widehat{\\mathbb{E}}[M_{t \\wedge \\tau}]$")
