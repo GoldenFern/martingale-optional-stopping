@@ -31,9 +31,9 @@ def run_R_experiment(lam=1.0, mu=1.0, theta_values=(0.1, 0.2, 0.5)):
     return df
 
 
-def run_ruin_prob_experiment(lam=1.0, mu=1.0, theta=0.2,
+def run_ruin_prob_experiment(lam=1.0, mu=1.0, theta=0.5,
                               u_values=np.arange(0, 21),
-                              n_paths=16000, T=100.0, seed=42,
+                              n_paths=16000, T=200.0, seed=42,
                               n_batches=8):
     """有限时窗破产概率实验，并保存批次样本以便绘制箱线图。"""
     np.random.seed(seed)
@@ -84,7 +84,7 @@ if __name__ == '__main__':
     for _, row in df_R.iterrows():
         print(f"  theta={row['theta']:.1f}, c={row['c']:.2f}, R={row['R']:.6f}")
 
-    print("实验2: 破产概率 vs 初始资本 (theta=0.2, 16000 paths / 8 batches)...")
+    print("实验2: 破产概率 vs 初始资本 (theta=0.5, 16000 paths / 8 batches)...")
     df = run_ruin_prob_experiment()
     for u_check in [0, 5, 10, 15, 20]:
         row = df[df['u'] == u_check].iloc[0]
