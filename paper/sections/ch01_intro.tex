@@ -51,7 +51,7 @@
 若 $\mathbb{E}[X_t \mid \mathcal{F}_s] \geqslant X_s$，则称为下鞅（submartingale）；若 $\leqslant$，则称为上鞅（supermartingale）。
 \end{definition}
 
-对于离散时间 $\mathbb{T} = \mathbb{N}$，鞅性质等价于对任意 $n \geqslant 1$ 有 $\mathbb{E}[X_n \mid \mathcal{F}_{n-1}] = X_{n-1}$。常见的鞅例子包括：
+对于离散时间 $\mathbb{T} = \mathbb{N}$，鞅性质等价于对任意 $n \geqslant 0$ 有 $\mathbb{E}[X_{n+1} \mid \mathcal{F}_n] = X_n$。常见的鞅例子包括：
 \begin{itemize}[noitemsep]
   \item 独立零均值随机变量的部分和：$S_n = \sum_{k=1}^{n} \xi_k$，$\mathbb{E}[\xi_k] = 0$；
   \item 独立增量平方的补偿和：$S_n^2 - \sum_{k=1}^{n} \mathbb{E}[\xi_k^2]$；
