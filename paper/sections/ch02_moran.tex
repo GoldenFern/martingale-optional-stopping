@@ -153,7 +153,7 @@ $X_\tau$ 只能取两个值：0（a固定）或 $N$（A固定）。设 $P_N = \m
   \label{fig:ch02_paths}
 \end{figure}
 
-\textbf{图~\ref{fig:ch02_fixation}} 比较了 $N=50$ 时 Monte Carlo 估计的固定概率与理论值 $x_0/N$。每个 A 等位基因初始频率下用 5000 条独立路径估计这一概率，以误差棒表示 95\% 置信区间。九个不同初始频率下的 Monte Carlo 估计都紧贴对角线 $y=x$，置信区间窄小，说明这一结论不仅在总体均值上成立，在统计推断层面同样可靠。这一结果验证了 OST 在这一模型中的精确成立——由于过程有界（$|X_n| \leqslant N$），OST 的条件 2 无保留地满足，等式 $\mathbb{E}[X_\tau] = \mathbb{E}[X_0]$ 严格成立，进而导出 $\mathbb{P}(\text{A固定}) = x_0/N$ 这一简洁解析公式。
+\textbf{图~\ref{fig:ch02_fixation}} 比较了 $N=50$ 时 Monte Carlo 估计的固定概率与理论值 $x_0/N$。每个 A 等位基因初始频率下用 5000 条独立路径估计这一概率。九个不同初始频率下的 Monte Carlo 估计都紧贴对角线 $y=x$，说明这一结论不仅在总体均值上成立，在统计推断层面同样可靠。这一结果验证了 OST 在这一模型中的精确成立——由于过程有界（$|X_n| \leqslant N$），OST 的条件 2 无保留地满足，等式 $\mathbb{E}[X_\tau] = \mathbb{E}[X_0]$ 严格成立，进而导出 $\mathbb{P}(\text{A固定}) = x_0/N$ 这一简洁解析公式。
 
 \begin{figure}[H]
   \centering
@@ -162,7 +162,7 @@ $X_\tau$ 只能取两个值：0（a固定）或 $N$（A固定）。设 $P_N = \m
   \label{fig:ch02_fixation}
 \end{figure}
 
-\textbf{图~\ref{fig:ch02_tau_sim}} 将不同 A 等位基因初始频率下的 Monte Carlo 停时均值与三对角线性系统给出的理论解进行了直接对比。横轴为 A 等位基因初始频率 $x_0/N$，纵轴为吸收时间的期望值。可以看到，模拟估计（带误差棒的蓝色圆点）与理论值（红色虚线）在整个频率范围内高度一致，相对误差均在 1\% 以内。这一对比验证了式~\eqref{eq:moran_matrix} 中三对角系统推导的正确性，也表明 OST 框架下对平方过程做 Doob 分解得到期望停时关系的方法是自洽的。
+\textbf{图~\ref{fig:ch02_tau_sim}} 将不同 A 等位基因初始频率下的 Monte Carlo 停时均值与三对角线性系统给出的理论解进行了直接对比。横轴为 A 等位基因初始频率 $x_0/N$，纵轴为吸收时间的期望值。可以看到，模拟估计（蓝色圆点）与理论值（红色虚线）在整个频率范围内基本吻合，多数初值下相对误差低于 2\%，仅在 $x_0/N = 0.4$ 处达到最大相对误差约 3.1\%。这一对比验证了式~\eqref{eq:moran_matrix} 中三对角系统推导的正确性，也表明 OST 框架下对平方过程做 Doob 分解得到期望停时关系的方法是自洽的。
 
 \begin{figure}[H]
   \centering
