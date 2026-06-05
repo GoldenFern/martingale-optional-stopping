@@ -8,7 +8,7 @@
 \begin{equation}\label{eq:surplus}
   U_t = u + c t - \sum_{i=1}^{N_t} Y_i.
 \end{equation}
-盈余过程的典型形态是``线性上升 + 随机跳跃下跌''。破产（ruin）定义为 $\tau = \inf\{t > 0: U_t < 0\}$，即盈余首次为负的时刻。核心问题是破产概率 $\psi(u) = \mathbb{P}(\tau < \infty \mid U_0 = u)$——初始资本为 $u$ 时最终破产的概率。
+盈余过程的典型形态是``线性上升 + 随机跳跃下跌''。破产定义为 $\tau = \inf\{t > 0: U_t < 0\}$，即盈余首次为负的时刻。核心问题是破产概率 $\psi(u) = \mathbb{P}(\tau < \infty \mid U_0 = u)$——初始资本为 $u$ 时最终破产的概率。
 
 \subsection{理论分析}
 
@@ -35,7 +35,23 @@
 \begin{equation}
   \mathbb{E}[M_t] = e^{-ru} \cdot \exp\{t[\lambda(M_Y(r) - 1) - rc]\}.
 \end{equation}
-若存在 $r > 0$ 使指数项 $\lambda(M_Y(r) - 1) - r c = 0$，则 $\mathbb{E}[M_t] = e^{-ru}$ 为常数，且可进一步验证 $M_t$ 是一个鞅（利用泊松过程的独立增量性和指数函数的可乘性）。这个特殊的 $r$ 被称为调整系数（adjustment coefficient），记为 $R$。$R$ 满足方程
+若存在 $r > 0$ 使指数项 $\lambda(M_Y(r) - 1) - r c = 0$，则 $\mathbb{E}[M_t] = e^{-ru}$ 为常数。下面验证 $M_t$ 确实是一个鞅。
+
+设 $\mathcal{F}_t = \sigma(U_s: 0 \leqslant s \leqslant t)$ 为由盈余过程生成的域流。首先，$M_t = e^{-r U_t}$ 显然为 $\mathcal{F}_t$-适应（$U_t$ 本身为 $\mathcal{F}_t$-可测）。其次，对任意 $t \geqslant 0$，
+\[
+  \mathbb{E}[|M_t|] = \mathbb{E}[e^{-r U_t}] < \infty,
+\]
+因为 $U_t \geqslant - \sum_{i=1}^{N_t} Y_i$（保费收入非负），且复合泊松分布的指数矩在 $r$ 小于矩母函数收敛半径时有限。
+
+最后验证鞅性质：对任意 $0 \leqslant s < t$，利用 $U_t = U_s + c(t-s) - \sum_{i=N_s+1}^{N_t} Y_i$ 及泊松过程的独立增量性，有
+\begin{align}
+  \mathbb{E}[M_t \mid \mathcal{F}_s]
+  &= \mathbb{E}\big[e^{-r U_s - r c(t-s) + r \sum_{i=N_s+1}^{N_t} Y_i} \mid \mathcal{F}_s\big] \notag\\
+  &= e^{-r U_s - r c(t-s)} \cdot \mathbb{E}\big[e^{r \sum_{i=N_s+1}^{N_t} Y_i} \mid \mathcal{F}_s\big] \notag\\
+  &= e^{-r U_s - r c(t-s)} \cdot \exp\{\lambda(t-s)(M_Y(r) - 1)\} \notag\\
+  &= e^{-r U_s} \cdot \exp\{(t-s)[\lambda(M_Y(r) - 1) - r c]\}.
+\end{align}
+由于 $r = R$ 满足 $\lambda(M_Y(R) - 1) = R c$，指数项为零，故 $\mathbb{E}[M_t \mid \mathcal{F}_s] = e^{-R U_s} = M_s$。因此 $\{M_t\}_{t \geqslant 0}$ 确实是一个 $\mathcal{F}_t$-鞅。这个特殊的 $r$ 被称为调整系数，记为 $R$。$R$ 满足方程
 \begin{equation}\label{eq:lundberg_eq}
   \lambda(M_Y(R) - 1) = R c.
 \end{equation}
