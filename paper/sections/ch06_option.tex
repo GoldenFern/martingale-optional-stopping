@@ -27,7 +27,7 @@
 \begin{equation}\label{eq:snell_option}
   V_n(S_n) = \max\Big\{g(S_n),\; e^{-r\Delta t} \cdot \mathbb{E}^{\mathbb{Q}}[V_{n+1}(S_{n+1}) \mid S_n]\Big\},
 \end{equation}
-其中 $V_N(s) = g(s)$（到期日只能行权或作废）。$e^{-r\Delta t} \mathbb{E}^{\mathbb{Q}}[V_{n+1} \mid S_n]$ 称为 continuation value（继续持有的折现期望价值）。折现过程 $\{e^{-r n\Delta t} V_n\}$ 是 $\mathbb{Q}$-上鞅——这是 OST 的核心推广：上鞅的停止定理保证任意停时下的期望不超过初始值，支持了``延续区域中等价，停止区域内行权''的最优决策。
+其中 $V_N(s) = g(s)$（到期日只能行权或作废）。$e^{-r\Delta t} \mathbb{E}^{\mathbb{Q}}[V_{n+1} \mid S_n]$ 称为继续持有价值。折现过程 $\{e^{-r n\Delta t} V_n\}$ 是 $\mathbb{Q}$-上鞅——这是 OST 的核心推广：上鞅的停止定理保证任意停时下的期望不超过初始值，支持了延续区域中等价、停止区域内行权的最优决策。
 
 最优行权策略由一个\textbf{停时边界} $S^*(t)$ 完全刻画：当 $S_t \leqslant S^*(t)$ 时（即期权深度 in-the-money），立即行权；当 $S_t > S^*(t)$ 时，继续持有。这一边界将 $(t, S)$ 平面划分为\emph{停时区域}和\emph{延续区域}。
 
