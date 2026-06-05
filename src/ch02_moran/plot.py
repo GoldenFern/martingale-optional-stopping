@@ -133,7 +133,7 @@ def fig2_4_tau_dist() -> None:
         label="逆高斯分布拟合",
     )
 
-    ax.set_xlim(0, None)
+    ax.set_xlim(0, 10000)
     ax.set_xlabel("停时 $\\tau$（代）")
     ax.set_ylabel("概率密度")
     ax.set_title("停时分布（$N=50, x_0=25$）")
