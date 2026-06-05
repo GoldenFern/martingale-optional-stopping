@@ -13,7 +13,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 DATA_DIR = PROJECT_ROOT / 'output' / 'data'
 
 
-def run_convergence_experiment(a=10, b=10,
+def run_convergence_experiment(a=20, b=10,
                                path_counts=np.logspace(2, 4, 8).astype(int),
                                max_steps=10000, n_repeats=6, seed=42):
     """双边 vs 单边收敛对比。"""
@@ -61,7 +61,7 @@ def run_convergence_experiment(a=10, b=10,
     return df
 
 
-def run_truncation_experiment(a=10, b=10,
+def run_truncation_experiment(a=20, b=10,
                               N_values=np.logspace(1, 5, 20).astype(int),
                               n_paths=1000, seed=42, n_repeats=12):
     """截断停时样本均值的批次分布。"""
@@ -87,7 +87,7 @@ def run_truncation_experiment(a=10, b=10,
     return df
 
 
-def run_tail_experiment(a=10, b=10, max_steps=5000, n_paths=3000, seed=42):
+def run_tail_experiment(a=20, b=10, max_steps=5000, n_paths=3000, seed=42):
     """停时尾部分布：双边 vs 单边。"""
     rw = SymmetricRW(0.5)
     # 双边

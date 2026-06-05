@@ -7,15 +7,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "src"))
 
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 
+from core.processes import SymmetricRW
 from core.visualization import (
     COLOR_BLUE,
     COLOR_GRAY,
     COLOR_RED,
     emphasize_log_grid,
     new_figure,
-    plot_box_series,
+    new_figure_dual,
     save_figure,
     set_style,
 )
@@ -23,86 +23,106 @@ from core.visualization import (
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 DATA_DIR = PROJECT_ROOT / "output" / "data"
 
+A, B = 20, 10  # asymmetric: a=20, b=10
 
-def _box_widths(x: np.ndarray, ratio: float = 0.35) -> list[float]:
-    x = np.asarray(x, dtype=float)
-    widths = []
-    for i, value in enumerate(x):
-        if len(x) == 1:
-            widths.append(value * ratio * 0.1 if value > 0 else ratio)
-        elif i == 0:
-            widths.append((x[i + 1] - value) * ratio)
-        elif i == len(x) - 1:
-            widths.append((value - x[i - 1]) * ratio)
+
+def fig4_1_paths(seed: int = 42) -> None:
+    """图 4.1：双边障碍下的样本轨道（a=20, b=10）。"""
+    set_style()
+    np.random.seed(seed)
+    rw = SymmetricRW(0.5)
+
+    fig, ax = new_figure()
+    n_display = 12
+    n_up, n_down = 0, 0
+    for _ in range(200):
+        rw.reset(0.0)
+        path = [0.0]
+        for _step in range(10000):
+            path.append(rw.step())
+            if path[-1] >= B or path[-1] <= -A:
+                break
+        path_arr = np.array(path)
+        if path_arr[-1] >= B and n_up < n_display // 2:
+            color = COLOR_BLUE
+            tau_val = len(path_arr) - 1
+            ax.plot(path_arr, color=color, alpha=0.55, lw=0.45)
+            ax.scatter(tau_val, path_arr[-1], color=color, s=8, zorder=5)
+            n_up += 1
+        elif path_arr[-1] <= -A and n_down < n_display // 2:
+            color = COLOR_RED
+            tau_val = len(path_arr) - 1
+            ax.plot(path_arr, color=color, alpha=0.55, lw=0.45)
+            ax.scatter(tau_val, path_arr[-1], color=color, s=8, zorder=5)
+            n_down += 1
+        if n_up >= n_display // 2 and n_down >= n_display // 2:
+            break
+
+    ax.axhline(B, color=COLOR_BLUE, lw=0.6, ls="--", alpha=0.5)
+    ax.axhline(-A, color=COLOR_RED, lw=0.6, ls="--", alpha=0.5)
+    ax.axhline(0, color=COLOR_GRAY, lw=0.4, ls=":", alpha=0.4)
+
+    from matplotlib.lines import Line2D
+    handles = [
+        Line2D([0], [0], color=COLOR_BLUE, lw=1, label="吸收于 $+10$"),
+        Line2D([0], [0], color=COLOR_RED, lw=1, label="吸收于 $-20$"),
+    ]
+    ax.legend(handles=handles, loc="best", fontsize=8)
+    ax.set_xlim(0, None)
+    ax.set_xlabel("步数 $n$")
+    ax.set_ylabel("$S_n$")
+    ax.set_title(f"双边障碍样本轨道（$a={A}, b={B}$）")
+    save_figure(fig, "ch04_paths.pdf")
+
+
+def fig4_2_unilateral_paths(max_steps: int = 5000, seed: int = 43) -> None:
+    """图 4.2：单边障碍下的样本轨道，左右子图。"""
+    set_style()
+    np.random.seed(seed)
+    rw = SymmetricRW(0.5)
+
+    fig, (ax1, ax2) = new_figure_dual()
+
+    # Collect paths
+    reached_paths = []
+    truncated_paths = []
+    for _ in range(500):
+        rw.reset(0.0)
+        path = [0.0]
+        for _step in range(max_steps):
+            path.append(rw.step())
+            if path[-1] >= B:
+                reached_paths.append(np.array(path))
+                break
         else:
-            widths.append(min(value - x[i - 1], x[i + 1] - value) * ratio)
-    return widths
+            truncated_paths.append(np.array(path))
+        if len(reached_paths) >= 8 and len(truncated_paths) >= 8:
+            break
 
+    # Left: paths that reach +B
+    for path_arr in reached_paths[:8]:
+        tau_val = len(path_arr) - 1
+        ax1.plot(path_arr, color=COLOR_BLUE, alpha=0.5, lw=0.45)
+        ax1.scatter(tau_val, path_arr[-1], color=COLOR_BLUE, s=8, zorder=5)
+    ax1.axhline(B, color=COLOR_BLUE, lw=0.6, ls="--", alpha=0.5)
+    ax1.axhline(0, color=COLOR_GRAY, lw=0.4, ls=":", alpha=0.4)
+    ax1.set_xlim(0, None)
+    ax1.set_xlabel("步数 $n$")
+    ax1.set_ylabel("$S_n$")
+    ax1.set_title("成功达到 $+10$ 的路径")
 
-def fig4_1_convergence() -> None:
-    """图 4.1：双边 vs 单边收敛对比。"""
-    set_style()
-    df = pd.read_csv(DATA_DIR / "exp4_convergence.csv")
-    batches = np.load(DATA_DIR / "exp4_convergence_batches.npz")
+    # Right: truncated paths
+    for path_arr in truncated_paths[:8]:
+        ax2.plot(path_arr, color=COLOR_RED, alpha=0.55, lw=0.45)
+    ax2.axhline(B, color=COLOR_BLUE, lw=0.6, ls="--", alpha=0.5)
+    ax2.axhline(0, color=COLOR_GRAY, lw=0.4, ls=":", alpha=0.4)
+    ax2.set_xlim(0, None)
+    ax2.set_xlabel("步数 $n$")
+    ax2.set_ylabel("$S_n$")
+    ax2.set_title(f"未达到 $+10$ 的路径（截断，$N={max_steps}$）")
 
-    fig, ax = new_figure()
-    for stop_type, color, label, y_theory in [
-        ("two_sided", COLOR_BLUE, "双边停时（OST 成立）", 0),
-        ("one_sided", COLOR_RED, "单边停时（OST 失效）", 10.0),
-    ]:
-        sub = df[df["stop_type"] == stop_type]
-        x = sub["n_paths"].to_numpy()
-        samples = [batches[f'{"two" if stop_type == "two_sided" else "one"}_{int(m)}'] for m in x]
-        plot_box_series(
-            ax,
-            x,
-            samples,
-            width=_box_widths(x, ratio=0.28),
-            facecolor=color,
-            edgecolor=color,
-            median_color=COLOR_GRAY,
-            label=label,
-        )
-        ax.axhline(y_theory, color=color, lw=0.6, ls="--", alpha=0.5)
-
-    ax.set_xscale("log")
-    emphasize_log_grid(ax)
-    ax.set_xlabel("Monte Carlo 路径数 $M$")
-    ax.set_ylabel("$\\mathbb{E}[S_\\tau]$ 估计值")
-    ax.set_title("OST 收敛对比：双边成立 vs 单边失效")
-    ax.legend(loc="best", fontsize=8)
-    save_figure(fig, "ch04_convergence.pdf")
-
-
-def fig4_2_truncation() -> None:
-    """图 4.2：截断偏误。"""
-    set_style()
-    df = pd.read_csv(DATA_DIR / "exp4_truncation.csv")
-    batches = np.load(DATA_DIR / "exp4_truncation_batches.npz")
-
-    fig, ax = new_figure()
-    x = df["N"].to_numpy()
-    samples = [batches[f"N_{int(n_value)}"] for n_value in x]
-    plot_box_series(
-        ax,
-        x,
-        samples,
-        width=_box_widths(x, ratio=0.28),
-        facecolor=COLOR_BLUE,
-        edgecolor=COLOR_BLUE,
-        median_color=COLOR_RED,
-        label="批次样本均值分布",
-    )
-    ax.axhline(0.0, color=COLOR_GRAY, lw=0.8, ls=":", label="每个固定 $N$: $\\mathbb{E}[S_{\\tau\\wedge N}]=0$")
-    ax.axhline(10.0, color=COLOR_RED, lw=0.8, ls="--", label="几乎处处极限 $S_\\tau=b=10$")
-
-    ax.set_xscale("log")
-    emphasize_log_grid(ax)
-    ax.set_xlabel("截断值 $N$")
-    ax.set_ylabel("$S_{\\tau \\wedge N}$ 的样本均值")
-    ax.set_title("截断序列与不可交换极限")
-    ax.legend(loc="lower left", fontsize=7)
-    save_figure(fig, "ch04_truncation.pdf")
+    fig.suptitle(f"单边障碍样本轨道（$b={B}$）", y=1.01, fontsize=11)
+    save_figure(fig, "ch04_unilateral.pdf")
 
 
 def fig4_3_tail() -> None:
@@ -126,7 +146,7 @@ def fig4_3_tail() -> None:
 
     ax.set_xlabel("$t$")
     ax.set_ylabel("$P(\\tau > t)$")
-    ax.set_title("停时尾部对比 (双对数)")
+    ax.set_title(f"停时尾部对比（双对数，$a={A}, b={B}$）")
     emphasize_log_grid(ax)
     ax.legend(loc="lower left", fontsize=8)
     save_figure(fig, "ch04_tail.pdf")
@@ -134,10 +154,10 @@ def fig4_3_tail() -> None:
 
 if __name__ == "__main__":
     set_style()
-    print("绘制图 4.1: 收敛对比 ...")
-    fig4_1_convergence()
-    print("绘制图 4.2: 截断偏误 ...")
-    fig4_2_truncation()
+    print("绘制图 4.1: 双边样本轨道 ...")
+    fig4_1_paths()
+    print("绘制图 4.2: 单边样本轨道 ...")
+    fig4_2_unilateral_paths()
     print("绘制图 4.3: 停时尾部 ...")
     fig4_3_tail()
     print("第四章三张图绘制完成。")
