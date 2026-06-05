@@ -12,65 +12,65 @@ class MoranProcess:
     X_n 本身是鞅：E[X_{n+1} | X_n] = X_n。
     """
 
-    def __init__(self, N: int):
-        self.N = N
-        self._x = 0
+    def __init__(self, pop_size: int):
+        self.pop_size = pop_size
+        self._allele_count = 0
 
-    def reset(self, x0: int):
-        self._x = x0
+    def reset(self, initial_allele_count: int):
+        self._allele_count = initial_allele_count
 
     @property
     def state(self) -> int:
-        return self._x
+        return self._allele_count
 
     def step(self) -> int:
         """执行一代，返回新状态。"""
-        i = self._x
-        N = self.N
-        reproduce_A = np.random.random() < i / N
-        kill_A = np.random.random() < i / N
+        current_count = self._allele_count
+        pop_size = self.pop_size
+        reproduce_A = np.random.random() < current_count / pop_size
+        kill_A = np.random.random() < current_count / pop_size
         if reproduce_A and not kill_A:
-            self._x = i + 1
+            self._allele_count = current_count + 1
         elif not reproduce_A and kill_A:
-            self._x = i - 1
+            self._allele_count = current_count - 1
         # else: 不变
-        return self._x
+        return self._allele_count
 
     def simulate_path(self, max_gen: int = 100000) -> np.ndarray:
         """模拟直到吸收或 max_gen 代。返回包含初始值的路径。"""
-        path = [self._x]
+        path = [self._allele_count]
         for _ in range(max_gen):
-            if self._x == 0 or self._x == self.N:
+            if self._allele_count == 0 or self._allele_count == self.pop_size:
                 break
             path.append(self.step())
         return np.array(path)
 
 
-def expected_tau_moran(N: int) -> np.ndarray:
+def expected_tau_moran(pop_size: int) -> np.ndarray:
     """利用出生-死亡链递推关系精确求解 E[τ | X_0 = i]，返回形状 (N+1,)。"""
     # 边界: E[τ_0] = 0, E[τ_N] = 0
     # 内部: E[τ_i] = 1 + p_up*E[τ_{i+1}] + p_down*E[τ_{i-1}] + p_stay*E[τ_i]
     # 其中 p_up = p_down = i(N-i)/N^2, p_stay = 1 - 2i(N-i)/N^2
     # 化简为三对角线性方程组
-    n_int = N - 1  # 内部状态数
-    A = np.zeros((n_int, n_int))
-    b = -np.ones(n_int)
+    num_interior = pop_size - 1  # 内部状态数
+    coefficient_matrix = np.zeros((num_interior, num_interior))
+    rhs = -np.ones(num_interior)
 
-    for k in range(n_int):
-        i = k + 1  # 实际状态
-        p = i * (N - i) / (N * N)
-        if i > 1:
-            A[k, k - 1] = p          # i-1
-        A[k, k] = -2 * p              # i (stay term cancels out)
-        if i < N - 1:
-            A[k, k + 1] = p          # i+1
+    for row_idx in range(num_interior):
+        state_value = row_idx + 1  # 实际状态
+        transition_prob = state_value * (pop_size - state_value) / (pop_size * pop_size)
+        if state_value > 1:
+            coefficient_matrix[row_idx, row_idx - 1] = transition_prob          # i-1
+        coefficient_matrix[row_idx, row_idx] = -2 * transition_prob              # i (stay term cancels out)
+        if state_value < pop_size - 1:
+            coefficient_matrix[row_idx, row_idx + 1] = transition_prob          # i+1
 
     # 处理 i=1 和 i=N-1 的边界贡献（来自吸收态 τ_0=τ_N=0）
     # i=1: -2p*τ_1 + p*τ_2 = -1 (无 τ_0 项)
     # i=N-1: p*τ_{N-2} - 2p*τ_{N-1} = -1 (无 τ_N 项)
     # 已经自动处理正确
 
-    tau_interior = solve(A, b)
-    tau = np.zeros(N + 1)
-    tau[1:N] = tau_interior
-    return tau
+    interior_tau = solve(coefficient_matrix, rhs)
+    expected_tau = np.zeros(pop_size + 1)
+    expected_tau[1:pop_size] = interior_tau
+    return expected_tau

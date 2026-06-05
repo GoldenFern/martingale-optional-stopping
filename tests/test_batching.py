@@ -25,7 +25,7 @@ def test_split_batch_sizes_rejects_too_many_batches():
 def test_success_experiment_batch_keys_unique(tmp_path, monkeypatch):
     monkeypatch.setattr(secretary_experiment, "DATA_DIR", tmp_path)
     df = secretary_experiment.run_success_experiment(
-        N_values=(20,), n_r_points=6, n_trials=60, seed=1, n_batches=4
+        candidate_counts=(20,), num_r_points=6, num_trials=60, seed=1, num_batches=4
     )
     assert df["batch_key"].is_unique
     assert len(df["batch_key"]) == len(set(df["batch_key"]))
@@ -34,7 +34,7 @@ def test_success_experiment_batch_keys_unique(tmp_path, monkeypatch):
 def test_control_experiment_batch_keys_unique(tmp_path, monkeypatch):
     monkeypatch.setattr(secretary_experiment, "DATA_DIR", tmp_path)
     df = secretary_experiment.run_control_experiment(
-        N_values=(20,), n_r_points=6, n_trials=60, seed=1, n_batches=4
+        candidate_counts=(20,), num_r_points=6, num_trials=60, seed=1, num_batches=4
     )
     assert df["batch_key"].is_unique
     assert len(df["batch_key"]) == len(set(df["batch_key"]))
@@ -43,7 +43,7 @@ def test_control_experiment_batch_keys_unique(tmp_path, monkeypatch):
 def test_success_experiment_uses_all_trials(tmp_path, monkeypatch):
     monkeypatch.setattr(secretary_experiment, "DATA_DIR", tmp_path)
     df = secretary_experiment.run_success_experiment(
-        N_values=(20,), n_r_points=1, n_trials=62, seed=1, n_batches=4
+        candidate_counts=(20,), num_r_points=1, num_trials=62, seed=1, num_batches=4
     )
     val = df.iloc[0]["success_mc"]
     assert 0.0 <= val <= 1.0
@@ -52,7 +52,7 @@ def test_success_experiment_uses_all_trials(tmp_path, monkeypatch):
 def test_control_experiment_uses_all_trials(tmp_path, monkeypatch):
     monkeypatch.setattr(secretary_experiment, "DATA_DIR", tmp_path)
     df = secretary_experiment.run_control_experiment(
-        N_values=(20,), n_r_points=1, n_trials=62, seed=1, n_batches=4
+        candidate_counts=(20,), num_r_points=1, num_trials=62, seed=1, num_batches=4
     )
     val = df.iloc[0]["success_mc"]
     assert 0.0 <= val <= 1.0

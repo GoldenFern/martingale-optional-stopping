@@ -11,4 +11,4 @@ def split_batch_sizes(total: int, n_batches: int) -> list[int]:
         raise ValueError("n_batches cannot exceed total")
 
     base, remainder = divmod(total, n_batches)
-    return [base + (1 if i < remainder else 0) for i in range(n_batches)]
+    return [base + (1 if batch_idx < remainder else 0) for batch_idx in range(n_batches)]

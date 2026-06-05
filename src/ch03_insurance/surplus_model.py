@@ -11,107 +11,107 @@ class SurplusProcess:
     u : 初始资本
     c : 保费速率（单位时间）
     λ : 泊松索赔强度
-    Y ~ claim_dist: 索赔额分布（需实现 rvs 方法）
+    Y ~ claim_distribution: 索赔额分布（需实现 rvs 方法）
     """
 
-    def __init__(self, u: float, c: float, lam: float, claim_dist):
-        self.u = u
-        self.c = c
-        self.lam = lam
-        self.claim = claim_dist
-        self._t = 0.0
-        self._U = u
+    def __init__(self, initial_capital: float, premium_rate: float, claim_intensity: float, claim_distribution):
+        self.initial_capital = initial_capital
+        self.premium_rate = premium_rate
+        self.claim_intensity = claim_intensity
+        self.claim_distribution = claim_distribution
+        self._current_time = 0.0
+        self._surplus = initial_capital
 
-    def reset(self, u: float = None):
-        if u is not None:
-            self.u = u
-        self._t = 0.0
-        self._U = self.u
-
-    @property
-    def t(self) -> float:
-        return self._t
+    def reset(self, initial_capital: float = None):
+        if initial_capital is not None:
+            self.initial_capital = initial_capital
+        self._current_time = 0.0
+        self._surplus = self.initial_capital
 
     @property
-    def state(self) -> float:
-        return self._U
+    def current_time(self) -> float:
+        return self._current_time
+
+    @property
+    def surplus(self) -> float:
+        return self._surplus
 
     def step_until_next_claim(self):
-        """跳到下一次索赔时刻，更新盈余。返回 (t_new, U_new)。"""
-        inter_arrival = np.random.exponential(1 / self.lam)
-        self._t += inter_arrival
-        self._U += self.c * inter_arrival
-        claim_amount = self.claim.rvs()
-        self._U -= claim_amount
-        return self._t, self._U
+        """跳到下一次索赔时刻，更新盈余。返回 (t_new, surplus_new)。"""
+        interarrival_time = np.random.exponential(1 / self.claim_intensity)
+        self._current_time += interarrival_time
+        self._surplus += self.premium_rate * interarrival_time
+        claim_amount = self.claim_distribution.rvs()
+        self._surplus -= claim_amount
+        return self._current_time, self._surplus
 
-    def simulate_path(self, T: float) -> tuple[np.ndarray, np.ndarray]:
+    def simulate_path(self, time_horizon: float) -> tuple[np.ndarray, np.ndarray]:
         """生成 [0, T] 上的盈余轨迹（事件驱动）。
 
-        返回 (times, U_values)，times[0]=0, U[0]=u。
+        返回 (time_points, surplus_values)，time_points[0]=0, surplus_values[0]=u。
         """
         self.reset()
-        times = [0.0]
-        values = [self._U]
-        while self._t < T:
+        time_points = [0.0]
+        surplus_values = [self._surplus]
+        while self._current_time < time_horizon:
             # 纯保费增长直到下次索赔
-            inter_arrival = np.random.exponential(1 / self.lam)
-            claim_amount = self.claim.rvs()
+            interarrival_time = np.random.exponential(1 / self.claim_intensity)
+            claim_amount = self.claim_distribution.rvs()
             # 在索赔时刻增加一个点
-            self._t += inter_arrival
-            self._U += self.c * inter_arrival
-            times.append(self._t)
-            values.append(self._U)
+            self._current_time += interarrival_time
+            self._surplus += self.premium_rate * interarrival_time
+            time_points.append(self._current_time)
+            surplus_values.append(self._surplus)
             # 索赔后
-            self._U -= claim_amount
-            times.append(self._t)
-            values.append(self._U)
-            if self._U < 0:
+            self._surplus -= claim_amount
+            time_points.append(self._current_time)
+            surplus_values.append(self._surplus)
+            if self._surplus < 0:
                 break
-        return np.array(times), np.array(values)
+        return np.array(time_points), np.array(surplus_values)
 
-    def simulate_until_ruin_or_T(self, T: float):
-        """模拟直到破产或 T，返回 (ruined: bool, stopping_time: float, traj)。"""
+    def simulate_until_ruin_or_T(self, time_horizon: float):
+        """模拟直到破产或 T，返回 (ruined: bool, ruin_time: float, traj_times, traj_surplus)。"""
         self.reset()
-        traj_t = [0.0]
-        traj_U = [self._U]
-        while self._t < T and self._U >= 0:
-            inter_arrival = np.random.exponential(1 / self.lam)
-            claim_amount = self.claim.rvs()
-            self._t += inter_arrival
-            self._U += self.c * inter_arrival
-            traj_t.append(self._t)
-            traj_U.append(self._U)
-            self._U -= claim_amount
-            traj_t.append(self._t)
-            traj_U.append(self._U)
-        ruined = self._U < 0
-        return ruined, self._t, np.array(traj_t), np.array(traj_U)
+        traj_times = [0.0]
+        traj_surplus = [self._surplus]
+        while self._current_time < time_horizon and self._surplus >= 0:
+            interarrival_time = np.random.exponential(1 / self.claim_intensity)
+            claim_amount = self.claim_distribution.rvs()
+            self._current_time += interarrival_time
+            self._surplus += self.premium_rate * interarrival_time
+            traj_times.append(self._current_time)
+            traj_surplus.append(self._surplus)
+            self._surplus -= claim_amount
+            traj_times.append(self._current_time)
+            traj_surplus.append(self._surplus)
+        ruined = self._surplus < 0
+        return ruined, self._current_time, np.array(traj_times), np.array(traj_surplus)
 
 
-def find_adjustment_R(lam: float, c: float, claim_mgf,
-                       r_min: float = 1e-12, r_max: float = 10.0) -> float:
+def find_adjustment_R(claim_intensity: float, premium_rate: float, claim_mgf,
+                       search_lower: float = 1e-12, search_upper: float = 10.0) -> float:
     """求解调整系数 R > 0，满足 λ(M_Y(R) − 1) = Rc。
 
     claim_mgf(r) = E[e^{rY}] 索赔额的矩母函数。
     使用 brentq 求根。
     """
-    def f(r):
-        return lam * (claim_mgf(r) - 1) - r * c
+    def lundberg_equation(rate):
+        return claim_intensity * (claim_mgf(rate) - 1) - rate * premium_rate
 
     # 安全负荷条件：c > λ E[Y]
     # 此时 f'(0) = λ E[Y] - c < 0，且 f(0) = 0
     # f(r) 先负后正 → 存在唯一正根（对大多数索赔分布）
     try:
-        return brentq(f, r_min, r_max, xtol=1e-12)
+        return brentq(lundberg_equation, search_lower, search_upper, xtol=1e-12)
     except ValueError:
         # 搜索更宽的区间
-        for ub in [20, 50, 100]:
+        for upper_bound in [20, 50, 100]:
             try:
-                return brentq(f, r_min, ub, xtol=1e-12)
+                return brentq(lundberg_equation, search_lower, upper_bound, xtol=1e-12)
             except ValueError:
                 continue
-        raise ValueError(f"无法在 (0, {r_max}) 内找到调整系数 R")
+        raise ValueError(f"无法在 (0, {search_upper}) 内找到调整系数 R")
 
 
 def exp_claim_mgf_factory(dist_name: str, **params):
@@ -121,30 +121,30 @@ def exp_claim_mgf_factory(dist_name: str, **params):
     'gamma': M_Y(r) = (1 - r/rate)^{-shape}  (r < rate)
     """
     if dist_name == 'exponential':
-        rate = params.get('rate', 1.0)
-        def mgf(r):
-            if r >= rate:
+        claim_rate = params.get('rate', 1.0)
+        def mgf(rate):
+            if rate >= claim_rate:
                 return np.inf
-            return 1.0 / (1.0 - r / rate)
+            return 1.0 / (1.0 - rate / claim_rate)
         return mgf
     else:
         raise ValueError(f"未知分布: {dist_name}")
 
 
-def lundberg_psi_exact(u: float, R: float) -> float:
+def lundberg_psi_exact(initial_capital: float, adjustment_coefficient: float) -> float:
     """Lundberg 指数上界：ψ(u) ≤ e^{−Ru}。这里返回的上界。"""
-    return np.exp(-R * u)
+    return np.exp(-adjustment_coefficient * initial_capital)
 
 
-def psi_exact_exponential(u: float, lam: float, c: float, mu: float) -> float:
+def psi_exact_exponential(initial_capital: float, claim_intensity: float, premium_rate: float, mean_claim: float) -> float:
     """指数索赔下破产概率的精确解。
 
     ψ(u) = (1 / (1 + θ)) * exp(−θ u / (μ (1 + θ)))
     其中 θ = c/(λμ) − 1 = 安全负荷。
     """
-    theta = c / (lam * mu) - 1
-    if theta <= 0:
+    safety_loading = premium_rate / (claim_intensity * mean_claim) - 1
+    if safety_loading <= 0:
         return 1.0  # 安全负荷为负，必然破产
-    coeff = 1.0 / (1.0 + theta)
-    exponent = -theta * u / (mu * (1.0 + theta))
-    return coeff * np.exp(exponent)
+    ruin_prob_coeff = 1.0 / (1.0 + safety_loading)
+    ruin_exponent = -safety_loading * initial_capital / (mean_claim * (1.0 + safety_loading))
+    return ruin_prob_coeff * np.exp(ruin_exponent)

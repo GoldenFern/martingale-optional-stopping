@@ -15,11 +15,11 @@ class StoppingTime(ABC):
 class FixedTime(StoppingTime):
     """固定时刻停时 τ = N。"""
 
-    def __init__(self, N: int):
-        self.N = N
+    def __init__(self, stop_step: int):
+        self.stop_step = stop_step
 
     def should_stop(self, state: float, step_idx: int, history=None) -> bool:
-        return step_idx >= self.N
+        return step_idx >= self.stop_step
 
 
 class HittingLevel(StoppingTime):
@@ -56,12 +56,12 @@ class ExitInterval(StoppingTime):
 class Truncated(StoppingTime):
     """截断停时 τ_N = min(τ, N)，装饰另一个停时。"""
 
-    def __init__(self, inner: StoppingTime, N: int):
+    def __init__(self, inner: StoppingTime, max_steps: int):
         self.inner = inner
-        self.N = N
+        self.max_steps = max_steps
 
     def should_stop(self, state: float, step_idx: int, history=None) -> bool:
-        if step_idx >= self.N:
+        if step_idx >= self.max_steps:
             return True
         return self.inner.should_stop(state, step_idx, history)
 

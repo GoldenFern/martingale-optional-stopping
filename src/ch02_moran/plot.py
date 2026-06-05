@@ -18,39 +18,39 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 DATA_DIR = PROJECT_ROOT / "output" / "data"
 
 
-def fig2_1_paths(N: int = 50, x0: int = 25, n_display: int = 10, seed: int = 42) -> None:
+def fig2_1_paths(pop_size: int = 50, initial_allele_count: int = 25, n_display: int = 10, seed: int = 42) -> None:
     """图 2.1：基因频率轨迹叠加。"""
     set_style()
     np.random.seed(seed)
-    model = MoranProcess(N)
+    model = MoranProcess(pop_size)
     paths_all, outcomes = [], []
     for _ in range(150):
-        model.reset(x0)
+        model.reset(initial_allele_count)
         path = model.simulate_path()
-        paths_all.append(path / N)
-        outcomes.append(path[-1] == N)
-    fix_idx = [i for i, outcome in enumerate(outcomes) if outcome]
-    ext_idx = [i for i, outcome in enumerate(outcomes) if not outcome]
-    n_each = max(n_display // 2, 1)
+        paths_all.append(path / pop_size)
+        outcomes.append(path[-1] == pop_size)
+    fixation_indices = [i for i, outcome in enumerate(outcomes) if outcome]
+    extinction_indices = [i for i, outcome in enumerate(outcomes) if not outcome]
+    count_per_group = max(n_display // 2, 1)
 
     fig, ax = new_figure()
     for idx_list, color, label in [
-        (fix_idx, COLOR_BLUE, "A固定"),
-        (ext_idx, COLOR_RED, "a固定"),
+        (fixation_indices, COLOR_BLUE, "A固定"),
+        (extinction_indices, COLOR_RED, "a固定"),
     ]:
-        chosen = np.random.choice(idx_list, min(n_each, len(idx_list)), replace=False)
-        for idx in chosen:
-            freq = paths_all[idx]
-            tau = len(freq) - 1
-            ax.plot(freq, alpha=0.5, lw=0.4, color=color)
-            ax.scatter(tau, freq[-1], color=color, s=6, alpha=0.7, zorder=5)
+        chosen = np.random.choice(idx_list, min(count_per_group, len(idx_list)), replace=False)
+        for path_idx in chosen:
+            allele_freq_path = paths_all[path_idx]
+            stopping_time = len(allele_freq_path) - 1
+            ax.plot(allele_freq_path, alpha=0.5, lw=0.4, color=color)
+            ax.scatter(stopping_time, allele_freq_path[-1], color=color, s=6, alpha=0.7, zorder=5)
 
     ax.axhline(0, color="gray", lw=0.5, ls="--", alpha=0.6)
     ax.axhline(1, color="gray", lw=0.5, ls="--", alpha=0.6)
     ax.set_xlim(0, None)
     ax.set_xlabel("代数")
     ax.set_ylabel("A 等位基因频率")
-    ax.set_title(f"Moran 模型样本路径（$N={N}$）")
+    ax.set_title(f"Moran 模型样本路径（$N={pop_size}$）")
     handles = [
         plt.Line2D([0], [0], color=COLOR_BLUE, lw=1, label="A固定"),
         plt.Line2D([0], [0], color=COLOR_RED, lw=1, label="a固定"),
@@ -59,19 +59,19 @@ def fig2_1_paths(N: int = 50, x0: int = 25, n_display: int = 10, seed: int = 42)
     save_figure(fig, "ch02_paths.pdf")
 
 
-def fig2_2_fixation(n_paths: int = 5000) -> None:
+def fig2_2_fixation(num_paths: int = 5000) -> None:
     """图 2.2：固定概率 vs A等位基因初始频率，仅 N=50。"""
-    _ = n_paths
+    _ = num_paths
     set_style()
-    df = pd.read_csv(DATA_DIR / "exp2_fixation.csv")
-    sub = df[df["N"] == 50]
+    results_df = pd.read_csv(DATA_DIR / "exp2_fixation.csv")
+    subset_df = results_df[results_df["N"] == 50]
 
     fig, ax = new_figure()
-    x = sub["initial_freq"].to_numpy()
-    y = sub["p_fixation_mc"].to_numpy()
+    initial_freq = subset_df["initial_freq"].to_numpy()
+    fixation_prob_mc = subset_df["p_fixation_mc"].to_numpy()
 
-    ax.plot(x, y, "o", color=COLOR_BLUE, markersize=5, label="Monte Carlo 估计")
-    ax.plot(x, x, "--", color=COLOR_RED, lw=1.15, label="理论值 $y=x_0/N$")
+    ax.plot(initial_freq, fixation_prob_mc, "o", color=COLOR_BLUE, markersize=5, label="Monte Carlo 估计")
+    ax.plot(initial_freq, initial_freq, "--", color=COLOR_RED, lw=1.15, label="理论值 $y=x_0/N$")
 
     ax.set_xlabel("A 等位基因初始频率 $x_0/N$")
     ax.set_ylabel("固定概率")
@@ -86,16 +86,16 @@ def fig2_2_fixation(n_paths: int = 5000) -> None:
 def fig2_3_tau_comparison() -> None:
     """图 2.3：不同 A等位基因初始频率下 Monte Carlo 停时均值与理论解对比。"""
     set_style()
-    df = pd.read_csv(DATA_DIR / "exp2_fixation.csv")
-    sub = df[df["N"] == 50]
+    results_df = pd.read_csv(DATA_DIR / "exp2_fixation.csv")
+    subset_df = results_df[results_df["N"] == 50]
 
     fig, ax = new_figure()
-    x = sub["initial_freq"].to_numpy()
-    y_mc = sub["tau_mc_mean"].to_numpy()
-    y_theory = sub["tau_theory"].to_numpy()
+    initial_freq = subset_df["initial_freq"].to_numpy()
+    mean_tau_mc = subset_df["tau_mc_mean"].to_numpy()
+    mean_tau_theory = subset_df["tau_theory"].to_numpy()
 
-    ax.plot(x, y_mc, "o", color=COLOR_BLUE, markersize=5, label="Monte Carlo 估计")
-    ax.plot(x, y_theory, "--", color=COLOR_RED, lw=1.15, label="理论值（三对角系统求解）")
+    ax.plot(initial_freq, mean_tau_mc, "o", color=COLOR_BLUE, markersize=5, label="Monte Carlo 估计")
+    ax.plot(initial_freq, mean_tau_theory, "--", color=COLOR_RED, lw=1.15, label="理论值（三对角系统求解）")
 
     ax.set_xlabel("A 等位基因初始频率 $x_0/N$")
     ax.set_ylabel("期望停时 $\\mathbb{E}[\\tau]$")
@@ -108,11 +108,11 @@ def fig2_3_tau_comparison() -> None:
 def fig2_4_tau_dist() -> None:
     """图 2.4：停时分布直方图，N=50。"""
     set_style()
-    tau = np.loadtxt(DATA_DIR / "exp2_tau_dist.csv", delimiter=",")
+    tau_samples = np.loadtxt(DATA_DIR / "exp2_tau_dist.csv", delimiter=",")
 
     fig, ax = new_figure()
     ax.hist(
-        tau,
+        tau_samples,
         bins=80,
         density=True,
         alpha=0.55,
@@ -123,11 +123,11 @@ def fig2_4_tau_dist() -> None:
     )
 
     min_tau = 25
-    mu_hat, loc_hat, scale_hat = invgauss.fit(tau, floc=min_tau)
-    xs = np.linspace(0, tau.max(), 300)
+    shape_fit, loc_fit, scale_fit = invgauss.fit(tau_samples, floc=min_tau)
+    fitted_x = np.linspace(0, tau_samples.max(), 300)
     ax.plot(
-        xs,
-        invgauss.pdf(xs, mu_hat, loc=loc_hat, scale=scale_hat),
+        fitted_x,
+        invgauss.pdf(fitted_x, shape_fit, loc=loc_fit, scale=scale_fit),
         color=COLOR_RED,
         lw=1.2,
         label="逆高斯分布拟合",

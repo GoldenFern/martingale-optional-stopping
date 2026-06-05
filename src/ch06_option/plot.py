@@ -15,18 +15,18 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 DATA_DIR = PROJECT_ROOT / "output" / "data"
 
 
-def _widths_from_x(x: np.ndarray, ratio: float = 0.35) -> list[float]:
-    x = np.asarray(x, dtype=float)
+def _widths_from_x(x_values: np.ndarray, ratio: float = 0.35) -> list[float]:
+    x_values = np.asarray(x_values, dtype=float)
     widths = []
-    for i, value in enumerate(x):
-        if len(x) == 1:
+    for i, value in enumerate(x_values):
+        if len(x_values) == 1:
             widths.append(0.15)
         elif i == 0:
-            widths.append((x[i + 1] - value) * ratio)
-        elif i == len(x) - 1:
-            widths.append((value - x[i - 1]) * ratio)
+            widths.append((x_values[i + 1] - value) * ratio)
+        elif i == len(x_values) - 1:
+            widths.append((value - x_values[i - 1]) * ratio)
         else:
-            widths.append(min(value - x[i - 1], x[i + 1] - value) * ratio)
+            widths.append(min(value - x_values[i - 1], x_values[i + 1] - value) * ratio)
     return widths
 
 
@@ -34,29 +34,34 @@ def fig6_1_paths() -> None:
     """图 6.1：15 条股价路径与 LSM 行权位置。"""
     set_style()
     data = np.load(DATA_DIR / "exp6_paths.npz", allow_pickle=True)
-    s_paths = data["S"]
-    tau = data["tau"]
-    dt = 1.0 / 50
+    stock_paths = data["S"]
+    exercise_times = data["tau"]
+    time_step = 1.0 / 50
 
     fig, ax = new_figure()
-    n_early, n_maturity = 0, 0
-    for i in range(len(s_paths)):
-        ax.plot(np.arange(len(s_paths[i])) * dt, s_paths[i], lw=0.4, color=COLOR_GRAY, alpha=0.5)
-        t_i = tau[i] * dt
-        if tau[i] < len(s_paths[i]) - 1:
-            ax.scatter(t_i, s_paths[i, tau[i]], color=COLOR_RED, s=16, zorder=5, alpha=0.9)
-            n_early += 1
-        elif s_paths[i, tau[i]] < 40:
-            ax.scatter(t_i, s_paths[i, tau[i]], color=COLOR_ORANGE, marker="^", s=18, zorder=5, alpha=0.9)
-            n_maturity += 1
+    early_exercise_count, maturity_exercise_count = 0, 0
+    for path_idx in range(len(stock_paths)):
+        ax.plot(np.arange(len(stock_paths[path_idx])) * time_step, stock_paths[path_idx],
+                lw=0.4, color=COLOR_GRAY, alpha=0.5)
+        exercise_time_i = exercise_times[path_idx] * time_step
+        if exercise_times[path_idx] < len(stock_paths[path_idx]) - 1:
+            ax.scatter(exercise_time_i, stock_paths[path_idx, exercise_times[path_idx]],
+                      color=COLOR_RED, s=16, zorder=5, alpha=0.9)
+            early_exercise_count += 1
+        elif stock_paths[path_idx, exercise_times[path_idx]] < 40:
+            ax.scatter(exercise_time_i, stock_paths[path_idx, exercise_times[path_idx]],
+                      color=COLOR_ORANGE, marker="^", s=18, zorder=5, alpha=0.9)
+            maturity_exercise_count += 1
 
     ax.axhline(40, color=COLOR_BLUE, lw=0.7, ls="--", alpha=0.65, label="执行价 $K$")
     from matplotlib.lines import Line2D
 
     handles = [
         Line2D([0], [0], color=COLOR_BLUE, lw=0.8, ls="--", label="执行价 $K$"),
-        Line2D([0], [0], marker="o", color="none", markerfacecolor=COLOR_RED, markeredgecolor=COLOR_RED, markersize=5, label=f"提前行权 {n_early} 条"),
-        Line2D([0], [0], marker="^", color="none", markerfacecolor=COLOR_ORANGE, markeredgecolor=COLOR_ORANGE, markersize=5, label=f"到期行权 {n_maturity} 条"),
+        Line2D([0], [0], marker="o", color="none", markerfacecolor=COLOR_RED,
+               markeredgecolor=COLOR_RED, markersize=5, label=f"提前行权 {early_exercise_count} 条"),
+        Line2D([0], [0], marker="^", color="none", markerfacecolor=COLOR_ORANGE,
+               markeredgecolor=COLOR_ORANGE, markersize=5, label=f"到期行权 {maturity_exercise_count} 条"),
     ]
     ax.set_xlabel("时间 $t$")
     ax.set_ylabel("股价 $S_t$")
@@ -69,12 +74,13 @@ def fig6_2_boundary() -> None:
     """图 6.2：行权边界热力图。"""
     set_style()
     data = np.load(DATA_DIR / "exp6_boundary.npz")
-    t_grid, s_grid, prob = data["t_grid"], data["s_grid"], data["prob"]
+    time_grid, price_grid, exercise_prob = data["t_grid"], data["s_grid"], data["prob"]
 
     fig, ax = new_figure()
-    image = ax.contourf(t_grid, s_grid, prob.T, levels=np.linspace(0, 1, 21), cmap="viridis", vmin=0, vmax=1)
-    ax.contour(t_grid, s_grid, prob.T, levels=[0.5], colors="white", linewidths=0.8)
-    fig.colorbar(image, ax=ax, label="行权概率", shrink=0.82)
+    contour_plot = ax.contourf(time_grid, price_grid, exercise_prob.T,
+                               levels=np.linspace(0, 1, 21), cmap="viridis", vmin=0, vmax=1)
+    ax.contour(time_grid, price_grid, exercise_prob.T, levels=[0.5], colors="white", linewidths=0.8)
+    fig.colorbar(contour_plot, ax=ax, label="行权概率", shrink=0.82)
     ax.set_xlabel("时间 $t$")
     ax.set_ylabel("股价 $S$")
     ax.set_title("行权概率热力图")
@@ -84,24 +90,26 @@ def fig6_2_boundary() -> None:
 def fig6_3_price() -> None:
     """图 6.3：三线价格对比。"""
     set_style()
-    df = pd.read_csv(DATA_DIR / "exp6_price.csv")
-    batches = np.load(DATA_DIR / "exp6_price_batches.npz")
+    results_df = pd.read_csv(DATA_DIR / "exp6_price.csv")
+    batch_data = np.load(DATA_DIR / "exp6_price_batches.npz")
 
     fig, ax = new_figure()
-    x = df["S0"].to_numpy()
-    samples = [batches[f"S0_{s0:.1f}"] for s0 in x]
+    initial_prices = results_df["S0"].to_numpy()
+    batch_samples = [batch_data[f"S0_{s0:.1f}"] for s0 in initial_prices]
     plot_box_series(
         ax,
-        x,
-        samples,
-        width=_widths_from_x(x, ratio=0.3),
+        initial_prices,
+        batch_samples,
+        width=_widths_from_x(initial_prices, ratio=0.3),
         facecolor=COLOR_BLUE,
         edgecolor=COLOR_BLUE,
         median_color=COLOR_RED,
         label="美式期权（LSM 批次分布）",
     )
-    ax.plot(df["S0"], df["european"], "-", color=COLOR_RED, lw=1.0, label="欧式期权（Black-Scholes）")
-    ax.plot(df["S0"], df["payoff"], "--", color=COLOR_GRAY, lw=0.8, alpha=0.7, label="立即行权收益 $\\max(K-S_0,0)$")
+    ax.plot(results_df["S0"], results_df["european"], "-", color=COLOR_RED, lw=1.0,
+            label="欧式期权（Black-Scholes）")
+    ax.plot(results_df["S0"], results_df["payoff"], "--", color=COLOR_GRAY, lw=0.8, alpha=0.7,
+            label="立即行权收益 $\\max(K-S_0,0)$")
 
     ax.set_xlabel("初始股价 $S_0$")
     ax.set_ylabel("期权价格")

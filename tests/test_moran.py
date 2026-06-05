@@ -31,7 +31,7 @@ class TestMoranProcess:
             mp.reset(i)
             next_vals = np.empty(n_trials)
             for k in range(n_trials):
-                mp._x = i  # 直接设回 i
+                mp._allele_count = i  # 直接设回 i
                 next_vals[k] = mp.step()
             assert np.mean(next_vals) == pytest.approx(i, abs=0.2)
 

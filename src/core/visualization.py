@@ -147,24 +147,26 @@ def plot_paths(
     lw: float = 0.4,
 ) -> None:
     """Draw selected sample paths split by outcome."""
-    trues = np.where(reached_stop)[0]
-    falses = np.where(~reached_stop)[0]
-    n_each = max(n_display // 2, 1)
-    idx_true = (
-        np.random.choice(trues, min(n_each, len(trues)), replace=False) if len(trues) > 0 else []
+    reached_indices = np.where(reached_stop)[0]
+    unreached_indices = np.where(~reached_stop)[0]
+    count_per_group = max(n_display // 2, 1)
+    selected_reached = (
+        np.random.choice(reached_indices, min(count_per_group, len(reached_indices)), replace=False)
+        if len(reached_indices) > 0 else []
     )
-    idx_false = (
-        np.random.choice(falses, min(n_each, len(falses)), replace=False) if len(falses) > 0 else []
+    selected_unreached = (
+        np.random.choice(unreached_indices, min(count_per_group, len(unreached_indices)), replace=False)
+        if len(unreached_indices) > 0 else []
     )
 
-    for idx, color, label in [
-        (idx_true, colors[0], labels[0]),
-        (idx_false, colors[1], labels[1]),
+    for path_indices, color, label in [
+        (selected_reached, colors[0], labels[0]),
+        (selected_unreached, colors[1], labels[1]),
     ]:
-        for i in idx:
-            tau = stopping_times[i]
-            ax.plot(paths[i, : tau + 1], color=color, alpha=alpha, lw=lw)
-            ax.scatter(tau, paths[i, tau], color=color, s=6, zorder=5, alpha=0.8)
+        for path_idx in path_indices:
+            stop_time = stopping_times[path_idx]
+            ax.plot(paths[path_idx, : stop_time + 1], color=color, alpha=alpha, lw=lw)
+            ax.scatter(stop_time, paths[path_idx, stop_time], color=color, s=6, zorder=5, alpha=0.8)
 
     handles = [
         plt.Line2D([0], [0], color=colors[0], lw=1, label=labels[0]),
@@ -223,13 +225,13 @@ def plot_distribution(
         label=label,
     )
     if fit_dist is not None:
-        xs = np.linspace(data.min(), data.max(), 200)
-        ax.plot(xs, fit_dist.pdf(xs), color=COLOR_RED, lw=1.2, label="理论密度")
+        x_values = np.linspace(data.min(), data.max(), 200)
+        ax.plot(x_values, fit_dist.pdf(x_values), color=COLOR_RED, lw=1.2, label="理论密度")
 
 
 def plot_loglog_tail(
-    ax: plt.Axes, t: np.ndarray, survival: np.ndarray, label: str = "", color: str = COLOR_BLUE
+    ax: plt.Axes, time_values: np.ndarray, survival_probs: np.ndarray, label: str = "", color: str = COLOR_BLUE
 ) -> None:
     """Draw a survival tail on log-log axes."""
-    mask = survival > 0
-    ax.loglog(t[mask], survival[mask], lw=0.8, color=color, label=label)
+    positive_mask = survival_probs > 0
+    ax.loglog(time_values[positive_mask], survival_probs[positive_mask], lw=0.8, color=color, label=label)

@@ -12,63 +12,69 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 DATA_DIR = PROJECT_ROOT / 'output' / 'data'
 
 
-def run_price_comparison(K=40, r=0.06, sigma=0.2, T=1.0, N=50, M=30000,
-                         seed=42, n_batches=8):
+def run_price_comparison(strike_price=40, risk_free_rate=0.06, volatility=0.2, maturity=1.0,
+                         num_time_steps=50, num_paths=30000,
+                         seed=42, num_batches=8):
     """美式 vs 欧式期权价格对比。"""
-    S0_values = np.linspace(36, 44, 17)
+    initial_prices = np.linspace(36, 44, 17)
     rows = []
     batches = {}
-    batch_sizes = split_batch_sizes(M, n_batches)
-    for S0 in S0_values:
-        eu_price = black_scholes_put(S0, K, r, sigma, T)
-        payoff_val = max(K - S0, 0)
-        batch_vals = np.empty(n_batches)
-        for b, batch_size in enumerate(batch_sizes):
-            pricer_b = LSMPricer(
-                S0, K, r, sigma, T, N=N, M=batch_size, seed=seed + 1000 * b
+    batch_sizes = split_batch_sizes(num_paths, num_batches)
+    for initial_price in initial_prices:
+        european_price = black_scholes_put(initial_price, strike_price, risk_free_rate, volatility, maturity)
+        immediate_payoff = max(strike_price - initial_price, 0)
+        batch_vals = np.empty(num_batches)
+        for batch_idx, batch_size in enumerate(batch_sizes):
+            batch_pricer = LSMPricer(
+                initial_price, strike_price, risk_free_rate, volatility, maturity,
+                num_time_steps=num_time_steps, num_paths=batch_size, seed=seed + 1000 * batch_idx
             )
-            price_b, _, _, _, _ = pricer_b.price()
-            batch_vals[b] = price_b
-        am_price = batch_vals.mean()
-        am_se = batch_vals.std(ddof=1) / np.sqrt(n_batches)
-        batches[f'S0_{S0:.1f}'] = batch_vals
+            batch_price, _, _, _, _ = batch_pricer.price()
+            batch_vals[batch_idx] = batch_price
+        american_price = batch_vals.mean()
+        american_std_error = batch_vals.std(ddof=1) / np.sqrt(num_batches)
+        batches[f'S0_{initial_price:.1f}'] = batch_vals
         rows.append({
-            'S0': S0, 'american': am_price, 'am_se': am_se,
-            'european': eu_price, 'payoff': payoff_val,
+            'S0': initial_price, 'american': american_price, 'am_se': american_std_error,
+            'european': european_price, 'payoff': immediate_payoff,
         })
-    df = pd.DataFrame(rows)
+    results_df = pd.DataFrame(rows)
     DATA_DIR.mkdir(parents=True, exist_ok=True)
-    df.to_csv(DATA_DIR / 'exp6_price.csv', index=False)
+    results_df.to_csv(DATA_DIR / 'exp6_price.csv', index=False)
     np.savez(DATA_DIR / 'exp6_price_batches.npz', **batches)
-    return df
+    return results_df
 
 
-def run_exercise_boundary(S0=40, K=40, r=0.06, sigma=0.2, T=1.0, N=50,
-                          M=30000, seed=42):
+def run_exercise_boundary(initial_stock_price=40, strike_price=40, risk_free_rate=0.06,
+                          volatility=0.2, maturity=1.0, num_time_steps=50,
+                          num_paths=30000, seed=42):
     """计算行权边界。"""
-    pricer = LSMPricer(S0, K, r, sigma, T, N=N, M=M, seed=seed)
-    t_grid, s_grid, prob = pricer.exercise_boundary()
+    pricer = LSMPricer(initial_stock_price, strike_price, risk_free_rate, volatility, maturity,
+                       num_time_steps=num_time_steps, num_paths=num_paths, seed=seed)
+    time_grid, price_grid, exercise_prob = pricer.exercise_boundary()
     np.savez(DATA_DIR / 'exp6_boundary.npz',
-             t_grid=t_grid, s_grid=s_grid, prob=prob)
-    return t_grid, s_grid, prob
+             t_grid=time_grid, s_grid=price_grid, prob=exercise_prob)
+    return time_grid, price_grid, exercise_prob
 
 
-def run_example_paths(S0=40, K=40, r=0.06, sigma=0.2, T=1.0, N=50,
-                      M=30000, seed=42):
+def run_example_paths(initial_stock_price=40, strike_price=40, risk_free_rate=0.06,
+                      volatility=0.2, maturity=1.0, num_time_steps=50,
+                      num_paths=30000, seed=42):
     """获取 LSM 定价的完整输出（用于绘制路径图）。"""
-    pricer = LSMPricer(S0, K, r, sigma, T, N=N, M=M, seed=seed)
-    price, se, S, tau, exercised = pricer.price()
+    pricer = LSMPricer(initial_stock_price, strike_price, risk_free_rate, volatility, maturity,
+                       num_time_steps=num_time_steps, num_paths=num_paths, seed=seed)
+    option_price, std_error, stock_paths, exercise_times, exercise_mask = pricer.price()
     # 仅保存前 15 条路径用于可视化
     np.savez(DATA_DIR / 'exp6_paths.npz',
-             S=S[:15], tau=tau[:15], exercised=exercised[:15])
-    return S[:15], tau[:15], exercised[:15]
+             S=stock_paths[:15], tau=exercise_times[:15], exercised=exercise_mask[:15])
+    return stock_paths[:15], exercise_times[:15], exercise_mask[:15]
 
 
 if __name__ == '__main__':
     print("=== 第六章实验：美式期权 LSM 定价 ===")
     print("实验1: 价格对比 (30000 paths)...")
-    df = run_price_comparison()
-    for _, row in df.iterrows():
+    results_df = run_price_comparison()
+    for _, row in results_df.iterrows():
         if row['S0'] % 2 == 0:
             print(f"  S0={row['S0']:.0f}, Amer={row['american']:.4f} +/- {1.96*row['am_se']:.4f}, "
                   f"Euro={row['european']:.4f}")
@@ -78,6 +84,6 @@ if __name__ == '__main__':
     print("  boundary saved.")
 
     print("实验3: 路径样本...")
-    S, tau, _ = run_example_paths()
-    print(f"  saved {len(S)} paths.")
+    stock_paths, exercise_times, _ = run_example_paths()
+    print(f"  saved {len(stock_paths)} paths.")
     print("第六章实验完成。")

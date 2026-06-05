@@ -61,7 +61,7 @@ class TestAsymmetricRW:
         rw = AsymmetricRW(0.3)
         rw.reset(0.0)
         rw.step()
-        assert rw.n == 1
+        assert rw.step_count == 1
 
     def test_wald_martingale_symmetric(self):
         """p=0.5 时 Wald 鞅恒为 1。"""
@@ -107,13 +107,13 @@ class TestAsymmetricRW:
 
 class TestGBM:
     def test_positive_prices(self):
-        gbm = GeometricBrownianMotion(r=0.05, sigma=0.2)
+        gbm = GeometricBrownianMotion(risk_free_rate=0.05, volatility=0.2)
         gbm.reset(100.0)
         path = gbm.simulate_path(1.0, 252)
         assert np.all(path > 0)
 
     def test_path_shape(self):
-        gbm = GeometricBrownianMotion(r=0.05, sigma=0.2)
+        gbm = GeometricBrownianMotion(risk_free_rate=0.05, volatility=0.2)
         gbm.reset(100.0)
         path = gbm.simulate_path(1.0, 100)
         assert len(path) == 101  # N+1 含初始值

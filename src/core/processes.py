@@ -7,7 +7,7 @@ class Martingale(ABC):
     """鞅过程抽象基类。所有具体过程需实现 reset 和 step。"""
 
     @abstractmethod
-    def reset(self, x0: float):
+    def reset(self, initial_state: float):
         """重置初始状态。"""
         ...
 
@@ -19,26 +19,26 @@ class Martingale(ABC):
     def simulate_path(self, n_steps: int) -> np.ndarray:
         """生成 n_steps 步的路径（不含初始值），返回形状 (n_steps,)。"""
         path = np.empty(n_steps)
-        for i in range(n_steps):
-            path[i] = self.step()
+        for step_idx in range(n_steps):
+            path[step_idx] = self.step()
         return path
 
 
 class SymmetricRW(Martingale):
     """对称随机游走 S_n = ∑ η_i, η_i ∈ {+1, −1} 各概率 1/2。"""
 
-    def __init__(self, p: float = 0.5):
-        if not np.isclose(p, 0.5):
+    def __init__(self, prob_up: float = 0.5):
+        if not np.isclose(prob_up, 0.5):
             raise ValueError("SymmetricRW requires p=0.5")
-        self.p = p
+        self.prob_up = prob_up
         self._state = 0.0
 
-    def reset(self, x0: float):
-        self._state = x0
+    def reset(self, initial_state: float):
+        self._state = initial_state
 
     def step(self) -> float:
-        eta = 1.0 if np.random.rand() < self.p else -1.0
-        self._state += eta
+        step_value = 1.0 if np.random.rand() < self.prob_up else -1.0
+        self._state += step_value
         return self._state
 
 
@@ -49,37 +49,37 @@ class AsymmetricRW(Martingale):
     （后者在 p≠0.5 时才是鞅）。
     """
 
-    def __init__(self, p: float):
-        if not (0 < p < 1):
+    def __init__(self, prob_up: float):
+        if not (0 < prob_up < 1):
             raise ValueError("p must be in (0,1)")
-        self.p = p
-        self.q = 1 - p
+        self.prob_up = prob_up
+        self.prob_down = 1 - prob_up
         self._state = 0.0
-        self._n = 0
+        self._step_count = 0
 
-    def reset(self, x0: float):
-        self._state = x0
-        self._n = 0
+    def reset(self, initial_state: float):
+        self._state = initial_state
+        self._step_count = 0
 
     def step(self) -> float:
-        eta = 1.0 if np.random.rand() < self.p else -1.0
-        self._state += eta
-        self._n += 1
+        step_value = 1.0 if np.random.rand() < self.prob_up else -1.0
+        self._state += step_value
+        self._step_count += 1
         return self._state
 
     @property
-    def n(self) -> int:
-        return self._n
+    def step_count(self) -> int:
+        return self._step_count
 
     def wald_value(self) -> float:
         """返回当前 Wald 鞅值 (q/p)^{S_n}。"""
-        if self.p == 0.5:
+        if self.prob_up == 0.5:
             return 1.0  # 对称情况恒为1
-        return (self.q / self.p) ** self._state
+        return (self.prob_down / self.prob_up) ** self._state
 
     def compensated_value(self) -> float:
         """返回补偿游走值 S_n − (2p−1)n（p≠0.5 时是鞅）。"""
-        return self._state - (2 * self.p - 1) * self._n
+        return self._state - (2 * self.prob_up - 1) * self._step_count
 
 
 class GeometricBrownianMotion:
@@ -89,27 +89,27 @@ class GeometricBrownianMotion:
     S_{t+Δt} = S_t · exp{(r − σ²/2)Δt + σ√Δt · Z}，  Z ∼ N(0,1)
     """
 
-    def __init__(self, r: float, sigma: float):
-        self.r = r
-        self.sigma = sigma
+    def __init__(self, risk_free_rate: float, volatility: float):
+        self.risk_free_rate = risk_free_rate
+        self.volatility = volatility
         self._state = 0.0
 
-    def reset(self, x0: float):
-        self._state = x0
+    def reset(self, initial_state: float):
+        self._state = initial_state
 
-    def step(self, dt: float) -> float:
+    def step(self, time_step: float) -> float:
         """精确对数正态离散化，保持 S > 0 且分布上精确。"""
         self._state *= np.exp(
-            (self.r - 0.5 * self.sigma**2) * dt
-            + self.sigma * np.sqrt(dt) * np.random.randn()
+            (self.risk_free_rate - 0.5 * self.volatility**2) * time_step
+            + self.volatility * np.sqrt(time_step) * np.random.randn()
         )
         return self._state
 
-    def simulate_path(self, T: float, N: int) -> np.ndarray:
+    def simulate_path(self, time_horizon: float, num_steps: int) -> np.ndarray:
         """生成时间 [0,T] 上 N 步的路径，返回形状 (N+1,) 含 S_0。"""
-        dt = T / N
-        path = np.empty(N + 1)
+        time_step = time_horizon / num_steps
+        path = np.empty(num_steps + 1)
         path[0] = self._state
-        for i in range(1, N + 1):
-            path[i] = self.step(dt)
+        for step_idx in range(1, num_steps + 1):
+            path[step_idx] = self.step(time_step)
         return path

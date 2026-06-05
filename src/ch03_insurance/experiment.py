@@ -16,110 +16,111 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 DATA_DIR = PROJECT_ROOT / 'output' / 'data'
 
 
-def run_R_experiment(lam=1.0, mu=1.0, theta_values=(0.1, 0.2, 0.5)):
-    claim_dist = expon(scale=mu)
-    mgf = exp_claim_mgf_factory('exponential', rate=1/mu)
+def run_R_experiment(claim_intensity=1.0, mean_claim=1.0, safety_loadings=(0.1, 0.2, 0.5)):
+    claim_distr = expon(scale=mean_claim)
+    mgf = exp_claim_mgf_factory('exponential', rate=1/mean_claim)
     rows = []
-    for theta in theta_values:
-        expected_claim = lam * mu
-        c = expected_claim * (1 + theta)
-        R = find_adjustment_R(lam, c, mgf)
-        rows.append({'theta': theta, 'c': c, 'R': R, 'lam': lam, 'mu': mu})
-    df = pd.DataFrame(rows)
+    for safety_loading in safety_loadings:
+        expected_claim = claim_intensity * mean_claim
+        premium_rate = expected_claim * (1 + safety_loading)
+        adj_coefficient = find_adjustment_R(claim_intensity, premium_rate, mgf)
+        rows.append({'theta': safety_loading, 'c': premium_rate, 'R': adj_coefficient,
+                     'lam': claim_intensity, 'mu': mean_claim})
+    results_df = pd.DataFrame(rows)
     DATA_DIR.mkdir(parents=True, exist_ok=True)
-    df.to_csv(DATA_DIR / 'exp3_R.csv', index=False)
-    return df
+    results_df.to_csv(DATA_DIR / 'exp3_R.csv', index=False)
+    return results_df
 
 
-def run_ruin_prob_experiment(lam=1.0, mu=1.0, theta=0.5,
-                              u_values=np.arange(0, 21),
-                              n_paths=16000, T=200.0, seed=42,
-                              n_batches=8):
+def run_ruin_prob_experiment(claim_intensity=1.0, mean_claim=1.0, safety_loading=0.5,
+                              capital_values=np.arange(0, 21),
+                              num_paths=16000, time_horizon=200.0, seed=42,
+                              num_batches=8):
     """有限时窗破产概率实验，并保存批次样本以便绘制箱线图。"""
     np.random.seed(seed)
-    expected_claim = lam * mu
-    c = expected_claim * (1 + theta)
-    claim_dist = expon(scale=mu)
-    mgf = exp_claim_mgf_factory('exponential', rate=1/mu)
-    R = find_adjustment_R(lam, c, mgf)
+    expected_claim = claim_intensity * mean_claim
+    premium_rate = expected_claim * (1 + safety_loading)
+    claim_distr = expon(scale=mean_claim)
+    mgf = exp_claim_mgf_factory('exponential', rate=1/mean_claim)
+    adj_coefficient = find_adjustment_R(claim_intensity, premium_rate, mgf)
 
     rows = []
     batch_results = {}
-    batch_sizes = split_batch_sizes(n_paths, n_batches)
+    batch_sizes = split_batch_sizes(num_paths, num_batches)
     total_paths = sum(batch_sizes)
-    for u in u_values:
-        proc = SurplusProcess(u, c, lam, claim_dist)
-        batch_vals = np.empty(n_batches)
+    for initial_capital in capital_values:
+        surplus_process = SurplusProcess(initial_capital, premium_rate, claim_intensity, claim_distr)
+        batch_vals = np.empty(num_batches)
         ruins_total = 0
-        for b, batch_size in enumerate(batch_sizes):
+        for batch_idx, batch_size in enumerate(batch_sizes):
             ruins = 0
             for _ in range(batch_size):
-                ruined, _, _, _ = proc.simulate_until_ruin_or_T(T)
+                ruined, _, _, _ = surplus_process.simulate_until_ruin_or_T(time_horizon)
                 if ruined:
                     ruins += 1
-            batch_vals[b] = ruins / batch_size
+            batch_vals[batch_idx] = ruins / batch_size
             ruins_total += ruins
         psi_mc = ruins_total / total_paths
         psi_se = np.sqrt(psi_mc * (1 - psi_mc) / total_paths)
-        psi_lundberg = lundberg_psi_exact(u, R)
-        psi_exact = psi_exact_exponential(u, lam, c, mu)
-        batch_results[f'u_{u}'] = batch_vals
+        psi_lundberg = lundberg_psi_exact(initial_capital, adj_coefficient)
+        psi_exact = psi_exact_exponential(initial_capital, claim_intensity, premium_rate, mean_claim)
+        batch_results[f'u_{initial_capital}'] = batch_vals
         rows.append({
-            'u': u, 'psi_mc': psi_mc, 'psi_se': psi_se,
+            'u': initial_capital, 'psi_mc': psi_mc, 'psi_se': psi_se,
             'psi_lundberg': psi_lundberg, 'psi_exact': psi_exact,
-            'R': R, 'theta': theta,
+            'R': adj_coefficient, 'theta': safety_loading,
         })
 
-    df = pd.DataFrame(rows)
+    results_df = pd.DataFrame(rows)
     DATA_DIR.mkdir(parents=True, exist_ok=True)
-    df.to_csv(DATA_DIR / 'exp3_ruin_prob.csv', index=False)
+    results_df.to_csv(DATA_DIR / 'exp3_ruin_prob.csv', index=False)
     np.savez(DATA_DIR / 'exp3_ruin_prob_batches.npz', **batch_results)
-    return df
+    return results_df
 
 
 def _simulate_stopped_exp_martingale_grid(
-    u: float,
-    c: float,
-    lam: float,
-    claim_dist,
-    R: float,
-    t_grid: np.ndarray,
+    initial_capital: float,
+    premium_rate: float,
+    claim_intensity: float,
+    claim_distr,
+    adj_coefficient: float,
+    time_grid: np.ndarray,
 ) -> np.ndarray:
     r"""Simulate one path of M_{t \wedge \tau} = exp(-R U_{t \wedge \tau}) on a fixed grid."""
-    values = np.empty_like(t_grid, dtype=float)
-    current_t = 0.0
-    current_u = u
-    next_claim_t = np.random.exponential(1 / lam)
+    values = np.empty_like(time_grid, dtype=float)
+    current_time = 0.0
+    current_surplus = initial_capital
+    next_claim_time = np.random.exponential(1 / claim_intensity)
     ruined = False
     frozen_value = np.nan
 
-    for i, t_target in enumerate(t_grid):
+    for i, target_time in enumerate(time_grid):
         if ruined:
             values[i] = frozen_value
             continue
 
-        while next_claim_t <= t_target:
-            current_u += c * (next_claim_t - current_t)
-            current_t = next_claim_t
-            current_u -= claim_dist.rvs()
-            if current_u < 0:
+        while next_claim_time <= target_time:
+            current_surplus += premium_rate * (next_claim_time - current_time)
+            current_time = next_claim_time
+            current_surplus -= claim_distr.rvs()
+            if current_surplus < 0:
                 ruined = True
-                frozen_value = np.exp(-R * current_u)
+                frozen_value = np.exp(-adj_coefficient * current_surplus)
                 break
-            next_claim_t += np.random.exponential(1 / lam)
+            next_claim_time += np.random.exponential(1 / claim_intensity)
 
         if ruined:
             values[i] = frozen_value
         else:
-            values[i] = np.exp(-R * (current_u + c * (t_target - current_t)))
+            values[i] = np.exp(-adj_coefficient * (current_surplus + premium_rate * (target_time - current_time)))
 
     return values
 
 
-def _select_spread_records(records: list[dict], key: str, n_select: int) -> list[dict]:
+def _select_spread_records(records: list[dict], sort_key: str, num_to_select: int) -> list[dict]:
     """Pick a few representative records spread across a sorted summary statistic."""
-    ordered = sorted(records, key=lambda rec: rec[key])
-    quantiles = np.linspace(0.15, 0.85, n_select)
+    ordered = sorted(records, key=lambda rec: rec[sort_key])
+    quantiles = np.linspace(0.15, 0.85, num_to_select)
     positions = quantiles * (len(ordered) - 1)
     indices = []
     for pos in positions:
@@ -144,8 +145,8 @@ def _pack_path_records(records: list[dict]) -> dict[str, np.ndarray]:
     max_len = max(len(rec['times']) for rec in records)
     n_records = len(records)
     times = np.full((n_records, max_len), np.nan)
-    u_vals = np.full((n_records, max_len), np.nan)
-    m_vals = np.full((n_records, max_len), np.nan)
+    surplus_vals = np.full((n_records, max_len), np.nan)
+    martingale_vals = np.full((n_records, max_len), np.nan)
     lengths = np.empty(n_records, dtype=int)
     seeds = np.empty(n_records, dtype=int)
     taus = np.empty(n_records, dtype=float)
@@ -156,13 +157,13 @@ def _pack_path_records(records: list[dict]) -> dict[str, np.ndarray]:
         seeds[i] = rec['seed']
         taus[i] = rec['tau']
         times[i, :length] = rec['times']
-        u_vals[i, :length] = rec['u_vals']
-        m_vals[i, :length] = rec['m_vals']
+        surplus_vals[i, :length] = rec['surplus_vals']
+        martingale_vals[i, :length] = rec['martingale_vals']
 
     return {
         'times': times,
-        'u_vals': u_vals,
-        'm_vals': m_vals,
+        'surplus_vals': surplus_vals,
+        'martingale_vals': martingale_vals,
         'lengths': lengths,
         'seeds': seeds,
         'taus': taus,
@@ -170,34 +171,34 @@ def _pack_path_records(records: list[dict]) -> dict[str, np.ndarray]:
 
 
 def _collect_martingale_path_examples(
-    u: float,
-    c: float,
-    lam: float,
-    claim_dist,
-    R: float,
-    T: float,
-    n_survived: int = 4,
-    n_ruined: int = 2,
-    candidate_pool: int = 15,
-    max_seed: int = 5000,
+    initial_capital: float,
+    premium_rate: float,
+    claim_intensity: float,
+    claim_distr,
+    adj_coefficient: float,
+    time_horizon: float,
+    num_survived: int = 4,
+    num_ruined: int = 2,
+    min_candidates: int = 15,
+    max_seed_value: int = 5000,
 ) -> tuple[list[dict], list[dict]]:
     """Collect representative survived and ruined sample paths."""
     survived_candidates = []
     ruined_candidates = []
 
-    for seed in range(1, max_seed + 1):
+    for seed in range(1, max_seed_value + 1):
         np.random.seed(seed)
-        proc = SurplusProcess(u, c, lam, claim_dist)
-        times, u_vals = proc.simulate_path(T)
-        m_vals = np.exp(-R * u_vals)
+        surplus_process = SurplusProcess(initial_capital, premium_rate, claim_intensity, claim_distr)
+        times, surplus_vals = surplus_process.simulate_path(time_horizon)
+        martingale_vals = np.exp(-adj_coefficient * surplus_vals)
         record = {
             'seed': seed,
             'times': times,
-            'u_vals': u_vals,
-            'm_vals': m_vals,
+            'surplus_vals': surplus_vals,
+            'martingale_vals': martingale_vals,
             'tau': float(times[-1]),
-            'm_end': float(m_vals[-1]),
-            'ruined': bool(u_vals[-1] < 0),
+            'm_end': float(martingale_vals[-1]),
+            'ruined': bool(surplus_vals[-1] < 0),
         }
         if record['ruined']:
             ruined_candidates.append(record)
@@ -205,100 +206,101 @@ def _collect_martingale_path_examples(
             survived_candidates.append(record)
 
         if (
-            len(survived_candidates) >= candidate_pool
-            and len(ruined_candidates) >= candidate_pool
+            len(survived_candidates) >= min_candidates
+            and len(ruined_candidates) >= min_candidates
         ):
             break
 
-    if len(survived_candidates) < n_survived or len(ruined_candidates) < n_ruined:
+    if len(survived_candidates) < num_survived or len(ruined_candidates) < num_ruined:
         raise RuntimeError("Unable to find enough representative martingale paths.")
 
-    survived = _select_spread_records(survived_candidates, key='m_end', n_select=n_survived)
-    ruined = _select_spread_records(ruined_candidates, key='tau', n_select=n_ruined)
+    survived = _select_spread_records(survived_candidates, sort_key='m_end', num_to_select=num_survived)
+    ruined = _select_spread_records(ruined_candidates, sort_key='tau', num_to_select=num_ruined)
     return survived, ruined
 
 
 def run_martingale_mean_experiment(
-    lam=1.0,
-    mu=1.0,
-    theta=0.5,
-    u=5.0,
-    T=50.0,
-    n_paths=16000,
-    n_grid=101,
+    claim_intensity=1.0,
+    mean_claim=1.0,
+    safety_loading=0.5,
+    initial_capital=5.0,
+    time_horizon=50.0,
+    num_paths=16000,
+    num_grid_points=101,
     seed=24680,
 ):
     r"""Estimate E[M_{t \wedge \tau}] and save representative survived/ruined paths."""
     np.random.seed(seed)
-    c = lam * mu * (1 + theta)
-    claim_dist = expon(scale=mu)
-    mgf = exp_claim_mgf_factory('exponential', rate=1 / mu)
-    R = find_adjustment_R(lam, c, mgf)
-    t_grid = np.linspace(0.0, T, n_grid)
-    m0 = np.exp(-R * u)
+    premium_rate = claim_intensity * mean_claim * (1 + safety_loading)
+    claim_distr = expon(scale=mean_claim)
+    mgf = exp_claim_mgf_factory('exponential', rate=1 / mean_claim)
+    adj_coefficient = find_adjustment_R(claim_intensity, premium_rate, mgf)
+    time_grid = np.linspace(0.0, time_horizon, num_grid_points)
+    martingale_initial = np.exp(-adj_coefficient * initial_capital)
 
-    sum_vals = np.zeros_like(t_grid)
-    sum_sq_vals = np.zeros_like(t_grid)
-    for _ in range(n_paths):
-        vals = _simulate_stopped_exp_martingale_grid(u, c, lam, claim_dist, R, t_grid)
-        sum_vals += vals
-        sum_sq_vals += vals * vals
+    sum_martingale = np.zeros_like(time_grid)
+    sum_sq_martingale = np.zeros_like(time_grid)
+    for _ in range(num_paths):
+        vals = _simulate_stopped_exp_martingale_grid(initial_capital, premium_rate, claim_intensity,
+                                                      claim_distr, adj_coefficient, time_grid)
+        sum_martingale += vals
+        sum_sq_martingale += vals * vals
 
-    mean_vals = sum_vals / n_paths
-    if n_paths > 1:
-        sample_var = (sum_sq_vals - n_paths * mean_vals * mean_vals) / (n_paths - 1)
+    mean_martingale = sum_martingale / num_paths
+    if num_paths > 1:
+        sample_var = (sum_sq_martingale - num_paths * mean_martingale * mean_martingale) / (num_paths - 1)
         sample_var = np.maximum(sample_var, 0.0)
-        se_vals = np.sqrt(sample_var / n_paths)
+        std_err_martingale = np.sqrt(sample_var / num_paths)
     else:
-        se_vals = np.zeros_like(mean_vals)
+        std_err_martingale = np.zeros_like(mean_martingale)
 
     rows = []
-    for t, mean_val, se_val in zip(t_grid, mean_vals, se_vals):
+    for t, mean_val, se_val in zip(time_grid, mean_martingale, std_err_martingale):
         rows.append({
             't': t,
             'm_mean': mean_val,
             'm_se': se_val,
-            'm0': m0,
-            'R': R,
-            'u': u,
-            'T': T,
-            'n_paths': n_paths,
+            'm0': martingale_initial,
+            'R': adj_coefficient,
+            'u': initial_capital,
+            'T': time_horizon,
+            'n_paths': num_paths,
         })
 
     survived_paths, ruined_paths = _collect_martingale_path_examples(
-        u=u,
-        c=c,
-        lam=lam,
-        claim_dist=claim_dist,
-        R=R,
-        T=T,
+        initial_capital=initial_capital,
+        premium_rate=premium_rate,
+        claim_intensity=claim_intensity,
+        claim_distr=claim_distr,
+        adj_coefficient=adj_coefficient,
+        time_horizon=time_horizon,
     )
     survived_pack = _pack_path_records(survived_paths)
     ruined_pack = _pack_path_records(ruined_paths)
 
-    df = pd.DataFrame(rows)
+    results_df = pd.DataFrame(rows)
     DATA_DIR.mkdir(parents=True, exist_ok=True)
-    df.to_csv(DATA_DIR / 'exp3_martingale_mean.csv', index=False)
+    results_df.to_csv(DATA_DIR / 'exp3_martingale_mean.csv', index=False)
     np.savez(
         DATA_DIR / 'exp3_martingale_paths.npz',
         survived_times=survived_pack['times'],
-        survived_u_vals=survived_pack['u_vals'],
-        survived_m_vals=survived_pack['m_vals'],
+        survived_surplus_vals=survived_pack['surplus_vals'],
+        survived_martingale_vals=survived_pack['martingale_vals'],
         survived_lengths=survived_pack['lengths'],
         survived_seeds=survived_pack['seeds'],
         survived_taus=survived_pack['taus'],
         ruined_times=ruined_pack['times'],
-        ruined_u_vals=ruined_pack['u_vals'],
-        ruined_m_vals=ruined_pack['m_vals'],
+        ruined_surplus_vals=ruined_pack['surplus_vals'],
+        ruined_martingale_vals=ruined_pack['martingale_vals'],
         ruined_lengths=ruined_pack['lengths'],
         ruined_seeds=ruined_pack['seeds'],
         ruined_taus=ruined_pack['taus'],
-        m0=m0,
-        R=R,
-        u=u,
-        T=T,
+        m0=martingale_initial,
+        R=adj_coefficient,
+        u=initial_capital,
+        T=time_horizon,
     )
-    return df
+    return results_df
 
 
 if __name__ == '__main__':
@@ -309,9 +311,9 @@ if __name__ == '__main__':
         print(f"  theta={row['theta']:.1f}, c={row['c']:.2f}, R={row['R']:.6f}")
 
     print("实验2: 破产概率 vs 初始资本 (theta=0.5, 16000 paths / 8 batches)...")
-    df = run_ruin_prob_experiment()
+    results_df = run_ruin_prob_experiment()
     for u_check in [0, 5, 10, 15, 20]:
-        row = df[df['u'] == u_check].iloc[0]
+        row = results_df[results_df['u'] == u_check].iloc[0]
         print(f"  u={u_check:2d}, psi_MC={row['psi_mc']:.4f} +/- {1.96*row['psi_se']:.4f}, "
               f"psi_exact={row['psi_exact']:.4f}")
     print("  保存到 output/data/exp3_ruin_prob.csv")
