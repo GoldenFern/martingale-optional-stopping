@@ -78,7 +78,7 @@ def fig4_1_paths(seed: int = 42) -> None:
 
 
 def fig4_2_unilateral_paths(max_steps: int = 10000, seed: int = 43) -> None:
-    """图 4.2：单边障碍下的样本轨道，左右子图。"""
+    """图 4.2：单边障碍下的样本轨道，上下子图。"""
     set_style()
     np.random.seed(seed)
     rw = SymmetricRW(0.5)

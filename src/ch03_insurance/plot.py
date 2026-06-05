@@ -114,7 +114,7 @@ def fig3_2_ruin_prob() -> None:
     ax.set_yscale("log")
     emphasize_log_grid(ax)
     ax.set_xlabel("初始资本 $u$")
-    ax.set_ylabel("破产概率 $\\psi(u)$")
+    ax.set_ylabel("概率")
     ax.set_title("破产概率的指数衰减")
     ax.legend(loc="upper right", fontsize=8)
     save_figure(fig, "ch03_ruin_prob.pdf")
