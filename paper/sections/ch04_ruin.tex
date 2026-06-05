@@ -2,7 +2,7 @@
 
 \subsection{背景介绍}
 
-赌徒破产问题是概率论中最古老的随机过程模型之一，其历史可追溯至 Pascal 和 Fermat 关于赌博问题的通信。从现代鞅论的角度看，它是研究 OST 的天然试验场：过程是简单的对称随机游走（最经典的鞅），停时是首达吸收边界，且可以通过选择单边或双边边界来切换 OST 是否成立。
+赌徒破产问题是概率论中最古老的随机过程模型之一，其历史可追溯至 Pascal 和 Fermat 关于赌博问题的通信\cite{feller1968introduction}。从现代鞅论的角度看，它是研究 OST 的天然试验场：过程是简单的对称随机游走（最经典的鞅），停时是首达吸收边界，且可以通过选择单边或双边边界来切换 OST 是否成立。
 
 考虑赌徒甲初始资金为 $a$ 元，赌徒乙初始资金为 $b$ 元。每局甲以概率 $p$ 赢 1 元，以概率 $q = 1-p$ 输 1 元。令 $S_n$ 为甲在前 $n$ 局后的净赢额（$S_0 = 0$），即 $S_n = \sum_{i=1}^{n} \xi_i$，其中 $\xi_i = \pm 1$。当 $p = 1/2$ 时，$\{S_n\}$ 是一个鞅；当 $p \neq 1/2$ 时，$\{S_n\}$ 不是鞅，但可以构造 Wald 鞅 $W_n = (q/p)^{S_n}$ 或补偿鞅 $S_n - (2p-1)n$。
 
@@ -65,13 +65,13 @@
   \mathbb{E}[S_{\tau_{\text{one}}}] = b \neq 0 = \mathbb{E}[S_0].
 \end{equation}
 
-\textbf{失效的深层原因：一致可积性的缺失。} OST 失效的数学本质在于被停过程 $\{S_{n \wedge \tau_{\text{one}}}\}$ 不是一致可积的。回顾一族随机变量 $\{X_\alpha\}$ 一致可积的定义：$\lim_{M \to \infty} \sup_{\alpha} \mathbb{E}[|X_\alpha| \cdot \mathbf{1}_{\{|X_\alpha| > M\}}] = 0$。对于 $\{S_{n \wedge \tau_{\text{one}}}\}$，虽然 $\tau_{\text{one}} < \infty$ 几乎必然，但那些在 $\tau_{\text{one}} > n$ 条件下的路径上 $S_n$ 可能取到非常大的负值，使得对任意大的 $M$，始终存在某个 $n$ 使尾部期望不可忽略。一致可积性的缺失直接导致极限与期望不能交换：
+\textbf{失效的深层原因：一致可积性的缺失。} OST 失效的数学本质在于被停过程 $\{S_{n \wedge \tau_{\text{one}}}\}$ 不是一致可积的\cite{chow1997probability}。回顾一族随机变量 $\{X_\alpha\}$ 一致可积的定义：$\lim_{M \to \infty} \sup_{\alpha} \mathbb{E}[|X_\alpha| \cdot \mathbf{1}_{\{|X_\alpha| > M\}}] = 0$。对于 $\{S_{n \wedge \tau_{\text{one}}}\}$，虽然 $\tau_{\text{one}} < \infty$ 几乎必然，但那些在 $\tau_{\text{one}} > n$ 条件下的路径上 $S_n$ 可能取到非常大的负值，使得对任意大的 $M$，始终存在某个 $n$ 使尾部期望不可忽略。一致可积性的缺失直接导致极限与期望不能交换：
 \begin{equation}
   \lim_{n \to \infty} \mathbb{E}[S_{n \wedge \tau_{\text{one}}}] = 0 \quad \neq \quad
   \mathbb{E}\Big[\lim_{n \to \infty} S_{n \wedge \tau_{\text{one}}}\Big] = \mathbb{E}[S_{\tau_{\text{one}}}] = b.
 \end{equation}
 
-\textbf{停时分布的尾部行为。} 双边停时和单边停时的尾部行为有本质区别。对于双边障碍 $[-a, b]$，由生灭链的谱理论知 $\mathbb{P}(\tau_{\text{two}} > n)$ 以指数速率衰减，故 $\mathbb{E}[\tau_{\text{two}}] < \infty$。对于单边障碍 $\tau_{\text{one}} = \inf\{n: S_n = +b\}$，由随机游走理论可得（当 $b = 1$ 时）
+\textbf{停时分布的尾部行为。} 双边停时和单边停时的尾部行为有本质区别。对于双边障碍 $[-a, b]$，由生灭链的谱理论知 $\mathbb{P}(\tau_{\text{two}} > n)$ 以指数速率衰减，故 $\mathbb{E}[\tau_{\text{two}}] < \infty$。对于单边障碍 $\tau_{\text{one}} = \inf\{n: S_n = +b\}$，由随机游走理论可得（当 $b = 1$ 时）\cite{feller1968introduction}
 \begin{equation}\label{eq:tail_heavy}
   \mathbb{P}(\tau_{\text{one}} > n) \sim \frac{\sqrt{2}}{\sqrt{\pi n}}, \quad n \to \infty.
 \end{equation}

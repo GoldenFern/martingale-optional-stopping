@@ -10,7 +10,7 @@
 \end{equation}
 满足这一性质的随机过程即为鞅。需要强调的是，鞅是一类非常广泛的随机过程：独立同分布零均值随机变量的部分和、布朗运动、补偿泊松过程、Doob 鞅（$\mathbb{E}[X \mid \mathcal{F}_t]$ 的形式）等均为鞅。
 
-可选停止定理（Optional Stopping Theorem，OST）是鞅论中最深刻的结果之一，由 Doob 在其 1953 年的经典著作中首次完整给出\cite{williams1991probability}。OST 的核心陈述是：在适当的正则条件下，即使在一个随机停时 $\tau$ 处停止鞅过程，其期望仍然不变：
+可选停止定理（Optional Stopping Theorem，OST）是鞅论中最深刻的结果之一，由 Doob 在其 1953 年的经典著作中首次完整给出\cite{doob1953stochastic}。OST 的核心陈述是：在适当的正则条件下，即使在一个随机停时 $\tau$ 处停止鞅过程，其期望仍然不变：
 \begin{equation}
   \mathbb{E}[X_\tau] = \mathbb{E}[X_0].
 \end{equation}
@@ -107,7 +107,7 @@
 \begin{itemize}[noitemsep]
   \item $\tau$ 无界：对任意 $K$，存在正概率使 $\tau > K$——游走可以在达到 $+1$ 之前长时间在负半轴游荡。
   \item $S_{n \wedge \tau}$ 无界：在 $\tau$ 之前，$S_n$ 可以取任意大的负值。
-  \item $\mathbb{E}[\tau] = \infty$：首达时期望为无穷（因停时分布的重尾性，$\mathbb{P}(\tau > n) \sim \sqrt{2/(\pi n)}$）。
+  \item $\mathbb{E}[\tau] = \infty$：首达时期望为无穷（因停时分布的重尾性，$\mathbb{P}(\tau > n) \sim \sqrt{2/(\pi n)}$）\cite{feller1968introduction}。
 \end{itemize}
 因此三个充分条件全部失效。事实上 $S_\tau \equiv 1$ 以概率 1 成立，故 $\mathbb{E}[S_\tau] = 1 \neq 0 = \mathbb{E}[S_0]$。这一反例正是本文第四章数值研究的核心，也是理解 OST 适用边界的关键入口。
 

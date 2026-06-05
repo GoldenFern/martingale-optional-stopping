@@ -22,7 +22,7 @@
 
 \subsubsection{指数鞅构造}
 
-为应用 OST，我们需要一个与盈余过程相关的鞅。关键技巧是取指数变换。令 $M_t = e^{-r U_t}$，计算其期望：
+为应用 OST，我们需要一个与盈余过程相关的鞅。关键技巧是取指数变换\cite{gerber1979introduction}。令 $M_t = e^{-r U_t}$，计算其期望：
 \begin{align}
   \mathbb{E}[M_t] &= \mathbb{E}[e^{-r(u + ct - \sum_{i=1}^{N_t} Y_i)}] \notag\\
   &= e^{-ru - rct} \cdot \mathbb{E}[e^{r \sum_{i=1}^{N_t} Y_i}].
@@ -73,7 +73,7 @@
 \begin{equation}\label{eq:lundberg}
   \psi(u) = \mathbb{P}(\tau < \infty) \leqslant e^{-R u}.
 \end{equation}
-这就是著名的 Lundberg 不等式：破产概率以指数速率随初始资本衰减。初始资本每增加一个单位，破产概率的上界缩小一个固定因子 $e^{-R}$。
+这就是著名的 Lundberg 不等式\cite{gerber1979introduction,asmussen2010ruin}：破产概率以指数速率随初始资本衰减。初始资本每增加一个单位，破产概率的上界缩小一个固定因子 $e^{-R}$。
 
 这里有一个值得注意的技术细节：与第二章 Moran 模型中 OST 直接给出等式不同，此处 OST 只能给出不等式。原因在于破产是单边吸收（只有下界，没有上界），无法像双边吸收问题那样通过两个边界值的线性组合解出精确概率。从 OST 推导等式需要知道 $U_\tau$ 在破产时刻的精确分布（称为破产赤字分布），这通常没有简单的闭式解。当索赔额 $Y \sim \text{Exp}(1/\mu)$ 时，通过更新方程等更精细的工具可导出调整系数的显式表达 $R = \theta/[\mu(1+\theta)]$，但本文的数值实验不依赖这一特殊情形的解析解，仅以 Lundberg 上界作为理论参照。
 
