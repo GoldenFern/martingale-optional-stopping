@@ -17,6 +17,7 @@ from core.visualization import (
     COLOR_ORANGE,
     COLOR_RED,
     new_figure,
+    new_figure_dual,
     plot_box_series,
     save_figure,
     set_style,
@@ -48,31 +49,33 @@ def _sample_indices(n: int, target: int = 12) -> np.ndarray:
 
 
 def fig5_1_success() -> None:
-    """图 5.1：成功率 vs 观察比例 r/N。"""
+    """图 5.1：成功率 vs 观察比例 r/N，使用误差棒。"""
     set_style()
     df = pd.read_csv(DATA_DIR / "exp5_success.csv")
-    batches = np.load(DATA_DIR / "exp5_success_batches.npz")
 
     fig, ax = new_figure()
     colors = [COLOR_BLUE, COLOR_RED, COLOR_ORANGE, COLOR_GREEN]
     for color, (n_value, group) in zip(colors, df.groupby("N")):
         group = group.sort_values("r_frac").drop_duplicates(subset="r", keep="first")
         x_all = group["r_frac"].to_numpy()
-        keys_all = group["batch_key"].to_numpy()
-        keep = _sample_indices(len(x_all), target=13)
+        y_all = group["success_mc"].to_numpy()
+        se_all = group["se"].to_numpy()
+        keep = _sample_indices(len(x_all), target=15)
         x = x_all[keep]
-        samples = [batches[key] for key in keys_all[keep]]
-        plot_box_series(
-            ax,
-            x,
-            samples,
-            width=_widths_from_x(x, ratio=0.22),
-            facecolor=color,
-            edgecolor=color,
-            median_color=COLOR_GRAY,
+        y = y_all[keep]
+        se = se_all[keep]
+        theory_all = group["theory"].to_numpy()
+        from core.visualization import plot_with_ci
+        plot_with_ci(
+            ax, x, y, se,
             label=f"$N={n_value}$",
+            color=color,
+            marker="o",
+            theory_y=theory_all[keep],
+            theory_label=f"$N={n_value}$ 理论" if n_value == 20 else "",
+            theory_color=color,
+            theory_style="-",
         )
-        ax.plot(group["r_frac"], group["theory"], "-", color=color, lw=1.0)
 
     ax.axvline(1 / np.e, color=COLOR_GRAY, lw=0.6, ls="--", alpha=0.6, label="$r^*/N = 1/e$")
     ax.axhline(1 / np.e, color=COLOR_GRAY, lw=0.6, ls=":", alpha=0.6)
@@ -121,58 +124,75 @@ def fig5_2_snell() -> None:
     save_figure(fig, "ch05_snell.pdf")
 
 
-def fig5_3_control() -> None:
-    """图 5.3：随机对照组 vs 秘书问题。"""
+def fig5_3_paths(seed: int = 123) -> None:
+    """图 5.3：秘书问题排名路径可视化（成功 vs 失败）。"""
     set_style()
-    df_sec = pd.read_csv(DATA_DIR / "exp5_success.csv")
-    df_ctrl = pd.read_csv(DATA_DIR / "exp5_control.csv")
-    batches_sec = np.load(DATA_DIR / "exp5_success_batches.npz")
-    batches_ctrl = np.load(DATA_DIR / "exp5_control_batches.npz")
+    np.random.seed(seed)
+    N = 100
+    r_star = int(N / np.e)  # 37
 
-    fig, ax = new_figure()
+    # Generate trials until we get one success and one failure
+    success_path = None
+    failure_path = None
+    for _ in range(10000):
+        ranks = np.random.permutation(N) + 1  # 1=best
+        benchmark = np.min(ranks[:r_star])
+        stopped = False
+        for i in range(r_star, N):
+            if ranks[i] < benchmark:
+                if ranks[i] == 1:
+                    success_path = ranks
+                else:
+                    failure_path = ranks
+                stopped = True
+                break
+        if not stopped:
+            failure_path = ranks
+        if success_path is not None and failure_path is not None:
+            break
 
-    sub_sec = df_sec[df_sec["N"] == 100].sort_values("r_frac").drop_duplicates(subset="r", keep="first")
-    keep = _sample_indices(len(sub_sec), target=13)
-    x_sec = sub_sec["r_frac"].to_numpy()[keep]
-    sec_keys = sub_sec["batch_key"].to_numpy()[keep]
-    sec_samples = [batches_sec[key] for key in sec_keys]
-    plot_box_series(
-        ax,
-        x_sec,
-        sec_samples,
-        width=_widths_from_x(x_sec, ratio=0.22),
-        facecolor=COLOR_BLUE,
-        edgecolor=COLOR_BLUE,
-        median_color=COLOR_GRAY,
-        label="秘书问题（$N=100$）",
-    )
-    ax.plot(sub_sec["r_frac"], sub_sec["theory"], "-", color=COLOR_BLUE, lw=1.0)
+    if success_path is None or failure_path is None:
+        return
 
-    sub_ctrl = df_ctrl[df_ctrl["N"] == 100].sort_values("r_frac").drop_duplicates(subset="r", keep="first")
-    keep_ctrl = _sample_indices(len(sub_ctrl), target=13)
-    x_ctrl = sub_ctrl["r_frac"].to_numpy()[keep_ctrl]
-    ctrl_keys = sub_ctrl["batch_key"].to_numpy()[keep_ctrl]
-    ctrl_samples = [batches_ctrl[key] for key in ctrl_keys]
-    plot_box_series(
-        ax,
-        x_ctrl,
-        ctrl_samples,
-        width=_widths_from_x(x_ctrl, ratio=0.22),
-        facecolor=COLOR_RED,
-        edgecolor=COLOR_RED,
-        median_color=COLOR_GRAY,
-        label="随机选择基线",
-    )
-    ax.axhline(1.0 / 100, color=COLOR_RED, lw=0.6, ls=":", alpha=0.5)
+    fig, (ax1, ax2) = new_figure_dual()
 
-    ax.set_xlabel("观察比例 $r/N$")
-    ax.set_ylabel("成功概率")
-    ax.set_title("秘书问题与随机对照")
-    ax.set_xlim(0.0, 1.0)
-    ax.set_xticks(np.linspace(0.0, 1.0, 6))
-    ax.xaxis.set_major_formatter(FormatStrFormatter("%.1f"))
-    ax.legend(loc="upper right", fontsize=8)
-    save_figure(fig, "ch05_control.pdf")
+    for ax, ranks_arr, title in [
+        (ax1, success_path, "成功选择"),
+        (ax2, failure_path, "失败选择"),
+    ]:
+        n_vals = np.arange(1, N + 1)
+        ax.plot(n_vals, ranks_arr, color=COLOR_GRAY, lw=0.5, alpha=0.7)
+        # Mark the benchmark period
+        ax.axvspan(1, r_star, color=COLOR_BLUE, alpha=0.06, lw=0)
+        # Mark the selection period
+        ax.axvspan(r_star, N, color=COLOR_RED, alpha=0.04, lw=0)
+        ax.axvline(r_star, color=COLOR_GRAY, lw=0.8, ls=":", alpha=0.8)
+        # Mark where the strategy stopped (the first historical best in selection phase)
+        benchmark = np.min(ranks_arr[:r_star])
+        for i in range(r_star, N):
+            if ranks_arr[i] < benchmark:
+                ax.scatter(i + 1, ranks_arr[i], color=COLOR_RED if title == "失败选择" else COLOR_BLUE,
+                          s=30, zorder=10, marker="*")
+                break
+        # Mark global best
+        best_pos = np.argmin(ranks_arr) + 1
+        ax.scatter(best_pos, 1, color=COLOR_GREEN, s=40, zorder=10, marker="D")
+
+        ax.set_ylabel("排名（1=最优）")
+        ax.set_xlabel("候选人序号 $n$")
+        ax.set_title(title)
+        ax.set_xlim(0, N + 1)
+        ax.set_ylim(0, N + 1)
+        ax.invert_yaxis()
+
+    from matplotlib.lines import Line2D
+    handles = [
+        Line2D([0], [0], marker="D", color="w", markerfacecolor=COLOR_GREEN, markersize=6, label="全局最优"),
+        Line2D([0], [0], marker="*", color="w", markerfacecolor=COLOR_BLUE, markersize=8, label="策略停止点"),
+    ]
+    fig.legend(handles=handles, loc="upper center", ncol=2, fontsize=8, bbox_to_anchor=(0.5, 0.98))
+    fig.suptitle(f"秘书问题排名路径（$N={N}, r^*={r_star}$）", y=1.04, fontsize=11)
+    save_figure(fig, "ch05_paths.pdf")
 
 
 if __name__ == "__main__":
@@ -181,6 +201,6 @@ if __name__ == "__main__":
     fig5_1_success()
     print("绘制图 5.2: Snell 包络...")
     fig5_2_snell()
-    print("绘制图 5.3: 随机对照组...")
-    fig5_3_control()
+    print("绘制图 5.3: 排名路径可视化...")
+    fig5_3_paths()
     print("第五章三张图绘制完成。")
