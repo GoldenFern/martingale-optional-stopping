@@ -126,7 +126,56 @@
 
 对于需要参数扫描的实验（如破产概率随初始资本的变化），对每个参数值重复上述过程。所有代码以 Python 3.13 编写，数值计算依赖 NumPy 和 SciPy，图形绘制使用 Matplotlib。
 
-在代码架构上，项目采用面向对象的模块化设计，分为公共核心层与各章实验层两级结构。核心层（\texttt{src/core/}）提供三类可复用的基础组件：（1）\texttt{processes.py}——鞅过程的抽象基类 \texttt{Martingale} 及其具体实现（对称/非对称随机游走、几何布朗运动），统一了路径生成与增量接口；（2）\texttt{stopping\_times.py}——停时的抽象基类 \texttt{StoppingTime} 及常用停时子类（固定时刻、首达水平、区间退出、截断停时、首次记录值），支持任意嵌套组合；（3）\texttt{simulation.py}——通用的 Monte Carlo 模拟引擎 \texttt{MonteCarloSimulation}，接受过程对象与停时对象后自动执行大批量路径模拟并计算期望估计与置信区间；此外，\texttt{batching.py} 提供批次估计的标准误计算，\texttt{visualization.py} 统一各章图表的绘图风格与配色方案。实验层（\texttt{src/ch02\_moran/} 至 \texttt{src/ch06\_option/}）每章遵循相同的模块分工：模型定义（如 \texttt{moran\_model.py}、\texttt{secretary\_model.py}）负责构造该章特定的随机过程与停时；实验脚本（\texttt{experiment.py}）调用核心引擎执行批量模拟并保存数据；绘图脚本（\texttt{plot.py}）从数据文件生成论文插图。整套架构使得新增模型的实验仅需编写模型定义与参数配置，无需重复实现模拟逻辑，完整代码随论文附于项目仓库中。
+在代码架构上，项目采用面向对象的模块化设计，分为公共核心层（\texttt{src/core/}）与各章实验层（\texttt{src/ch02\_moran/} 至 \texttt{src/ch06\_option/}）两级结构，文件组织如下图~\ref{fig:code_tree} 所示。核心层提供可复用的基础组件：\texttt{processes.py}（鞅过程抽象基类及具体实现）、\texttt{stopping\_times.py}（停时抽象基类及常用子类）、\texttt{simulation.py}（通用 Monte Carlo 模拟引擎）、\texttt{batching.py}（批次估计）和 \texttt{visualization.py}（统一绘图风格）。实验层每章遵循相同的模块分工：模型定义文件负责构造该章特定的随机过程与停时，实验脚本调用核心引擎执行批量模拟并保存数据，绘图脚本从数据文件生成论文插图。整套架构使得新增模型的实验仅需编写模型定义与参数配置，无需重复实现模拟逻辑。
+
+\begin{figure}[H]
+  \centering
+  \begin{forest}
+    for tree={
+      font=\ttfamily\zihao{5},
+      grow'=0,
+      folder,
+      edge=semithick,
+      s sep=2pt,
+      inner sep=2pt,
+    }
+    [\textrm{src/}
+      [\textrm{core/}
+        [\textrm{processes.py}]
+        [\textrm{stopping\_times.py}]
+        [\textrm{simulation.py}]
+        [\textrm{batching.py}]
+        [\textrm{visualization.py}]
+      ]
+      [\textrm{ch02\_moran/}
+        [\textrm{moran\_model.py}]
+        [\textrm{experiment.py}]
+        [\textrm{plot.py}]
+      ]
+      [\textrm{ch03\_insurance/}
+        [\textrm{surplus\_model.py}]
+        [\textrm{experiment.py}]
+        [\textrm{plot.py}]
+      ]
+      [\textrm{ch04\_ruin/}
+        [\textrm{experiment.py}]
+        [\textrm{plot.py}]
+      ]
+      [\textrm{ch05\_secretary/}
+        [\textrm{secretary\_model.py}]
+        [\textrm{experiment.py}]
+        [\textrm{plot.py}]
+      ]
+      [\textrm{ch06\_option/}
+        [\textrm{lsm\_pricer.py}]
+        [\textrm{experiment.py}]
+        [\textrm{plot.py}]
+      ]
+    ]
+  \end{forest}
+  \caption{项目代码文件架构。核心层（\texttt{src/core/}）提供可复用的鞅过程、停时和模拟引擎；实验层每章包含模型定义、实验脚本和绘图脚本三个模块。}
+  \label{fig:code_tree}
+\end{figure}
 
 \subsection{章节安排}
 
