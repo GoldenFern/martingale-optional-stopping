@@ -111,12 +111,12 @@
   \label{fig:ch03_paths}
 \end{figure}
 
-\textbf{图~\ref{fig:ch03_ruin}} 以半对数坐标展示了破产概率随初始资本的变化。$y$ 轴为对数刻度，因此指数衰减关系表现为近似直线。蓝色圆点为每个 $u$ 下 16000 条路径的有限时窗破产概率 $P(\tau \leqslant 200)$ 的 Monte Carlo 估计，误差棒表示 95\% 置信区间；橙色虚线为 Lundberg 上界 $e^{-Ru}$。注意到随着 $u$ 增大，误差棒在对数坐标下逐渐变宽——固定路径数下可观测到的破产事件随 $\psi(u)$ 的指数衰减而急剧减少，直接 Monte Carlo 对稀有事件的估计精度自然下降。
+\textbf{图~\ref{fig:ch03_ruin}} 以半对数坐标展示了破产概率随初始资本的变化。$y$ 轴为对数刻度，因此指数衰减关系表现为近似直线。蓝色圆点为每个 $u$ 下 16000 条路径的有限时窗破产概率 $P(\tau \leqslant 200)$ 的 Monte Carlo 估计，误差棒表示 95\% 置信区间；橙色虚线为 Lundberg 上界 $e^{-Ru}$。注意到随着 $u$ 增大，误差棒在对数坐标下逐渐变宽——固定路径数下可观测到的破产事件随 $\psi(u)$ 的指数衰减而急剧减少，直接 Monte Carlo 对稀有事件的估计精度自然下降。上界始终位于模拟结果之上。
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.9\textwidth]{ch03_ruin_prob}
-  \caption{破产概率的半对数图。上图为 Monte Carlo 估计与 Lundberg 上界对比，蓝色圆点为有限时窗破产概率 $P(\tau \leqslant 200)$ 的 Monte Carlo 估计（16000 条路径），误差棒表示 95\% 置信区间，橙色虚线为 Lundberg 上界 $e^{-Ru}$；下图为残差（MC $-$ Lundberg）。上界始终位于模拟结果之上。}
+  \caption{破产概率的半对数图。蓝色圆点为有限时窗破产概率 $P(\tau \leqslant 200)$ 的 Monte Carlo 估计（16000 条路径），误差棒表示 95\% 置信区间；橙色虚线为 Lundberg 上界 $e^{-Ru}$。上界始终位于模拟结果之上。}
   \label{fig:ch03_ruin}
 \end{figure}
 
