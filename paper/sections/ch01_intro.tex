@@ -119,7 +119,7 @@
   \item 所有 Monte Carlo 估计均附有 95\% 置信区间（$\pm 1.96 \times \mathrm{SE}$），各章根据估计量类型分别说明其 SE 的计算方式。
 \end{enumerate}
 
-对于需要参数扫描的实验（如破产概率随初始资本的变化），对每个参数值重复上述过程。所有代码以 Python 3.13 编写，数值计算依赖 NumPy 和 SciPy，图形绘制使用 Matplotlib。
+对于需要参数扫描的实验（如破产概率随初始资本的变化），对每个参数值重复上述过程。所有代码基于 Python 3.13，数值计算使用 NumPy 2.1.3 与 SciPy 1.15.3，图形绘制使用 Matplotlib 3.10.0。
 
 在代码架构上，项目采用面向对象的模块化设计，分为公共核心层（\texttt{src/core/}）与各章实验层（\texttt{src/ch02\_moran/} 至 \texttt{src/ch04\_ruin/}）两级结构，文件组织如下图~\ref{fig:code_tree} 所示。核心层提供可复用的基础组件：\texttt{processes.py}（鞅过程抽象基类及具体实现）、\texttt{stopping\_times.py}（停时抽象基类及常用子类）、\texttt{simulation.py}（通用 Monte Carlo 模拟引擎）、\texttt{batching.py}（批次估计）和 \texttt{visualization.py}（统一绘图风格）。实验层整体遵循相近的模块分工：第二、三章包含模型定义文件、实验脚本和绘图脚本；第四章则直接复用 \texttt{core/processes.py} 中的对称随机游走实现，因此目录中仅保留实验脚本与绘图脚本。整套架构使得新增模型的实验通常只需编写模型定义与参数配置，无需重复实现模拟逻辑。
 
