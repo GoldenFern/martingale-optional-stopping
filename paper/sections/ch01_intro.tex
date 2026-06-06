@@ -128,10 +128,19 @@
   \begin{forest}
     for tree={
       font=\ttfamily\zihao{5},
-      edge=semithick,
-      s sep=2pt,
+      parent anchor=south west,
+      child anchor=north west,
+      anchor=west,
+      edge={semithick},
+      edge path={
+        \noexpand\path[\forestoption{edge}]
+        (!u.parent anchor) |- (.child anchor)
+        \forestoption{edge label};
+      },
+      calign=first,
+      l sep=6pt,
+      s sep=1pt,
       inner sep=2pt,
-      l sep=8pt,
     }
     [\textrm{src/}
       [\textrm{core/}

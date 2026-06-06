@@ -1,0 +1,438 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.3 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{none/global//global/global/global}
+    \entry{doob1953stochastic}{book}{}{}
+      \name{author}{1}{}{%
+        {{hash=a5a5cc96e45d308ed1d7346b9ac8f4d8}{%
+           family={Doob},
+           familyi={D\bibinitperiod},
+           given={Joseph\bibnamedelima L.},
+           giveni={J\bibinitperiod\bibinitdelim L\bibinitperiod}}}%
+      }
+      \name{namea}{1}{}{%
+        {{hash=a5a5cc96e45d308ed1d7346b9ac8f4d8}{%
+           family={Doob},
+           familyi={D\bibinitperiod},
+           given={Joseph\bibnamedelima L.},
+           giveni={J\bibinitperiod\bibinitdelim L\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {english}%
+      }
+      \list{publisher}{1}{%
+        {John Wiley \& Sons}%
+      }
+      \strng{namehash}{a5a5cc96e45d308ed1d7346b9ac8f4d8}
+      \strng{fullhash}{a5a5cc96e45d308ed1d7346b9ac8f4d8}
+      \strng{fullhashraw}{a5a5cc96e45d308ed1d7346b9ac8f4d8}
+      \strng{bibnamehash}{a5a5cc96e45d308ed1d7346b9ac8f4d8}
+      \strng{authorbibnamehash}{a5a5cc96e45d308ed1d7346b9ac8f4d8}
+      \strng{authornamehash}{a5a5cc96e45d308ed1d7346b9ac8f4d8}
+      \strng{authorfullhash}{a5a5cc96e45d308ed1d7346b9ac8f4d8}
+      \strng{authorfullhashraw}{a5a5cc96e45d308ed1d7346b9ac8f4d8}
+      \strng{nameabibnamehash}{a5a5cc96e45d308ed1d7346b9ac8f4d8}
+      \strng{nameanamehash}{a5a5cc96e45d308ed1d7346b9ac8f4d8}
+      \strng{nameafullhash}{a5a5cc96e45d308ed1d7346b9ac8f4d8}
+      \strng{nameafullhashraw}{a5a5cc96e45d308ed1d7346b9ac8f4d8}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{langid}{english}
+      \field{languageid}{english}
+      \field{lansortorder}{4}
+      \field{title}{Stochastic Processes}
+      \field{usera}{M}
+      \field{userd}{english}
+      \field{userf}{english}
+      \field{year}{1953}
+      \field{dateera}{ce}
+      \keyw{doob1953stochastic}
+    \endentry
+    \entry{qian2021randomprocess}{book}{}{}
+      \name{author}{2}{}{%
+        {{hash=e322b53007fa5f45c0aab1aeda0a55d8}{%
+           family={钱敏平},
+           familyi={钱\bibinitperiod}}}%
+        {{hash=6a569e1745600d1956e3efa73947091b}{%
+           family={龚光鲁},
+           familyi={龚\bibinitperiod}}}%
+      }
+      \name{namea}{2}{}{%
+        {{hash=e322b53007fa5f45c0aab1aeda0a55d8}{%
+           family={钱敏平},
+           familyi={钱\bibinitperiod}}}%
+        {{hash=6a569e1745600d1956e3efa73947091b}{%
+           family={龚光鲁},
+           familyi={龚\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {chinese}%
+      }
+      \list{publisher}{1}{%
+        {电子工业出版社}%
+      }
+      \strng{namehash}{6e54faa1f0f78bc6516b4f00411f315d}
+      \strng{fullhash}{955d25606becd176973777a72f3b1386}
+      \strng{fullhashraw}{955d25606becd176973777a72f3b1386}
+      \strng{bibnamehash}{955d25606becd176973777a72f3b1386}
+      \strng{authorbibnamehash}{955d25606becd176973777a72f3b1386}
+      \strng{authornamehash}{6e54faa1f0f78bc6516b4f00411f315d}
+      \strng{authorfullhash}{955d25606becd176973777a72f3b1386}
+      \strng{authorfullhashraw}{955d25606becd176973777a72f3b1386}
+      \strng{nameabibnamehash}{955d25606becd176973777a72f3b1386}
+      \strng{nameanamehash}{6e54faa1f0f78bc6516b4f00411f315d}
+      \strng{nameafullhash}{955d25606becd176973777a72f3b1386}
+      \strng{nameafullhashraw}{955d25606becd176973777a72f3b1386}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{langid}{english}
+      \field{languageid}{chinese}
+      \field{lansortorder}{1}
+      \field{title}{随机过程论（第3版）}
+      \field{usera}{M}
+      \field{userd}{chinese}
+      \field{userf}{chinese}
+      \field{year}{2021}
+      \field{dateera}{ce}
+      \keyw{qian2021randomprocess}
+    \endentry
+    \entry{moran1958random}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=89abbf201fed5e8a1a1b30418bed35cc}{%
+           family={Moran},
+           familyi={M\bibinitperiod},
+           given={P.\bibnamedelimi A.\bibnamedelimi P.},
+           giveni={P\bibinitperiod\bibinitdelim A\bibinitperiod\bibinitdelim P\bibinitperiod}}}%
+      }
+      \name{namea}{1}{}{%
+        {{hash=89abbf201fed5e8a1a1b30418bed35cc}{%
+           family={Moran},
+           familyi={M\bibinitperiod},
+           given={P.\bibnamedelimi A.\bibnamedelimi P.},
+           giveni={P\bibinitperiod\bibinitdelim A\bibinitperiod\bibinitdelim P\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {english}%
+      }
+      \strng{namehash}{89abbf201fed5e8a1a1b30418bed35cc}
+      \strng{fullhash}{89abbf201fed5e8a1a1b30418bed35cc}
+      \strng{fullhashraw}{89abbf201fed5e8a1a1b30418bed35cc}
+      \strng{bibnamehash}{89abbf201fed5e8a1a1b30418bed35cc}
+      \strng{authorbibnamehash}{89abbf201fed5e8a1a1b30418bed35cc}
+      \strng{authornamehash}{89abbf201fed5e8a1a1b30418bed35cc}
+      \strng{authorfullhash}{89abbf201fed5e8a1a1b30418bed35cc}
+      \strng{authorfullhashraw}{89abbf201fed5e8a1a1b30418bed35cc}
+      \strng{nameabibnamehash}{89abbf201fed5e8a1a1b30418bed35cc}
+      \strng{nameanamehash}{89abbf201fed5e8a1a1b30418bed35cc}
+      \strng{nameafullhash}{89abbf201fed5e8a1a1b30418bed35cc}
+      \strng{nameafullhashraw}{89abbf201fed5e8a1a1b30418bed35cc}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Mathematical Proceedings of the Cambridge Philosophical Society}
+      \field{langid}{english}
+      \field{languageid}{english}
+      \field{lansortorder}{4}
+      \field{number}{1}
+      \field{title}{Random processes in genetics}
+      \field{usera}{J}
+      \field{userd}{english}
+      \field{userf}{english}
+      \field{volume}{54}
+      \field{year}{1958}
+      \field{dateera}{ce}
+      \field{pages}{60\bibrangedash 71}
+      \range{pages}{12}
+      \keyw{moran1958random}
+    \endentry
+    \entry{asmussen2010ruin}{book}{}{}
+      \name{author}{2}{}{%
+        {{hash=aa046948248a8c9a6507690840ab5802}{%
+           family={Asmussen},
+           familyi={A\bibinitperiod},
+           given={Søren},
+           giveni={S\bibinitperiod}}}%
+        {{hash=f45fe7e87093eb7ec9971d6f10c5c61f}{%
+           family={Albrecher},
+           familyi={A\bibinitperiod},
+           given={Hansjörg},
+           giveni={H\bibinitperiod}}}%
+      }
+      \name{namea}{2}{}{%
+        {{hash=aa046948248a8c9a6507690840ab5802}{%
+           family={Asmussen},
+           familyi={A\bibinitperiod},
+           given={Søren},
+           giveni={S\bibinitperiod}}}%
+        {{hash=f45fe7e87093eb7ec9971d6f10c5c61f}{%
+           family={Albrecher},
+           familyi={A\bibinitperiod},
+           given={Hansjörg},
+           giveni={H\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {english}%
+      }
+      \list{publisher}{1}{%
+        {World Scientific}%
+      }
+      \strng{namehash}{9a731a4ddd5fb0f0545ba6dcd57f5706}
+      \strng{fullhash}{b0e16a3d72b8d83b629398b497d0fb33}
+      \strng{fullhashraw}{b0e16a3d72b8d83b629398b497d0fb33}
+      \strng{bibnamehash}{b0e16a3d72b8d83b629398b497d0fb33}
+      \strng{authorbibnamehash}{b0e16a3d72b8d83b629398b497d0fb33}
+      \strng{authornamehash}{9a731a4ddd5fb0f0545ba6dcd57f5706}
+      \strng{authorfullhash}{b0e16a3d72b8d83b629398b497d0fb33}
+      \strng{authorfullhashraw}{b0e16a3d72b8d83b629398b497d0fb33}
+      \strng{nameabibnamehash}{b0e16a3d72b8d83b629398b497d0fb33}
+      \strng{nameanamehash}{9a731a4ddd5fb0f0545ba6dcd57f5706}
+      \strng{nameafullhash}{b0e16a3d72b8d83b629398b497d0fb33}
+      \strng{nameafullhashraw}{b0e16a3d72b8d83b629398b497d0fb33}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{edition}{2nd}
+      \field{langid}{english}
+      \field{languageid}{english}
+      \field{lansortorder}{4}
+      \field{title}{Ruin Probabilities}
+      \field{usera}{M}
+      \field{userd}{english}
+      \field{userf}{english}
+      \field{year}{2010}
+      \field{dateera}{ce}
+      \keyw{asmussen2010ruin}
+    \endentry
+    \entry{feller1968introduction}{book}{}{}
+      \name{author}{1}{}{%
+        {{hash=0dc1084389f176f601af7787031a22f1}{%
+           family={Feller},
+           familyi={F\bibinitperiod},
+           given={William},
+           giveni={W\bibinitperiod}}}%
+      }
+      \name{namea}{1}{}{%
+        {{hash=0dc1084389f176f601af7787031a22f1}{%
+           family={Feller},
+           familyi={F\bibinitperiod},
+           given={William},
+           giveni={W\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {english}%
+      }
+      \list{publisher}{1}{%
+        {John Wiley \& Sons}%
+      }
+      \strng{namehash}{0dc1084389f176f601af7787031a22f1}
+      \strng{fullhash}{0dc1084389f176f601af7787031a22f1}
+      \strng{fullhashraw}{0dc1084389f176f601af7787031a22f1}
+      \strng{bibnamehash}{0dc1084389f176f601af7787031a22f1}
+      \strng{authorbibnamehash}{0dc1084389f176f601af7787031a22f1}
+      \strng{authornamehash}{0dc1084389f176f601af7787031a22f1}
+      \strng{authorfullhash}{0dc1084389f176f601af7787031a22f1}
+      \strng{authorfullhashraw}{0dc1084389f176f601af7787031a22f1}
+      \strng{nameabibnamehash}{0dc1084389f176f601af7787031a22f1}
+      \strng{nameanamehash}{0dc1084389f176f601af7787031a22f1}
+      \strng{nameafullhash}{0dc1084389f176f601af7787031a22f1}
+      \strng{nameafullhashraw}{0dc1084389f176f601af7787031a22f1}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{edition}{3rd}
+      \field{langid}{english}
+      \field{languageid}{english}
+      \field{lansortorder}{4}
+      \field{title}{An Introduction to Probability Theory and Its Applications}
+      \field{usera}{M}
+      \field{userd}{english}
+      \field{userf}{english}
+      \field{volume}{1}
+      \field{year}{1968}
+      \field{dateera}{ce}
+      \keyw{feller1968introduction}
+    \endentry
+    \entry{ewens2004mathematical}{book}{}{}
+      \name{author}{1}{}{%
+        {{hash=33fd9f63f80cc6e4696464d11f7b5076}{%
+           family={Ewens},
+           familyi={E\bibinitperiod},
+           given={Warren\bibnamedelima J.},
+           giveni={W\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+      }
+      \name{namea}{1}{}{%
+        {{hash=33fd9f63f80cc6e4696464d11f7b5076}{%
+           family={Ewens},
+           familyi={E\bibinitperiod},
+           given={Warren\bibnamedelima J.},
+           giveni={W\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {english}%
+      }
+      \list{publisher}{1}{%
+        {Springer}%
+      }
+      \strng{namehash}{33fd9f63f80cc6e4696464d11f7b5076}
+      \strng{fullhash}{33fd9f63f80cc6e4696464d11f7b5076}
+      \strng{fullhashraw}{33fd9f63f80cc6e4696464d11f7b5076}
+      \strng{bibnamehash}{33fd9f63f80cc6e4696464d11f7b5076}
+      \strng{authorbibnamehash}{33fd9f63f80cc6e4696464d11f7b5076}
+      \strng{authornamehash}{33fd9f63f80cc6e4696464d11f7b5076}
+      \strng{authorfullhash}{33fd9f63f80cc6e4696464d11f7b5076}
+      \strng{authorfullhashraw}{33fd9f63f80cc6e4696464d11f7b5076}
+      \strng{nameabibnamehash}{33fd9f63f80cc6e4696464d11f7b5076}
+      \strng{nameanamehash}{33fd9f63f80cc6e4696464d11f7b5076}
+      \strng{nameafullhash}{33fd9f63f80cc6e4696464d11f7b5076}
+      \strng{nameafullhashraw}{33fd9f63f80cc6e4696464d11f7b5076}
+      \field{sortinit}{7}
+      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{edition}{2nd}
+      \field{langid}{english}
+      \field{languageid}{english}
+      \field{lansortorder}{4}
+      \field{title}{Mathematical Population Genetics}
+      \field{usera}{M}
+      \field{userd}{english}
+      \field{userf}{english}
+      \field{year}{2004}
+      \field{dateera}{ce}
+      \keyw{ewens2004mathematical}
+    \endentry
+    \entry{gerber1979introduction}{book}{}{}
+      \name{author}{1}{}{%
+        {{hash=65a971270dc49907ad91088248bc5f8c}{%
+           family={Gerber},
+           familyi={G\bibinitperiod},
+           given={Hans\bibnamedelima U.},
+           giveni={H\bibinitperiod\bibinitdelim U\bibinitperiod}}}%
+      }
+      \name{namea}{1}{}{%
+        {{hash=65a971270dc49907ad91088248bc5f8c}{%
+           family={Gerber},
+           familyi={G\bibinitperiod},
+           given={Hans\bibnamedelima U.},
+           giveni={H\bibinitperiod\bibinitdelim U\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {english}%
+      }
+      \list{publisher}{1}{%
+        {S. S. Huebner Foundation for Insurance Education}%
+      }
+      \strng{namehash}{65a971270dc49907ad91088248bc5f8c}
+      \strng{fullhash}{65a971270dc49907ad91088248bc5f8c}
+      \strng{fullhashraw}{65a971270dc49907ad91088248bc5f8c}
+      \strng{bibnamehash}{65a971270dc49907ad91088248bc5f8c}
+      \strng{authorbibnamehash}{65a971270dc49907ad91088248bc5f8c}
+      \strng{authornamehash}{65a971270dc49907ad91088248bc5f8c}
+      \strng{authorfullhash}{65a971270dc49907ad91088248bc5f8c}
+      \strng{authorfullhashraw}{65a971270dc49907ad91088248bc5f8c}
+      \strng{nameabibnamehash}{65a971270dc49907ad91088248bc5f8c}
+      \strng{nameanamehash}{65a971270dc49907ad91088248bc5f8c}
+      \strng{nameafullhash}{65a971270dc49907ad91088248bc5f8c}
+      \strng{nameafullhashraw}{65a971270dc49907ad91088248bc5f8c}
+      \field{sortinit}{9}
+      \field{sortinithash}{0a5ebc79d83c96b6579069544c73c7d4}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{langid}{english}
+      \field{languageid}{english}
+      \field{lansortorder}{4}
+      \field{title}{An Introduction to Mathematical Risk Theory}
+      \field{usera}{M}
+      \field{userd}{english}
+      \field{userf}{english}
+      \field{year}{1979}
+      \field{dateera}{ce}
+      \keyw{gerber1979introduction}
+    \endentry
+    \entry{chow1997probability}{book}{}{}
+      \name{author}{2}{}{%
+        {{hash=239385703bdf4e267c55a890516a9988}{%
+           family={Chow},
+           familyi={C\bibinitperiod},
+           given={Yuan\bibnamedelima Shih},
+           giveni={Y\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+        {{hash=1262f59879f33a8270c82fc7724a41f0}{%
+           family={Teicher},
+           familyi={T\bibinitperiod},
+           given={Henry},
+           giveni={H\bibinitperiod}}}%
+      }
+      \name{namea}{2}{}{%
+        {{hash=239385703bdf4e267c55a890516a9988}{%
+           family={Chow},
+           familyi={C\bibinitperiod},
+           given={Yuan\bibnamedelima Shih},
+           giveni={Y\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+        {{hash=1262f59879f33a8270c82fc7724a41f0}{%
+           family={Teicher},
+           familyi={T\bibinitperiod},
+           given={Henry},
+           giveni={H\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {english}%
+      }
+      \list{publisher}{1}{%
+        {Springer}%
+      }
+      \strng{namehash}{706c352d8d1af92a6029b0b3dfca3655}
+      \strng{fullhash}{86aa636bff5f5256219a9754465c0c78}
+      \strng{fullhashraw}{86aa636bff5f5256219a9754465c0c78}
+      \strng{bibnamehash}{86aa636bff5f5256219a9754465c0c78}
+      \strng{authorbibnamehash}{86aa636bff5f5256219a9754465c0c78}
+      \strng{authornamehash}{706c352d8d1af92a6029b0b3dfca3655}
+      \strng{authorfullhash}{86aa636bff5f5256219a9754465c0c78}
+      \strng{authorfullhashraw}{86aa636bff5f5256219a9754465c0c78}
+      \strng{nameabibnamehash}{86aa636bff5f5256219a9754465c0c78}
+      \strng{nameanamehash}{706c352d8d1af92a6029b0b3dfca3655}
+      \strng{nameafullhash}{86aa636bff5f5256219a9754465c0c78}
+      \strng{nameafullhashraw}{86aa636bff5f5256219a9754465c0c78}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{edition}{3rd}
+      \field{langid}{english}
+      \field{languageid}{english}
+      \field{lansortorder}{4}
+      \field{title}{Probability Theory: Independence, Interchangeability, Martingales}
+      \field{usera}{M}
+      \field{userd}{english}
+      \field{userf}{english}
+      \field{year}{1997}
+      \field{dateera}{ce}
+      \keyw{chow1997probability}
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+
