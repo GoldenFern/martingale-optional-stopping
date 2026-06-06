@@ -67,26 +67,42 @@ def fig2_2_fixation(num_paths: int = 5000) -> None:
     subset_df = results_df[results_df["N"] == 50]
     batch_data = np.load(DATA_DIR / "exp2_fixation_batches.npz")
 
-    fig, ax = new_figure()
     initial_freq = subset_df["initial_freq"].to_numpy()
     fixation_prob_mc = subset_df["p_fixation_mc"].to_numpy()
     freq_keys = [f"{f:.1f}" for f in initial_freq]
     fixation_se = np.array([np.std(batch_data[k], ddof=1) / np.sqrt(len(batch_data[k]))
                             for k in freq_keys])
+    residuals = fixation_prob_mc - initial_freq
 
-    ax.errorbar(initial_freq, fixation_prob_mc, yerr=1.96 * fixation_se,
-                fmt="o", color=COLOR_BLUE, markersize=5, capsize=5,
-                elinewidth=1.0, markerfacecolor="white", markeredgewidth=1.0,
-                label="Monte Carlo 估计（95% CI）")
-    ax.plot(initial_freq, initial_freq, "--", color=COLOR_RED, lw=1.15, label="理论值 $y=x_0/N$")
+    fig = plt.figure(figsize=(FIG_W, FIG_H * 1.28), constrained_layout=True)
+    gs = fig.add_gridspec(2, 1, height_ratios=[2.5, 1], hspace=0.12)
+    ax_main = fig.add_subplot(gs[0])
+    ax_res = fig.add_subplot(gs[1], sharex=ax_main)
 
-    ax.set_xlabel("A 等位基因初始频率 $x_0/N$")
-    ax.set_ylabel("固定概率")
-    ax.set_title("固定概率与 A 等位基因初始频率（$N=50$）")
-    ax.legend(loc="upper left", fontsize=8)
-    ax.set_xlim(-0.02, 1.02)
-    ax.set_ylim(-0.02, 1.02)
-    ax.xaxis.set_major_formatter(FormatStrFormatter("%.1f"))
+    # ---- top: main comparison ----
+    ax_main.errorbar(initial_freq, fixation_prob_mc, yerr=1.96 * fixation_se,
+                     fmt="o", color=COLOR_BLUE, markersize=5, capsize=5,
+                     elinewidth=1.0, markerfacecolor="white", markeredgewidth=1.0,
+                     label="Monte Carlo 估计（95% CI）")
+    ax_main.plot(initial_freq, initial_freq, "--", color=COLOR_RED, lw=1.15,
+                 label="理论值 $y=x_0/N$")
+    ax_main.set_ylabel("固定概率")
+    ax_main.set_title("固定概率与 A 等位基因初始频率（$N=50$）")
+    ax_main.legend(loc="upper left", fontsize=8)
+    ax_main.set_xlim(-0.02, 1.02)
+    ax_main.set_ylim(-0.02, 1.02)
+    ax_main.xaxis.set_major_formatter(FormatStrFormatter("%.1f"))
+    plt.setp(ax_main.get_xticklabels(), visible=False)
+
+    # ---- bottom: residuals ----
+    ax_res.axhline(0, color="gray", lw=0.6, ls="--", alpha=0.7)
+    ax_res.errorbar(initial_freq, residuals, yerr=1.96 * fixation_se,
+                    fmt="o", color=COLOR_BLUE, markersize=4.5, capsize=4,
+                    elinewidth=1.0, markerfacecolor="white", markeredgewidth=1.0)
+    ax_res.set_xlabel("A 等位基因初始频率 $x_0/N$")
+    ax_res.set_ylabel("残差")
+    ax_res.xaxis.set_major_formatter(FormatStrFormatter("%.1f"))
+
     save_figure(fig, "ch02_fixation.pdf")
 
 

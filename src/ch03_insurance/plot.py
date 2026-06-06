@@ -100,31 +100,47 @@ def fig3_1_surplus_paths(seed: int = 42) -> None:
 
 
 def fig3_2_ruin_prob() -> None:
-    """图 3.2：破产概率 vs 初始资本（半对数）。"""
+    """图 3.2：破产概率 vs 初始资本（半对数），含残差子图。"""
     set_style()
     results_df = pd.read_csv(DATA_DIR / "exp3_ruin_prob.csv")
 
-    fig, ax = new_figure()
     initial_capitals = results_df["u"].to_numpy()
     ruin_probs_mc = results_df["psi_mc"].to_numpy()
+    ruin_probs_lundberg = results_df["psi_lundberg"].to_numpy()
 
     batch_data = np.load(DATA_DIR / "exp3_ruin_prob_batches.npz")
     capital_keys = [f"u_{int(u)}" for u in initial_capitals]
     ruin_prob_se = np.array([np.std(batch_data[k], ddof=1) / np.sqrt(len(batch_data[k]))
                              for k in capital_keys])
+    residuals = ruin_probs_mc - ruin_probs_lundberg
 
-    ax.errorbar(initial_capitals, ruin_probs_mc, yerr=1.96 * ruin_prob_se,
-                fmt="o", color=COLOR_BLUE, markersize=5, capsize=3, lw=0.8,
-                label="有限时窗 Monte Carlo 估计（$P(\\tau \\leqslant 200)$，95% CI）")
-    ax.plot(results_df["u"], results_df["psi_lundberg"], "--", color=COLOR_ORANGE, lw=1.2,
-            label="Lundberg 上界 $e^{-Ru}$")
+    fig = plt.figure(figsize=(FIG_W, FIG_H * 1.28), constrained_layout=True)
+    gs = fig.add_gridspec(2, 1, height_ratios=[2.5, 1], hspace=0.12)
+    ax_main = fig.add_subplot(gs[0])
+    ax_res = fig.add_subplot(gs[1], sharex=ax_main)
 
-    ax.set_yscale("log")
-    emphasize_log_grid(ax)
-    ax.set_xlabel("初始资本 $u$")
-    ax.set_ylabel("概率")
-    ax.set_title("破产概率的指数衰减")
-    ax.legend(loc="upper right", fontsize=8)
+    # ---- top: main comparison (semilog) ----
+    ax_main.errorbar(initial_capitals, ruin_probs_mc, yerr=1.96 * ruin_prob_se,
+                     fmt="o", color=COLOR_BLUE, markersize=5, capsize=5,
+                     elinewidth=1.0, markerfacecolor="white", markeredgewidth=1.0,
+                     label="有限时窗 Monte Carlo 估计（$P(\\tau \\leqslant 200)$，95% CI）")
+    ax_main.plot(initial_capitals, ruin_probs_lundberg, "--", color=COLOR_ORANGE, lw=1.2,
+                 label="Lundberg 上界 $e^{-Ru}$")
+    ax_main.set_yscale("log")
+    emphasize_log_grid(ax_main)
+    ax_main.set_ylabel("破产概率")
+    ax_main.set_title("破产概率的指数衰减")
+    ax_main.legend(loc="upper right", fontsize=8)
+    plt.setp(ax_main.get_xticklabels(), visible=False)
+
+    # ---- bottom: residuals (linear) ----
+    ax_res.axhline(0, color="gray", lw=0.6, ls="--", alpha=0.7)
+    ax_res.errorbar(initial_capitals, residuals, yerr=1.96 * ruin_prob_se,
+                    fmt="o", color=COLOR_BLUE, markersize=4.5, capsize=4,
+                    elinewidth=1.0, markerfacecolor="white", markeredgewidth=1.0)
+    ax_res.set_xlabel("初始资本 $u$")
+    ax_res.set_ylabel("残差（MC $-$ Lundberg）")
+
     save_figure(fig, "ch03_ruin_prob.pdf")
 
 
