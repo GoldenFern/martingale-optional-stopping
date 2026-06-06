@@ -140,6 +140,7 @@ def fig3_3_martingale_dual() -> None:
     time_horizon = float(saved_path_data["T"])
     time_axis = martingale_mean_df["t"].to_numpy()
     martingale_means = martingale_mean_df["m_mean"].to_numpy()
+    martingale_se = martingale_mean_df["m_se"].to_numpy()
 
     fig = plt.figure(figsize=(FIG_W * 1.16, FIG_H * 1.9), constrained_layout=True)
     grid = fig.add_gridspec(2, 2, height_ratios=[1.0, 1.08])
@@ -176,11 +177,20 @@ def fig3_3_martingale_dual() -> None:
     ax2.set_title("破产样本路径")
     emphasize_log_grid(ax2)
 
-    ax3.plot(time_axis, martingale_means, color="black", lw=1.35)
+    ax3.fill_between(time_axis,
+                     martingale_means - 1.96 * martingale_se,
+                     martingale_means + 1.96 * martingale_se,
+                     color="black", alpha=0.12, lw=0,
+                     label="95% CI")
+    ax3.plot(time_axis, martingale_means, color="black", lw=1.35,
+             label="$\\widehat{\\mathbb{E}}[M_{t \\wedge \\tau}]$")
+    ax3.axhline(martingale_initial, color=COLOR_RED, lw=0.8, ls="--",
+                label=f"$M_0={martingale_initial:.3f}$")
     ax3.set_xlim(0, time_horizon)
     ax3.set_xlabel("时间 $t$")
     ax3.set_ylabel("$\\widehat{\\mathbb{E}}[M_{t \\wedge \\tau}]$")
-    ax3.set_title(f"停止指数鞅的均值曲线（理论初值 $M_0={martingale_initial:.3f}$，$R={adj_coefficient:.4f}$）")
+    ax3.set_title(f"停止指数鞅的均值曲线（$R={adj_coefficient:.4f}$）")
+    ax3.legend(loc="lower left", fontsize=7.5)
     save_figure(fig, "ch03_martingale.pdf")
 
 
