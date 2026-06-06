@@ -12,7 +12,7 @@ from matplotlib.ticker import FormatStrFormatter
 from scipy.stats import invgauss
 
 from ch02_moran.moran_model import MoranProcess
-from core.visualization import COLOR_BLUE, COLOR_RED, new_figure, plot_box_series, save_figure, set_style
+from core.visualization import COLOR_BLUE, COLOR_RED, FIG_H, FIG_W, new_figure, plot_box_series, save_figure, set_style
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 DATA_DIR = PROJECT_ROOT / "output" / "data"
@@ -75,7 +75,8 @@ def fig2_2_fixation(num_paths: int = 5000) -> None:
                             for k in freq_keys])
 
     ax.errorbar(initial_freq, fixation_prob_mc, yerr=1.96 * fixation_se,
-                fmt="o", color=COLOR_BLUE, markersize=5, capsize=3, lw=0.8,
+                fmt="o", color=COLOR_BLUE, markersize=5, capsize=5,
+                elinewidth=1.0, markerfacecolor="white", markeredgewidth=1.0,
                 label="Monte Carlo 估计（95% CI）")
     ax.plot(initial_freq, initial_freq, "--", color=COLOR_RED, lw=1.15, label="理论值 $y=x_0/N$")
 
@@ -90,27 +91,44 @@ def fig2_2_fixation(num_paths: int = 5000) -> None:
 
 
 def fig2_3_tau_comparison() -> None:
-    """图 2.3：不同 A等位基因初始频率下 Monte Carlo 停时均值与理论解对比。"""
+    """图 2.3：不同 A等位基因初始频率下 Monte Carlo 停时均值与理论解对比，含残差子图。"""
     set_style()
     results_df = pd.read_csv(DATA_DIR / "exp2_fixation.csv")
     subset_df = results_df[results_df["N"] == 50]
 
-    fig, ax = new_figure()
     initial_freq = subset_df["initial_freq"].to_numpy()
     mean_tau_mc = subset_df["tau_mc_mean"].to_numpy()
     mean_tau_theory = subset_df["tau_theory"].to_numpy()
     tau_se = subset_df["tau_mc_se"].to_numpy()
+    residuals = mean_tau_mc - mean_tau_theory
 
-    ax.errorbar(initial_freq, mean_tau_mc, yerr=1.96 * tau_se,
-                fmt="o", color=COLOR_BLUE, markersize=5, capsize=3, lw=0.8,
-                label="Monte Carlo 估计（95% CI）")
-    ax.plot(initial_freq, mean_tau_theory, "--", color=COLOR_RED, lw=1.15, label="理论值（三对角系统求解）")
+    fig = plt.figure(figsize=(FIG_W, FIG_H * 1.28), constrained_layout=True)
+    gs = fig.add_gridspec(2, 1, height_ratios=[2.5, 1], hspace=0.12)
+    ax_main = fig.add_subplot(gs[0])
+    ax_res = fig.add_subplot(gs[1], sharex=ax_main)
 
-    ax.set_xlabel("A 等位基因初始频率 $x_0/N$")
-    ax.set_ylabel("期望停时 $\\mathbb{E}[\\tau]$")
-    ax.set_title("停时期望：Monte Carlo 与理论解对比（$N=50$）")
-    ax.legend(loc="upper left", fontsize=8)
-    ax.xaxis.set_major_formatter(FormatStrFormatter("%.1f"))
+    # ---- top: main comparison ----
+    ax_main.errorbar(initial_freq, mean_tau_mc, yerr=1.96 * tau_se,
+                     fmt="o", color=COLOR_BLUE, markersize=5, capsize=5,
+                     elinewidth=1.0, markerfacecolor="white", markeredgewidth=1.0,
+                     label="Monte Carlo 估计（95% CI）")
+    ax_main.plot(initial_freq, mean_tau_theory, "--", color=COLOR_RED, lw=1.15,
+                 label="理论值（三对角系统求解）")
+    ax_main.set_ylabel("期望停时 $\\mathbb{E}[\\tau]$")
+    ax_main.set_title("停时期望：Monte Carlo 与理论解对比（$N=50$）")
+    ax_main.legend(loc="upper left", fontsize=8)
+    ax_main.xaxis.set_major_formatter(FormatStrFormatter("%.1f"))
+    plt.setp(ax_main.get_xticklabels(), visible=False)
+
+    # ---- bottom: residuals ----
+    ax_res.axhline(0, color="gray", lw=0.6, ls="--", alpha=0.7)
+    ax_res.errorbar(initial_freq, residuals, yerr=1.96 * tau_se,
+                    fmt="o", color=COLOR_BLUE, markersize=4.5, capsize=4,
+                    elinewidth=1.0, markerfacecolor="white", markeredgewidth=1.0)
+    ax_res.set_xlabel("A 等位基因初始频率 $x_0/N$")
+    ax_res.set_ylabel("残差")
+    ax_res.xaxis.set_major_formatter(FormatStrFormatter("%.1f"))
+
     save_figure(fig, "ch02_tau_sim.pdf")
 
 
