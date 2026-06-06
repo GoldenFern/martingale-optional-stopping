@@ -1,8 +1,6 @@
 # 鞅过程可选停止定理的数值模拟
 
-> 2025--2026 春季学期 · 上海交通大学随机过程（MATH4704）课程大作业 · GoldenFern · 2026 年 6 月
-> 
-> 感谢授课老师张登老师的教学与指导。
+2025--2026 春季学期 · 上海交通大学随机过程（MATH4704）课程大作业
 
 ## 选题原因
 
@@ -14,7 +12,7 @@
 > 这种看起来可以赚的策略都违背了时停定理对于有界性的要求。而违背的后果就是我之前说的那个问题的答案是正无穷。
 > 头一次感觉无穷就在我身边。鞅过程真有意思。
 
-正是这种"无穷近在咫尺"的震撼，让我决定系统地对可选停止定理（Optional Stopping Theorem, OST）进行数值模拟研究。本项目的论文选取了三个代表性随机过程模型（Moran 种群遗传过程、Cramér-Lundberg 保险破产过程、赌徒破产过程），通过 Monte Carlo 数值实验展示了 OST 从"完美成立"到"条件失效"的完整理论谱系。
+正是这个原因让我决定系统地对可选停止定理（Optional Stopping Theorem, OST）进行数值模拟研究。本项目的论文选取了三个代表性随机过程模型（Moran 种群遗传过程、Cramér-Lundberg 保险破产过程、赌徒破产过程），通过 Monte Carlo 数值实验展示了 OST 的完整理论谱系。
 
 ## 项目架构
 
@@ -79,6 +77,15 @@ Martingale/
 - **模块分工统一**：每章实验层遵循相同的模块分工——模型定义文件负责构造该章特定的随机过程与停时，实验脚本调用核心引擎执行批量模拟并保存数据，绘图脚本从数据文件生成论文插图。
 - **数据与代码分离**：实验输出（数据与图表）统一存放于 `output/` 目录，便于复现与版本管理。
 
+## 环境依赖
+
+- Python 3.13
+- NumPy 2.1.3
+- SciPy 1.15.3
+- Matplotlib 3.10.0
+
+安装：`pip install -r requirements.txt`
+
 ## 编译论文
 
 ### 依赖
@@ -130,28 +137,15 @@ pytest tests/
 - `src/ch06_option/` —— 美式期权的 Longstaff-Schwartz 算法实现
 - `paper/sections/ch05_secretary.tex` 和 `paper/sections/ch06_option.tex` —— 对应的 LaTeX 源文件
 
-### 未纳入论文的原因
 
-这两章的主题（最优停时问题）与论文的核心主题（可选停止定理的成立条件与失效机制）存在较明显的偏离——OST 关注的是"给定停时下期望是否守恒"，而秘书问题和美式期权关注的是"如何主动选择停时以最大化收益"。此外，课程大作业写七章篇幅过长，我目前也没有足够的时间对这两章的全部内容进行严格把关。
+这两章的主题（最优停时问题）与论文的核心主题（可选停止定理的成立条件与失效机制）存在较明显的偏离——OST 关注的是"给定停时下期望是否守恒"，而秘书问题和美式期权关注的是"如何主动选择停时以最大化收益"。
 
-### 代码状态说明
-
-⚠️ **`src/ch05_secretary/` 和 `src/ch06_option/` 中的代码我尚未系统核查过**，可能存在 Bug、数值不稳定或与理论公式不符之处。如需使用这部分代码，请仔细验证其正确性。目前这部分代码留作未来进一步探索的机会，若今后将论文扩展至最优停时方向，可以作为起点。
-
-## 参考文献
-
-项目论文的完整参考文献列表见 `paper/references.bib`。主要理论参考文献包括：
-
-- Doob, J. L. (1953). *Stochastic Processes*. Wiley.
-- Feller, W. (1968). *An Introduction to Probability Theory and Its Applications*, Vol. I, 3rd ed. Wiley.
-- Williams, D. (1991). *Probability with Martingales*. Cambridge University Press.
-- Gerber, H. U. (1979). *An Introduction to Mathematical Risk Theory*. S. S. Huebner Foundation.
-- Asmussen, S. & Albrecher, H. (2010). *Ruin Probabilities*, 2nd ed. World Scientific.
+此外，课程大作业写七章篇幅过长，我目前也没有足够的时间对这两章的全部内容进行严格把关。**`src/ch05_secretary/` 和 `src/ch06_option/` 中的代码我尚未系统核查过**，可能存在AI幻觉。如需使用这部分代码，请仔细验证其正确性。目前这部分代码留作未来进一步探索的机会。
 
 ## 致谢
 
+感谢授课老师张登老师和课程助教的教学与指导。
+
+## AI使用说明
+
 本项目由 DeepSeek V4（Claude Code 环境）、GPT 5.4（Codex 环境）以及 Gemini 3.5 Flash（普通问答）协助完成。
-
-## 许可
-
-本项目为课程作业，仅供学习交流。
