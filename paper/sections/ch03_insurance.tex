@@ -35,7 +35,7 @@
 \begin{equation}
   \mathbb{E}[M_t] = e^{-ru} \cdot \exp\{t[\lambda(M_Y(r) - 1) - rc]\}.
 \end{equation}
-若存在 $r > 0$ 使指数项 $\lambda(M_Y(r) - 1) - r c = 0$，则 $\mathbb{E}[M_t] = e^{-ru}$ 为常数。在安全负荷条件 $c > \lambda\mu$ 下，函数 $f(r) = \lambda(M_Y(r) - 1) - r c$ 满足 $f(0)=0$、$f'(0) = \lambda \mathbb{E}[Y] - c < 0$，且当 $r$ 趋于 $M_Y$ 的收敛半径时 $f(r) \to +\infty$。故存在唯一的正根 $R > 0$，称为调整系数，满足
+若存在 $r > 0$ 使指数项 $\lambda(M_Y(r) - 1) - r c = 0$，则 $\mathbb{E}[M_t] = e^{-ru}$ 为常数。在安全负荷条件 $c > \lambda\mu$ 下，函数 $f(r) = \lambda(M_Y(r) - 1) - r c$ 满足 $f(0)=0$、$f'(0) = \lambda \mathbb{E}[Y] - c < 0$。进一步假定索赔分布满足 Cram\'{e}r 条件：存在某个 $\gamma > 0$（可为 $+\infty$）使矩母函数 $M_Y(r)$ 在 $[0, \gamma)$ 上有限，且 $\lim_{r \uparrow \gamma} M_Y(r) = +\infty$。此时 $\lim_{r \uparrow \gamma} f(r) = +\infty$，故存在唯一的正根 $R \in (0, \gamma)$，称为调整系数，满足
 \begin{equation}\label{eq:lundberg_eq}
   \lambda(M_Y(R) - 1) = R c.
 \end{equation}
@@ -109,7 +109,7 @@
   \label{fig:ch03_paths}
 \end{figure}
 
-破产概率的定量估计在半对数坐标下展开。由于 Lundberg 上界 $e^{-Ru}$ 预言了指数衰减，对数 $y$ 轴上的近似直线形态（图~\ref{fig:ch03_ruin}）是理论成立的标志。Monte Carlo 估计（蓝色）在所有初始资本 $u$ 下均位于 Lundberg 上界（橙色）之下，验证了式~\eqref{eq:lundberg} 的保守性。值得注意的是，随着 $u$ 增大，误差棒在对数坐标下逐渐变宽——固定路径数下可观测到的破产事件随 $\psi(u)$ 的指数衰减而急剧减少，直接 Monte Carlo 对稀有事件的估计精度自然下降。这一现象本身也间接印证了破产概率的指数衰减速度。
+破产概率的定量估计在半对数坐标下展开。由于 Lundberg 上界 $e^{-Ru}$ 预言了指数衰减，对数 $y$ 轴上的近似直线形态（图~\ref{fig:ch03_ruin}）是理论成立的标志。Monte Carlo 估计的破产频率（蓝色）在所有初始资本 $u$ 下均位于 Lundberg 上界（橙色）之下，与式~\eqref{eq:lundberg} 的上界性质相容。由于有限时窗破产频率是最终破产概率的下界，该结果仅是 Lundberg 上界成立的必要条件而非充分验证。值得注意的是，随着 $u$ 增大，误差棒在对数坐标下逐渐变宽——固定路径数下可观测到的破产事件随 $\psi(u)$ 的指数衰减而急剧减少，直接 Monte Carlo 对稀有事件的估计精度自然下降。这一现象本身也间接印证了破产概率的指数衰减速度。
 
 \begin{figure}[H]
   \centering

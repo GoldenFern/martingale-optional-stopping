@@ -78,11 +78,11 @@ $X_\tau$ 只能取两个值：0（a固定）或 $N$（A固定）。设 $P_N = \m
 边界条件为 $t_0 = t_N = 0$。写成矩阵形式 $A \mathbf{t} = -\mathbf{1}$：
 \begin{equation}\label{eq:moran_matrix}
   \begin{pmatrix}
-    -2p_1 & p_1 & 0 & \cdots & 0 \\
-    p_2 & -2p_2 & p_2 & \cdots & 0 \\
-    0 & p_3 & -2p_3 & \cdots & 0 \\
-    \vdots & \vdots & \vdots & \ddots & \vdots \\
-    0 & 0 & 0 & \cdots & -2p_{N-1}
+    -2p_1 & p_1 & 0 & \cdots & 0 & 0 \\
+    p_2 & -2p_2 & p_2 & \cdots & 0 & 0 \\
+    0 & p_3 & -2p_3 & \cdots & 0 & 0 \\
+    \vdots & \vdots & \vdots & \ddots & \vdots & \vdots \\
+    0 & 0 & 0 & \cdots & p_{N-1} & -2p_{N-1}
   \end{pmatrix}
   \begin{pmatrix} t_1 \\ t_2 \\ t_3 \\ \vdots \\ t_{N-1} \end{pmatrix}
   =

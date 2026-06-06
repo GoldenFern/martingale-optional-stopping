@@ -49,20 +49,25 @@ class SurplusProcess:
         """生成 [0, T] 上的盈余轨迹（事件驱动）。
 
         返回 (time_points, surplus_values)，time_points[0]=0, surplus_values[0]=u。
+        若下一次索赔到达时间超过 time_horizon，只推进到 T 并停止。
         """
         self.reset()
         time_points = [0.0]
         surplus_values = [self._surplus]
         while self._current_time < time_horizon:
-            # 纯保费增长直到下次索赔
             interarrival_time = np.random.exponential(1 / self.claim_intensity)
+            if self._current_time + interarrival_time > time_horizon:
+                remaining_time = time_horizon - self._current_time
+                self._surplus += self.premium_rate * remaining_time
+                self._current_time = time_horizon
+                time_points.append(self._current_time)
+                surplus_values.append(self._surplus)
+                break
             claim_amount = self.claim_distribution.rvs()
-            # 在索赔时刻增加一个点
             self._current_time += interarrival_time
             self._surplus += self.premium_rate * interarrival_time
             time_points.append(self._current_time)
             surplus_values.append(self._surplus)
-            # 索赔后
             self._surplus -= claim_amount
             time_points.append(self._current_time)
             surplus_values.append(self._surplus)
@@ -71,12 +76,24 @@ class SurplusProcess:
         return np.array(time_points), np.array(surplus_values)
 
     def simulate_until_ruin_or_T(self, time_horizon: float):
-        """模拟直到破产或 T，返回 (ruined: bool, ruin_time: float, traj_times, traj_surplus)。"""
+        """模拟直到破产或 T，返回 (ruined: bool, ruin_time: float, traj_times, traj_surplus)。
+
+        注意：若下一次索赔到达时间超过 time_horizon，则只推进到 T 并停止，
+        不计入该次索赔。这保证了有限时窗破产概率的准确定义。
+        """
         self.reset()
         traj_times = [0.0]
         traj_surplus = [self._surplus]
         while self._current_time < time_horizon and self._surplus >= 0:
             interarrival_time = np.random.exponential(1 / self.claim_intensity)
+            if self._current_time + interarrival_time > time_horizon:
+                # 下次索赔在 T 之后，只推进到 T 并停止
+                remaining_time = time_horizon - self._current_time
+                self._surplus += self.premium_rate * remaining_time
+                self._current_time = time_horizon
+                traj_times.append(self._current_time)
+                traj_surplus.append(self._surplus)
+                break
             claim_amount = self.claim_distribution.rvs()
             self._current_time += interarrival_time
             self._surplus += self.premium_rate * interarrival_time

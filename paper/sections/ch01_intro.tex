@@ -65,8 +65,8 @@
 
 \subsubsection{可选停止定理及其反例}
 
-\begin{theorem}[可选停止定理 --- Doob]\label{thm:ost}
-设 $\{X_t\}$ 为鞅，$\tau$ 为停时。若以下三个条件之一成立，则 $\mathbb{E}[X_\tau] = \mathbb{E}[X_0]$：
+\begin{theorem}[可选停止定理（离散时间） --- Doob]\label{thm:ost}
+设 $\{X_n\}_{n \in \mathbb{N}}$ 为离散时间鞅，$\tau$ 为停时。若以下三个条件之一成立，则 $\mathbb{E}[X_\tau] = \mathbb{E}[X_0]$：
 \begin{enumerate}[noitemsep]
   \item $\tau$ 几乎必然有界，即存在常数 $K$ 使 $\mathbb{P}(\tau \leqslant K) = 1$；
   \item $\{X_{t \wedge \tau}\}$ 有界，即存在常数 $M$ 使 $|X_{t \wedge \tau}| \leqslant M$ 几乎必然对所有 $t$ 成立；
@@ -99,6 +99,8 @@
   \lim_{n \to \infty} \mathbb{E}[X_{\tau \wedge n}] = \mathbb{E}\Big[\lim_{n \to \infty} X_{\tau \wedge n}\Big] = \mathbb{E}[X_\tau].
 \end{equation}
 当一致可积性缺失时，被停过程的极限虽然几乎必然存在，但``概率质量''在未停止的路径上可能集中于极端值，破坏期望等式。
+
+对于连续时间鞅，本文第三章涉及的是有界停时（$\tau \wedge T$，其中 $T$ 为固定时窗），属于条件 1 的特例，上述离散时间证明的指示分解方法可自然地推广至连续时间（参见 \cite{doob1953stochastic} 的 optional sampling theorem），此处不再单独列出连续时间版本的定理陈述。
 
 为具体说明三个条件全部失效时的后果，考虑一个经典的 OST 反例。令 $S_n = \sum_{i=1}^{n} \eta_i$ 为对称随机游走，$\eta_i = \pm 1$ 各概率 $1/2$，$S_0 = 0$。定义停时 $\tau = \inf\{n: S_n = +1\}$。一维随机游走的常返性保证 $\tau < \infty$ 几乎必然。然而：
 \begin{itemize}[noitemsep]
