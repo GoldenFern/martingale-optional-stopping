@@ -108,8 +108,14 @@ def fig3_2_ruin_prob() -> None:
     initial_capitals = results_df["u"].to_numpy()
     ruin_probs_mc = results_df["psi_mc"].to_numpy()
 
-    ax.plot(initial_capitals, ruin_probs_mc, "o", color=COLOR_BLUE, markersize=5,
-            label="有限时窗 Monte Carlo 估计（$P(\\tau \\leqslant 200)$）")
+    batch_data = np.load(DATA_DIR / "exp3_ruin_prob_batches.npz")
+    capital_keys = [f"u_{int(u)}" for u in initial_capitals]
+    ruin_prob_se = np.array([np.std(batch_data[k], ddof=1) / np.sqrt(len(batch_data[k]))
+                             for k in capital_keys])
+
+    ax.errorbar(initial_capitals, ruin_probs_mc, yerr=1.96 * ruin_prob_se,
+                fmt="o", color=COLOR_BLUE, markersize=5, capsize=3, lw=0.8,
+                label="有限时窗 Monte Carlo 估计（$P(\\tau \\leqslant 200)$，95% CI）")
     ax.plot(results_df["u"], results_df["psi_lundberg"], "--", color=COLOR_ORANGE, lw=1.2,
             label="Lundberg 上界 $e^{-Ru}$")
 

@@ -65,12 +65,18 @@ def fig2_2_fixation(num_paths: int = 5000) -> None:
     set_style()
     results_df = pd.read_csv(DATA_DIR / "exp2_fixation.csv")
     subset_df = results_df[results_df["N"] == 50]
+    batch_data = np.load(DATA_DIR / "exp2_fixation_batches.npz")
 
     fig, ax = new_figure()
     initial_freq = subset_df["initial_freq"].to_numpy()
     fixation_prob_mc = subset_df["p_fixation_mc"].to_numpy()
+    freq_keys = [f"{f:.1f}" for f in initial_freq]
+    fixation_se = np.array([np.std(batch_data[k], ddof=1) / np.sqrt(len(batch_data[k]))
+                            for k in freq_keys])
 
-    ax.plot(initial_freq, fixation_prob_mc, "o", color=COLOR_BLUE, markersize=5, label="Monte Carlo 估计")
+    ax.errorbar(initial_freq, fixation_prob_mc, yerr=1.96 * fixation_se,
+                fmt="o", color=COLOR_BLUE, markersize=5, capsize=3, lw=0.8,
+                label="Monte Carlo 估计（95% CI）")
     ax.plot(initial_freq, initial_freq, "--", color=COLOR_RED, lw=1.15, label="理论值 $y=x_0/N$")
 
     ax.set_xlabel("A 等位基因初始频率 $x_0/N$")
@@ -93,8 +99,11 @@ def fig2_3_tau_comparison() -> None:
     initial_freq = subset_df["initial_freq"].to_numpy()
     mean_tau_mc = subset_df["tau_mc_mean"].to_numpy()
     mean_tau_theory = subset_df["tau_theory"].to_numpy()
+    tau_se = subset_df["tau_mc_se"].to_numpy()
 
-    ax.plot(initial_freq, mean_tau_mc, "o", color=COLOR_BLUE, markersize=5, label="Monte Carlo 估计")
+    ax.errorbar(initial_freq, mean_tau_mc, yerr=1.96 * tau_se,
+                fmt="o", color=COLOR_BLUE, markersize=5, capsize=3, lw=0.8,
+                label="Monte Carlo 估计（95% CI）")
     ax.plot(initial_freq, mean_tau_theory, "--", color=COLOR_RED, lw=1.15, label="理论值（三对角系统求解）")
 
     ax.set_xlabel("A 等位基因初始频率 $x_0/N$")

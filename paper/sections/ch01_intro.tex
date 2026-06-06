@@ -116,6 +116,12 @@
 
 对于需要参数扫描的实验（如破产概率随初始资本的变化），对每个参数值重复上述过程。所有代码以 Python 3.13 编写，数值计算依赖 NumPy 和 SciPy，图形绘制使用 Matplotlib。
 
+本文所有图中 Monte Carlo 估计点均附有误差棒（error bar），表示 95\% 置信区间（$\pm 1.96 \times \mathrm{SE}$）。标准误差 SE 根据估计量类型分别计算：
+\begin{itemize}[noitemsep]
+  \item \textbf{概率型估计量}（如固定概率、破产概率）：将 $M$ 条路径等分为 $K$ 个独立批次（本文取 $K = 10$），每批次独立估计目标概率 $p_k$，则 $\mathrm{SE} = \sqrt{\frac{1}{K(K-1)} \sum_{k=1}^{K} (p_k - \bar{p})^2}$，其中 $\bar{p}$ 为总体 Monte Carlo 估计。批次间的独立性保证了 SE 估计的无偏性，避免了直接使用二项标准误（$\sqrt{\bar{p}(1-\bar{p})/M}$）在有限相关样本下的低估。
+  \item \textbf{均值型估计量}（如期望停时）：直接计算样本均值的标准误差，即 $\mathrm{SE} = s / \sqrt{M}$，其中 $s$ 为 $M$ 条路径停时值的样本标准差。
+\end{itemize}
+
 在代码架构上，项目采用面向对象的模块化设计，分为公共核心层（\texttt{src/core/}）与各章实验层（\texttt{src/ch02\_moran/} 至 \texttt{src/ch04\_ruin/}）两级结构，文件组织如下图~\ref{fig:code_tree} 所示。核心层提供可复用的基础组件：\texttt{processes.py}（鞅过程抽象基类及具体实现）、\texttt{stopping\_times.py}（停时抽象基类及常用子类）、\texttt{simulation.py}（通用 Monte Carlo 模拟引擎）、\texttt{batching.py}（批次估计）和 \texttt{visualization.py}（统一绘图风格）。实验层整体遵循相近的模块分工：第二、三章包含模型定义文件、实验脚本和绘图脚本；第四章则直接复用 \texttt{core/processes.py} 中的对称随机游走实现，因此目录中仅保留实验脚本与绘图脚本。整套架构使得新增模型的实验通常只需编写模型定义与参数配置，无需重复实现模拟逻辑。
 
 \begin{figure}[H]
