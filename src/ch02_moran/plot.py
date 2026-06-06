@@ -11,8 +11,9 @@ import pandas as pd
 from matplotlib.ticker import FormatStrFormatter
 from scipy.stats import invgauss
 
-from ch02_moran.moran_model import MoranProcess
+from ch02_moran.moran_model import MoranProcess, expected_tau_moran
 from core.visualization import COLOR_BLUE, COLOR_RED, FIG_H, FIG_W, new_figure, plot_box_series, save_figure, set_style
+from scipy.interpolate import CubicSpline
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 DATA_DIR = PROJECT_ROOT / "output" / "data"
@@ -77,13 +78,16 @@ def fig2_2_fixation(num_paths: int = 50000) -> None:
     ax_main = fig.add_subplot(gs[0])
     ax_res = fig.add_subplot(gs[1], sharex=ax_main)
 
-    # ---- top: main comparison ----
-    ax_main.errorbar(initial_freq, fixation_prob_mc, yerr=1.96 * fixation_se,
-                     fmt="o", color=COLOR_BLUE, markersize=5, capsize=5,
-                     elinewidth=1.0, markerfacecolor="white", markeredgewidth=1.0,
-                     label="Monte Carlo 估计（95% CI）")
-    ax_main.plot(initial_freq, initial_freq, "--", color=COLOR_RED, lw=1.15,
+    # ---- top: main comparison with confidence band ----
+    x_dense = np.linspace(0, 1, 200)
+    theory_se_band = 1.96 * np.sqrt(x_dense * (1 - x_dense) / num_paths)
+    ax_main.fill_between(x_dense, x_dense - theory_se_band, x_dense + theory_se_band,
+                         color=COLOR_RED, alpha=0.10, lw=0, label="95% 置信带（二项 SE）")
+    ax_main.plot(x_dense, x_dense, "-", color=COLOR_RED, lw=1.15,
                  label="理论值 $y=x_0/N$")
+    ax_main.plot(initial_freq, fixation_prob_mc, "o", color=COLOR_BLUE,
+                 markersize=5, markerfacecolor="white", markeredgewidth=1.0,
+                 label="Monte Carlo 估计")
     ax_main.set_ylabel("固定概率")
     ax_main.set_title("固定概率与 A 等位基因初始频率（$N=50$）")
     ax_main.legend(loc="upper left", fontsize=8)
@@ -104,7 +108,7 @@ def fig2_2_fixation(num_paths: int = 50000) -> None:
     save_figure(fig, "ch02_fixation.pdf")
 
 
-def fig2_3_tau_comparison() -> None:
+def fig2_3_tau_comparison(num_paths: int = 50000) -> None:
     """图 2.3：不同 A等位基因初始频率下 Monte Carlo 停时均值与理论解对比，含残差子图。"""
     set_style()
     results_df = pd.read_csv(DATA_DIR / "exp2_fixation.csv")
@@ -116,18 +120,29 @@ def fig2_3_tau_comparison() -> None:
     tau_se = subset_df["tau_mc_se"].to_numpy()
     residuals = mean_tau_mc - mean_tau_theory
 
+    # Full theory curve at all interior states
+    N = 50
+    tau_full = expected_tau_moran(N)
+    freq_full = np.arange(0, N + 1) / N  # x-coords for all states
+    # Interpolate SE to all interior states (use only sampled nonzero SE)
+    se_interp = CubicSpline(np.concatenate([[0], initial_freq, [1]]),
+                            np.concatenate([[0.0], tau_se, [0.0]]))
+    se_full = se_interp(freq_full)
+    se_full = np.maximum(se_full, 0)  # clip negative interpolation artifacts
+
     fig = plt.figure(figsize=(FIG_W, FIG_H * 1.28), constrained_layout=True)
     gs = fig.add_gridspec(2, 1, height_ratios=[2.5, 1], hspace=0.12)
     ax_main = fig.add_subplot(gs[0])
     ax_res = fig.add_subplot(gs[1], sharex=ax_main)
 
-    # ---- top: main comparison ----
-    ax_main.errorbar(initial_freq, mean_tau_mc, yerr=1.96 * tau_se,
-                     fmt="o", color=COLOR_BLUE, markersize=5, capsize=5,
-                     elinewidth=1.0, markerfacecolor="white", markeredgewidth=1.0,
-                     label="Monte Carlo 估计（95% CI）")
-    ax_main.plot(initial_freq, mean_tau_theory, "--", color=COLOR_RED, lw=1.15,
+    # ---- top: main comparison with confidence band ----
+    ax_main.fill_between(freq_full, tau_full - 1.96 * se_full, tau_full + 1.96 * se_full,
+                         color=COLOR_RED, alpha=0.10, lw=0, label="95% 置信带（插值 SE）")
+    ax_main.plot(freq_full, tau_full, "-", color=COLOR_RED, lw=1.15,
                  label="理论值（三对角系统求解）")
+    ax_main.plot(initial_freq, mean_tau_mc, "o", color=COLOR_BLUE,
+                 markersize=5, markerfacecolor="white", markeredgewidth=1.0,
+                 label="Monte Carlo 估计")
     ax_main.set_ylabel("期望停时 $\\mathbb{E}[\\tau]$")
     ax_main.set_title("停时期望：Monte Carlo 与理论解对比（$N=50$）")
     ax_main.legend(loc="upper left", fontsize=8)
