@@ -65,40 +65,7 @@ $X_\tau$ 只能取两个值：0（a固定）或 $N$（A固定）。设 $P_N = \m
 \begin{equation}
   t_i = \mathbb{E}[\tau \mid X_0 = i], \qquad i = 0,1,\dots,N.
 \end{equation}
-为了说明 OST 与平均吸收时间之间的联系，先考察平方过程。注意到 $\{X_n\}$ 是鞅，由 Jensen 不等式知 $\{X_n^2\}$ 是下鞅。对其做 Doob 分解，
-\begin{equation}
-  X_n^2 = M_n + A_n,
-\end{equation}
-其中 $M_n$ 为鞅，$A_n$ 为可料增过程，且
-\begin{equation}
-  A_n = \sum_{k=1}^{n} \mathbb{E}[X_k^2 - X_{k-1}^2 \mid \mathcal{F}_{k-1}].
-\end{equation}
-一步条件期望平方增量为
-\begin{align}
-  \mathbb{E}[X_{k}^2 \mid X_{k-1}=i] - i^2
-  &= \Big[(i+1)^2 + (i-1)^2\Big] \frac{i(N-i)}{N^2}
-   + i^2 \Big(1 - \frac{2i(N-i)}{N^2}\Big) - i^2 \notag\\
-  &= \frac{2i(N-i)}{N^2}.
-\end{align}
-因此
-\begin{equation}
-  A_n = \sum_{k=1}^{n} \frac{2 X_{k-1} (N - X_{k-1})}{N^2}.
-\end{equation}
-对停时 $\tau$ 应用 OST（因其满足条件 2），有 $\mathbb{E}[M_\tau] = \mathbb{E}[M_0] = x_0^2$，从而
-\begin{equation}
-  \mathbb{E}[X_\tau^2] - x_0^2
-  = \mathbb{E}[A_\tau]
-  = \mathbb{E}\Bigg[\sum_{k=1}^{\tau} \frac{2 X_{k-1} (N - X_{k-1})}{N^2}\Bigg].
-\end{equation}
-由于 $X_\tau \in \{0, N\}$，左端还可以写成
-\begin{equation}\label{eq:moran_tau_ost}
-  N x_0 - x_0^2
-  = \frac{2}{N^2}
-  \mathbb{E}\Bigg[\sum_{k=1}^{\tau} X_{k-1} (N - X_{k-1})\Bigg].
-\end{equation}
-\eqref{eq:moran_tau_ost} 给出了一个关于停时的加权占时公式：吸收前在中间状态附近逗留得越久，右端的累计贡献越大。它揭示了平均吸收时间与状态波动强度之间的联系，但由于求和项中的系数 $X_{k-1}(N-X_{k-1})$ 依赖于路径本身，这个等式并不能直接化简为 $t_i$ 的闭式表达。
-
-因此在数值上，更直接且稳定的办法是对出生-死亡链做一步分析。设当前状态为 $i$（其中 $1 \leqslant i \leqslant N-1$），则下一步可能上升、下降或保持不变，于是
+对出生-死亡链做一步分析。设当前状态为 $i$（其中 $1 \leqslant i \leqslant N-1$），则下一步可能上升、下降或保持不变，于是
 \begin{equation}
   t_i
   = 1 + p_{i,i+1} t_{i+1} + p_{i,i-1} t_{i-1}
@@ -137,7 +104,7 @@ $X_\tau$ 只能取两个值：0（a固定）或 $N$（A固定）。设 $P_N = \m
     \midrule
     种群规模 $N$ & 50 & 50 \\
     初始 A 个数 $x_0$ & $\{5, 10, \dots, 45\}$ & $\{5, 10, \dots, 45\}$ \\
-    模拟路径数 $M$ & 5000 $\times$ 9 组 & 5000 $\times$ 9 组 \\
+    模拟路径数 $M$ & 20000 $\times$ 9 组 & 20000 $\times$ 9 组 \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -153,21 +120,21 @@ $X_\tau$ 只能取两个值：0（a固定）或 $N$（A固定）。设 $P_N = \m
   \label{fig:ch02_paths}
 \end{figure}
 
-\textbf{图~\ref{fig:ch02_fixation}} 比较了 $N=50$ 时 Monte Carlo 估计的固定概率与理论值 $x_0/N$。每个 A 等位基因初始频率下用 5000 条独立路径估计这一概率。九个不同初始频率下的 Monte Carlo 估计都紧贴对角线 $y=x$，说明这一结论不仅在总体均值上成立，在统计推断层面同样可靠。这一结果验证了 OST 在这一模型中的精确成立——由于过程有界（$|X_n| \leqslant N$），OST 的条件 2 无保留地满足，等式 $\mathbb{E}[X_\tau] = \mathbb{E}[X_0]$ 严格成立，进而导出 $\mathbb{P}(\text{A固定}) = x_0/N$ 这一简洁解析公式。
+\textbf{图~\ref{fig:ch02_fixation}} 比较了 $N=50$ 时 Monte Carlo 估计的固定概率与理论值 $x_0/N$。每个 A 等位基因初始频率下用 20000 条独立路径估计这一概率。九个不同初始频率下的 Monte Carlo 估计都紧贴对角线 $y=x$，说明这一结论不仅在总体均值上成立，在统计推断层面同样可靠。这一结果验证了 OST 在这一模型中的精确成立——由于过程有界（$|X_n| \leqslant N$），OST 的条件 2 无保留地满足，等式 $\mathbb{E}[X_\tau] = \mathbb{E}[X_0]$ 严格成立，进而导出 $\mathbb{P}(\text{A固定}) = x_0/N$ 这一简洁解析公式。
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.9\textwidth]{ch02_fixation}
-  \caption{固定概率与 A 等位基因初始频率的关系（$N=50$）。蓝色圆点为 Monte Carlo 估计（5000 条路径）；红色虚线为理论值 $y = x_0/N$，是 OST 的直接推论。估计值与理论线高度吻合。}
+  \caption{固定概率与 A 等位基因初始频率的关系（$N=50$）。蓝色圆点为 Monte Carlo 估计（20000 条路径）；红色虚线为理论值 $y = x_0/N$，是 OST 的直接推论。估计值与理论线高度吻合。}
   \label{fig:ch02_fixation}
 \end{figure}
 
-\textbf{图~\ref{fig:ch02_tau_sim}} 将不同 A 等位基因初始频率下的 Monte Carlo 停时均值与三对角线性系统给出的理论解进行了直接对比。横轴为 A 等位基因初始频率 $x_0/N$，纵轴为吸收时间的期望值。可以看到，模拟估计（蓝色圆点）与理论值（红色虚线）在整个频率范围内基本吻合，多数初值下相对误差低于 2\%，仅在 $x_0/N = 0.4$ 处达到最大相对误差约 3.1\%。这一对比验证了式~\eqref{eq:moran_matrix} 中三对角系统推导的正确性，也表明 OST 框架下对平方过程做 Doob 分解得到期望停时关系的方法是自洽的。
+\textbf{图~\ref{fig:ch02_tau_sim}} 将不同 A 等位基因初始频率下的 Monte Carlo 停时均值与三对角线性系统给出的理论解进行了直接对比。横轴为 A 等位基因初始频率 $x_0/N$，纵轴为吸收时间的期望值。可以看到，模拟估计（蓝色圆点）与理论值（红色虚线）在整个频率范围内高度吻合。这一对比验证了式~\eqref{eq:moran_matrix} 中三对角系统推导的正确性。
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.9\textwidth]{ch02_tau_sim}
-  \caption{不同 A 等位基因初始频率下 Monte Carlo 停时均值与理论解的对比（$N=50$）。蓝色圆点为 Monte Carlo 估计（5000 条路径）；红色虚线为三对角线性系统~\eqref{eq:moran_matrix} 给出的理论值。}
+  \caption{不同 A 等位基因初始频率下 Monte Carlo 停时均值与理论解的对比（$N=50$）。蓝色圆点为 Monte Carlo 估计（20000 条路径）；红色虚线为三对角线性系统~\eqref{eq:moran_matrix} 给出的理论值。}
   \label{fig:ch02_tau_sim}
 \end{figure}
 
