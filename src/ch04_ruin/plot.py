@@ -101,7 +101,7 @@ def fig4_2_unilateral_paths(max_steps: int = 10000, seed: int = 43) -> None:
         if len(reached_paths) >= 8 and len(truncated_paths) >= 8:
             break
 
-    # Left: paths that reach +b
+    # Top: paths that reach +b
     for path_array in reached_paths[:8]:
         tau_value = len(path_array) - 1
         ax1.plot(path_array, color=COLOR_BLUE, alpha=0.5, lw=0.45)
@@ -113,7 +113,7 @@ def fig4_2_unilateral_paths(max_steps: int = 10000, seed: int = 43) -> None:
     ax1.set_ylabel("$S_n$")
     ax1.set_title("成功达到 $+10$ 的路径")
 
-    # Right: truncated paths
+    # Bottom: truncated paths
     for path_array in truncated_paths[:8]:
         ax2.plot(path_array, color=COLOR_RED, alpha=0.55, lw=0.45)
     ax2.axhline(UPPER_BARRIER, color=COLOR_BLUE, lw=0.6, ls="--", alpha=0.5)
