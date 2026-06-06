@@ -118,7 +118,7 @@
 
 本文所有图中 Monte Carlo 估计点均附有误差棒（error bar），表示 95\% 置信区间（$\pm 1.96 \times \mathrm{SE}$）。标准误差 SE 根据估计量类型分别计算：
 \begin{itemize}[noitemsep]
-  \item \textbf{概率型估计量}（如固定概率、破产概率）：将 $M$ 条路径等分为 $K$ 个独立批次（本文取 $K = 10$），每批次独立估计目标概率 $p_k$，则 $\mathrm{SE} = \sqrt{\frac{1}{K(K-1)} \sum_{k=1}^{K} (p_k - \bar{p})^2}$，其中 $\bar{p}$ 为总体 Monte Carlo 估计。批次间的独立性保证了 SE 估计的无偏性，避免了直接使用二项标准误（$\sqrt{\bar{p}(1-\bar{p})/M}$）在有限相关样本下的低估。
+  \item \textbf{概率型估计量}（如固定概率）：每条路径给出独立的 Bernoulli 结果，故直接使用二项标准误 $\mathrm{SE} = \sqrt{\hat{p}(1-\hat{p})/M}$，其中 $\hat{p}$ 为 $M$ 条独立路径的 Monte Carlo 概率估计。对于破产概率（图 3.2），为保留批次间的离散信息供箱线图使用，改为从 $K$ 个批次估计中计算 $\mathrm{SE} = \operatorname{std}(\{p_k\})/\sqrt{K}$。
   \item \textbf{均值型估计量}（如期望停时）：直接计算样本均值的标准误差，即 $\mathrm{SE} = s / \sqrt{M}$，其中 $s$ 为 $M$ 条路径停时值的样本标准差。
 \end{itemize}
 

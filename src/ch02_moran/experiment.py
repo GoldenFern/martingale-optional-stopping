@@ -12,7 +12,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 DATA_DIR = PROJECT_ROOT / 'output' / 'data'
 
 
-def run_fixation_experiment(pop_size=50, num_paths=20000, seed=42):
+def run_fixation_experiment(pop_size=50, num_paths=50000, seed=42):
     """实验：固定概率 vs A等位基因初始频率，仅 N=50。"""
     np.random.seed(seed)
     allele_frequencies = np.arange(0.1, 1.0, 0.1)

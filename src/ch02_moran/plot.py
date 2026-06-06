@@ -59,9 +59,8 @@ def fig2_1_paths(pop_size: int = 50, initial_allele_count: int = 25, n_display: 
     save_figure(fig, "ch02_paths.pdf")
 
 
-def fig2_2_fixation(num_paths: int = 5000) -> None:
+def fig2_2_fixation(num_paths: int = 50000) -> None:
     """图 2.2：固定概率 vs A等位基因初始频率，仅 N=50。"""
-    _ = num_paths
     set_style()
     results_df = pd.read_csv(DATA_DIR / "exp2_fixation.csv")
     subset_df = results_df[results_df["N"] == 50]
@@ -69,9 +68,8 @@ def fig2_2_fixation(num_paths: int = 5000) -> None:
 
     initial_freq = subset_df["initial_freq"].to_numpy()
     fixation_prob_mc = subset_df["p_fixation_mc"].to_numpy()
-    freq_keys = [f"{f:.1f}" for f in initial_freq]
-    fixation_se = np.array([np.std(batch_data[k], ddof=1) / np.sqrt(len(batch_data[k]))
-                            for k in freq_keys])
+    # Binomial SE — exact for independent Bernoulli trials
+    fixation_se = np.sqrt(fixation_prob_mc * (1 - fixation_prob_mc) / num_paths)
     residuals = fixation_prob_mc - initial_freq
 
     fig = plt.figure(figsize=(FIG_W, FIG_H * 1.28), constrained_layout=True)

@@ -104,7 +104,7 @@ $X_\tau$ 只能取两个值：0（a固定）或 $N$（A固定）。设 $P_N = \m
     \midrule
     种群规模 $N$ & 50 & 50 \\
     初始 A 个数 $x_0$ & $\{5, 10, \dots, 45\}$ & $\{5, 10, \dots, 45\}$ \\
-    模拟路径数 $M$ & 20000 $\times$ 9 组 & 20000 $\times$ 9 组 \\
+    模拟路径数 $M$ & 50000 $\times$ 9 组 & 50000 $\times$ 9 组 \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -120,12 +120,12 @@ $X_\tau$ 只能取两个值：0（a固定）或 $N$（A固定）。设 $P_N = \m
   \label{fig:ch02_paths}
 \end{figure}
 
-\textbf{图~\ref{fig:ch02_fixation}} 比较了 $N=50$ 时 Monte Carlo 估计的固定概率与理论值 $x_0/N$。每个 A 等位基因初始频率下用 20000 条独立路径估计这一概率。上图可见九个不同初始频率下的 Monte Carlo 估计都紧贴对角线 $y=x$，下图残差面板显示偏离幅度很小且不呈现系统性模式。这一结果验证了 OST 在这一模型中的精确成立——由于过程有界（$|X_n| \leqslant N$），OST 的条件 2 无保留地满足，等式 $\mathbb{E}[X_\tau] = \mathbb{E}[X_0]$ 严格成立，进而导出 $\mathbb{P}(\text{A固定}) = x_0/N$ 这一简洁解析公式。
+\textbf{图~\ref{fig:ch02_fixation}} 比较了 $N=50$ 时 Monte Carlo 估计的固定概率与理论值 $x_0/N$。每个 A 等位基因初始频率下用 50000 条独立路径估计这一概率。上图可见九个不同初始频率下的 Monte Carlo 估计都紧贴对角线 $y=x$，下图残差面板显示偏离幅度很小且不呈现系统性模式。这一结果验证了 OST 在这一模型中的精确成立——由于过程有界（$|X_n| \leqslant N$），OST 的条件 2 无保留地满足，等式 $\mathbb{E}[X_\tau] = \mathbb{E}[X_0]$ 严格成立，进而导出 $\mathbb{P}(\text{A固定}) = x_0/N$ 这一简洁解析公式。
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.9\textwidth]{ch02_fixation}
-  \caption{固定概率与 A 等位基因初始频率的关系（$N=50$）。上图：Monte Carlo 估计（蓝色圆点，20000 条路径，误差棒为 95\% 置信区间）与理论值 $y = x_0/N$（红色虚线）对比。下图：估计值偏离理论值的残差。}
+  \caption{固定概率与 A 等位基因初始频率的关系（$N=50$）。上图：Monte Carlo 估计（蓝色圆点，50000 条路径，误差棒为 95\% 置信区间）与理论值 $y = x_0/N$（红色虚线）对比。下图：估计值偏离理论值的残差。}
   \label{fig:ch02_fixation}
 \end{figure}
 
@@ -134,7 +134,7 @@ $X_\tau$ 只能取两个值：0（a固定）或 $N$（A固定）。设 $P_N = \m
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.9\textwidth]{ch02_tau_sim}
-  \caption{不同 A 等位基因初始频率下 Monte Carlo 停时均值与理论解的对比（$N=50$）。上图：Monte Carlo 估计（蓝色圆点，20000 条路径，误差棒为 95\% 置信区间）与三对角线性系统~\eqref{eq:moran_matrix} 给出的理论值（红色虚线）对比。下图：估计值偏离理论值的残差。}
+  \caption{不同 A 等位基因初始频率下 Monte Carlo 停时均值与理论解的对比（$N=50$）。上图：Monte Carlo 估计（蓝色圆点，50000 条路径，误差棒为 95\% 置信区间）与三对角线性系统~\eqref{eq:moran_matrix} 给出的理论值（红色虚线）对比。下图：估计值偏离理论值的残差。}
   \label{fig:ch02_tau_sim}
 \end{figure}
 
