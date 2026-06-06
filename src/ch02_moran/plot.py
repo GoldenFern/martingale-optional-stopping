@@ -13,7 +13,6 @@ from scipy.stats import invgauss
 
 from ch02_moran.moran_model import MoranProcess, expected_tau_moran
 from core.visualization import COLOR_BLUE, COLOR_RED, FIG_H, FIG_W, new_figure, plot_box_series, save_figure, set_style
-from scipy.interpolate import CubicSpline
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 DATA_DIR = PROJECT_ROOT / "output" / "data"
@@ -78,11 +77,8 @@ def fig2_2_fixation(num_paths: int = 50000) -> None:
     ax_main = fig.add_subplot(gs[0])
     ax_res = fig.add_subplot(gs[1], sharex=ax_main)
 
-    # ---- top: main comparison with confidence band ----
+    # ---- top: main comparison ----
     x_dense = np.linspace(0, 1, 200)
-    theory_se_band = 1.96 * np.sqrt(x_dense * (1 - x_dense) / num_paths)
-    ax_main.fill_between(x_dense, x_dense - theory_se_band, x_dense + theory_se_band,
-                         color=COLOR_RED, alpha=0.10, lw=0, label="95% 置信带（二项 SE）")
     ax_main.plot(x_dense, x_dense, "-", color=COLOR_RED, lw=1.15,
                  label="理论值 $y=x_0/N$")
     ax_main.plot(initial_freq, fixation_prob_mc, "o", color=COLOR_BLUE,
@@ -123,21 +119,14 @@ def fig2_3_tau_comparison(num_paths: int = 50000) -> None:
     # Full theory curve at all interior states
     N = 50
     tau_full = expected_tau_moran(N)
-    freq_full = np.arange(0, N + 1) / N  # x-coords for all states
-    # Interpolate SE to all interior states (use only sampled nonzero SE)
-    se_interp = CubicSpline(np.concatenate([[0], initial_freq, [1]]),
-                            np.concatenate([[0.0], tau_se, [0.0]]))
-    se_full = se_interp(freq_full)
-    se_full = np.maximum(se_full, 0)  # clip negative interpolation artifacts
+    freq_full = np.arange(0, N + 1) / N
 
     fig = plt.figure(figsize=(FIG_W, FIG_H * 1.28), constrained_layout=True)
     gs = fig.add_gridspec(2, 1, height_ratios=[2.5, 1], hspace=0.12)
     ax_main = fig.add_subplot(gs[0])
     ax_res = fig.add_subplot(gs[1], sharex=ax_main)
 
-    # ---- top: main comparison with confidence band ----
-    ax_main.fill_between(freq_full, tau_full - 1.96 * se_full, tau_full + 1.96 * se_full,
-                         color=COLOR_RED, alpha=0.10, lw=0, label="95% 置信带（插值 SE）")
+    # ---- top: main comparison ----
     ax_main.plot(freq_full, tau_full, "-", color=COLOR_RED, lw=1.15,
                  label="理论值（三对角系统求解）")
     ax_main.plot(initial_freq, mean_tau_mc, "o", color=COLOR_BLUE,
