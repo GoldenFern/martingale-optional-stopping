@@ -156,38 +156,23 @@ def fig4_3_tail() -> None:
 
 
 def fig4_4_truncation_convergence() -> None:
-    """图 4.4：不同截断 N 下 E[S_{τ_N}] 的收敛行为，含残差子图。"""
+    """图 4.4：不同截断 N 下 E[S_{τ_N}] 的收敛行为。"""
     set_style()
     df = pd.read_csv(DATA_DIR / "exp4_truncation.csv")
     truncation_limits = df["N"].to_numpy()
     means = df["mean"].to_numpy()
     ses = df["se"].to_numpy()
 
-    fig = plt.figure(figsize=(FIG_W, FIG_H * 1.28), constrained_layout=True)
-    gs = fig.add_gridspec(2, 1, height_ratios=[2.5, 1], hspace=0.12)
-    ax_main = fig.add_subplot(gs[0])
-    ax_res = fig.add_subplot(gs[1], sharex=ax_main)
-
-    # Top: E[S_{τ_N}] vs N (log scale for N)
-    ax_main.errorbar(truncation_limits, means, yerr=1.96 * ses,
-                     fmt="o", color=COLOR_BLUE, markersize=4.5, capsize=4,
-                     elinewidth=1.0, markerfacecolor="white", markeredgewidth=1.0)
-    ax_main.axhline(0, color=COLOR_GRAY, lw=0.6, ls="--", alpha=0.7)
-    ax_main.set_xscale("log")
-    ax_main.set_ylabel("$\\mathbb{E}[S_{\\tau_N}]$")
-    ax_main.set_title(f"截断停时期望收敛（单边障碍 $b={UPPER_BARRIER}$）")
-    emphasize_log_grid(ax_main)
-    plt.setp(ax_main.get_xticklabels(), visible=False)
-
-    # Bottom: residuals (E[S_{τ_N}] - 0 = E[S_{τ_N}])
-    ax_res.axhline(0, color=COLOR_GRAY, lw=0.6, ls="--", alpha=0.7)
-    ax_res.errorbar(truncation_limits, means, yerr=1.96 * ses,
-                    fmt="o", color=COLOR_BLUE, markersize=4.5, capsize=4,
-                    elinewidth=1.0, markerfacecolor="white", markeredgewidth=1.0)
-    ax_res.set_xscale("log")
-    ax_res.set_xlabel("截断 $N$")
-    ax_res.set_ylabel("残差")
-    emphasize_log_grid(ax_res)
+    fig, ax = new_figure()
+    ax.errorbar(truncation_limits, means, yerr=1.96 * ses,
+                fmt="o", color=COLOR_BLUE, markersize=4.5, capsize=4,
+                elinewidth=1.0, markerfacecolor="white", markeredgewidth=1.0)
+    ax.axhline(0, color=COLOR_GRAY, lw=0.6, ls="--", alpha=0.7)
+    ax.set_xscale("log")
+    ax.set_xlabel("截断 $N$")
+    ax.set_ylabel("$\\mathbb{E}[S_{\\tau_N}]$")
+    ax.set_title(f"截断停时期望收敛（单边障碍 $b={UPPER_BARRIER}$）")
+    emphasize_log_grid(ax)
 
     save_figure(fig, "ch04_truncation.pdf")
 
