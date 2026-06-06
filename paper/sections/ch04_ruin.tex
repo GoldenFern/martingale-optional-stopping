@@ -97,17 +97,17 @@
   \centering
   \caption{赌徒破产模型数值实验条件}
   \label{tab:gambler_params}
-  \begin{tabular}{llll}
+  \begin{tabular}{lllll}
     \toprule
-    参数 & 图 4.1 & 图 4.2 & 图 4.3 \\
+    参数 & 图 4.1 & 图 4.2 & 图 4.3 & 图 4.4 \\
     \midrule
-    初始资金 $(a,b)$ & $(20,10)$ & $(20,10)$ & $(20,10)$ \\
-    胜率 $p$ & 0.5 & 0.5 & 0.5 \\
-    双边障碍 & $[-20, 10]$ & — & $[-20, 10]$ \\
-    单边障碍 & — & $\tau_{\text{one}} = \inf\{n:S_n=+10\}$ & $\tau_{\text{one}} = \inf\{n:S_n=+10\}$ \\
-    路径数 & 12（展示） & 16（展示） & 3000 \\
-    最大步数 & 10000 & 10000 & 5000 \\
-    实验目标 & 双边样本轨道 & 单边样本轨道与截断 & 停时尾部比较 \\
+    初始资金 $(a,b)$ & $(20,10)$ & $(20,10)$ & $(20,10)$ & $(20,10)$ \\
+    胜率 $p$ & 0.5 & 0.5 & 0.5 & 0.5 \\
+    双边障碍 & $[-20, 10]$ & — & $[-20, 10]$ & — \\
+    单边障碍 & — & $\tau_{\text{one}} = \inf\{n:S_n=+10\}$ & $\tau_{\text{one}} = \inf\{n:S_n=+10\}$ & $\tau_{\text{one}} = \inf\{n:S_n=+10\}$ \\
+    路径数 & 15（展示） & 16（展示） & 3000 & 1000 $\times$ 12 批 \\
+    最大步数 & 10000 & 10000 & 5000 & $\log$-spaced $[10,10^5]$ \\
+    实验目标 & 双边样本轨道 & 单边样本轨道与截断 & 停时尾部比较 & 截断收敛 \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -137,4 +137,13 @@
   \includegraphics[width=0.9\textwidth]{ch04_tail}
   \caption{停时生存函数 $\mathbb{P}(\tau > t)$ 的双对数图。3000 条独立路径的经验生存函数：双边停时为轻尾，$\mathbb{E}[\tau] < \infty$；单边停时呈 $C t^{-1/2}$ 型重尾，$\mathbb{E}[\tau] = \infty$。重尾性是 OST 条件 3 失效的微观原因。}
   \label{fig:ch04_tail}
+\end{figure}
+
+截断停时的收敛行为（图~\ref{fig:ch04_truncation}）从数值角度直观展示了式~\eqref{eq:no_ui_limit} 中 $\lim\mathbb{E} \neq \mathbb{E}\lim$ 这一核心现象。上图可见，对每个固定的截断 $N$，$\mathbb{E}[S_{\tau_N}]$ 均围绕零波动（因 $\tau_N \leqslant N$ 有界，OST 成立），与理论预测一致；随着 $N$ 增长至 $10^5$，估计值并未收敛至 $b=10$，而是持续在零附近震荡。这一行为正是 $\{S_{\tau_N}\}$ 缺乏一致可积性的数值签名：虽然绝大多数路径在几百步内即命中 $+10$，但极少数顽固路径在负半轴累积了足够大的负值，其贡献在期望计算中恰好与大量 $+10$ 路径抵消。值得注意的是，此处所有路径——无论是否在 $N$ 步内命中——均参与期望计算，被截断路径以其在截断时刻的实际位置 $S_N$ 贡献于均值。
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{ch04_truncation}
+  \caption{截断停时期望 $\mathbb{E}[S_{\tau_N}]$ 随截断 $N$ 的变化。上图：期望值在不同 $N$ 下的 Monte Carlo 估计（1000 条路径，12 批次，误差棒为 95\% 置信区间），灰色虚线为零线；下图：残差面板。对所有 $N$，估计值均围绕零波动，不收敛至 $b=10$，体现了一致可积性的缺失。}
+  \label{fig:ch04_truncation}
 \end{figure}

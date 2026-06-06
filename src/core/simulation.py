@@ -61,15 +61,23 @@ class MonteCarloSimulation:
         )
 
     def estimate_expectation(self, initial_state: float, num_paths: int, max_steps: int,
-                             seed: Optional[int] = None) -> tuple[float, float]:
-        """估计 E[X_τ] 及其标准误差（仅使用在 max_steps 内触发停时的路径）。"""
+                             seed: Optional[int] = None,
+                             include_all: bool = False) -> tuple[float, float]:
+        """估计 E[X_τ] 及其标准误差。
+
+        默认仅使用在 max_steps 内触发停时的路径；若 include_all=True，
+        则将所有路径（含截断）纳入计算，截断路径的停时值取其当前状态。
+        """
         result = self.run(initial_state, num_paths, max_steps, seed)
-        reached_mask = result.reached_stop
-        if reached_mask.sum() == 0:
-            return float('nan'), float('nan')
-        reached_values = result.stopped_values[reached_mask]
-        estimated_mean = np.mean(reached_values)
-        std_error = np.std(reached_values, ddof=1) / np.sqrt(len(reached_values))
+        if include_all:
+            values = result.stopped_values
+        else:
+            reached_mask = result.reached_stop
+            if reached_mask.sum() == 0:
+                return float('nan'), float('nan')
+            values = result.stopped_values[reached_mask]
+        estimated_mean = np.mean(values)
+        std_error = np.std(values, ddof=1) / np.sqrt(len(values))
         return estimated_mean, std_error
 
     def estimate_convergence(self, initial_state: float, path_counts: np.ndarray,

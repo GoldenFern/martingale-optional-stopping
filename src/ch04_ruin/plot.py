@@ -7,12 +7,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "src"))
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 
 from core.processes import SymmetricRW
 from core.visualization import (
     COLOR_BLUE,
     COLOR_GRAY,
     COLOR_RED,
+    FIG_H,
+    FIG_W,
     emphasize_log_grid,
     new_figure,
     new_figure_dual,
@@ -33,9 +36,8 @@ def fig4_1_paths(seed: int = 42) -> None:
     random_walk = SymmetricRW(0.5)
 
     fig, ax = new_figure()
-    num_display_paths = 12
-    up_target = 8   # P(up) = a/(a+b) = 20/30 = 2/3
-    down_target = 4  # P(down) = b/(a+b) = 10/30 = 1/3
+    up_target = 10   # P(up) = a/(a+b) = 20/30 = 2/3
+    down_target = 5  # P(down) = b/(a+b) = 10/30 = 1/3
     up_count, down_count = 0, 0
     for _ in range(200):
         random_walk.reset(0.0)
@@ -98,11 +100,11 @@ def fig4_2_unilateral_paths(max_steps: int = 10000, seed: int = 43) -> None:
                 break
         else:
             truncated_paths.append(np.array(path))
-        if len(reached_paths) >= 8 and len(truncated_paths) >= 8:
+        if len(reached_paths) >= 12 and len(truncated_paths) >= 4:
             break
 
     # Top: paths that reach +b
-    for path_array in reached_paths[:8]:
+    for path_array in reached_paths[:12]:
         tau_value = len(path_array) - 1
         ax1.plot(path_array, color=COLOR_BLUE, alpha=0.5, lw=0.45)
         ax1.scatter(tau_value, path_array[-1], color=COLOR_BLUE, s=8, zorder=5)
@@ -114,7 +116,7 @@ def fig4_2_unilateral_paths(max_steps: int = 10000, seed: int = 43) -> None:
     ax1.set_title("成功达到 $+10$ 的路径")
 
     # Bottom: truncated paths
-    for path_array in truncated_paths[:8]:
+    for path_array in truncated_paths[:4]:
         ax2.plot(path_array, color=COLOR_RED, alpha=0.55, lw=0.45)
     ax2.axhline(UPPER_BARRIER, color=COLOR_BLUE, lw=0.6, ls="--", alpha=0.5)
     ax2.axhline(0, color=COLOR_GRAY, lw=0.4, ls=":", alpha=0.4)
@@ -153,6 +155,43 @@ def fig4_3_tail() -> None:
     save_figure(fig, "ch04_tail.pdf")
 
 
+def fig4_4_truncation_convergence() -> None:
+    """图 4.4：不同截断 N 下 E[S_{τ_N}] 的收敛行为，含残差子图。"""
+    set_style()
+    df = pd.read_csv(DATA_DIR / "exp4_truncation.csv")
+    truncation_limits = df["N"].to_numpy()
+    means = df["mean"].to_numpy()
+    ses = df["se"].to_numpy()
+
+    fig = plt.figure(figsize=(FIG_W, FIG_H * 1.28), constrained_layout=True)
+    gs = fig.add_gridspec(2, 1, height_ratios=[2.5, 1], hspace=0.12)
+    ax_main = fig.add_subplot(gs[0])
+    ax_res = fig.add_subplot(gs[1], sharex=ax_main)
+
+    # Top: E[S_{τ_N}] vs N (log scale for N)
+    ax_main.errorbar(truncation_limits, means, yerr=1.96 * ses,
+                     fmt="o", color=COLOR_BLUE, markersize=4.5, capsize=4,
+                     elinewidth=1.0, markerfacecolor="white", markeredgewidth=1.0)
+    ax_main.axhline(0, color=COLOR_GRAY, lw=0.6, ls="--", alpha=0.7)
+    ax_main.set_xscale("log")
+    ax_main.set_ylabel("$\\mathbb{E}[S_{\\tau_N}]$")
+    ax_main.set_title(f"截断停时期望收敛（单边障碍 $b={UPPER_BARRIER}$）")
+    emphasize_log_grid(ax_main)
+    plt.setp(ax_main.get_xticklabels(), visible=False)
+
+    # Bottom: residuals (E[S_{τ_N}] - 0 = E[S_{τ_N}])
+    ax_res.axhline(0, color=COLOR_GRAY, lw=0.6, ls="--", alpha=0.7)
+    ax_res.errorbar(truncation_limits, means, yerr=1.96 * ses,
+                    fmt="o", color=COLOR_BLUE, markersize=4.5, capsize=4,
+                    elinewidth=1.0, markerfacecolor="white", markeredgewidth=1.0)
+    ax_res.set_xscale("log")
+    ax_res.set_xlabel("截断 $N$")
+    ax_res.set_ylabel("残差")
+    emphasize_log_grid(ax_res)
+
+    save_figure(fig, "ch04_truncation.pdf")
+
+
 if __name__ == "__main__":
     set_style()
     print("绘制图 4.1: 双边样本轨道 ...")
@@ -161,4 +200,6 @@ if __name__ == "__main__":
     fig4_2_unilateral_paths()
     print("绘制图 4.3: 停时尾部 ...")
     fig4_3_tail()
-    print("第四章三张图绘制完成。")
+    print("绘制图 4.4: 截断收敛 ...")
+    fig4_4_truncation_convergence()
+    print("第四章四张图绘制完成。")

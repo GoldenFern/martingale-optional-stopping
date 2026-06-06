@@ -75,7 +75,8 @@ def run_truncation_experiment(lower_barrier=20, upper_barrier=10,
         batch_mean_values = np.empty(num_repeats)
         for repeat_idx in range(num_repeats):
             estimated_mean, _ = mc_sim.estimate_expectation(0.0, num_paths, truncation_limit,
-                                                            seed + 1000 * repeat_idx + int(truncation_limit))
+                                                            seed + 1000 * repeat_idx + int(truncation_limit),
+                                                            include_all=True)
             batch_mean_values[repeat_idx] = estimated_mean
         mean_estimate = batch_mean_values.mean()
         std_error = batch_mean_values.std(ddof=1)
@@ -115,10 +116,11 @@ if __name__ == '__main__':
               f"M=10000 -> {subset_df.iloc[-1]['mean']:.4f}")
 
     print("实验2: 截断偏误 ...")
-    df_t = run_truncation_experiment()
-    print(f"  N={max_step_values[0]}: E[S_{{t∧N}}]={df_t.iloc[0]['mean']:.4f}")
-    print(f"  N={max_step_values[10]}: E[S_{{t∧N}}]={df_t.iloc[10]['mean']:.4f}")
-    print(f"  N={max_step_values[-1]}: E[S_{{t∧N}}]={df_t.iloc[-1]['mean']:.4f}")
+    grid_vals = np.logspace(1, 5, 20).astype(int)
+    df_t = run_truncation_experiment(max_step_values=grid_vals)
+    print(f"  N={grid_vals[0]}: E[S_{{t∧N}}]={df_t.iloc[0]['mean']:.4f}")
+    print(f"  N={grid_vals[10]}: E[S_{{t∧N}}]={df_t.iloc[10]['mean']:.4f}")
+    print(f"  N={grid_vals[-1]}: E[S_{{t∧N}}]={df_t.iloc[-1]['mean']:.4f}")
 
     print("实验3: 停时尾部对比 ...")
     (t2, s2), (t1, s1) = run_tail_experiment()
