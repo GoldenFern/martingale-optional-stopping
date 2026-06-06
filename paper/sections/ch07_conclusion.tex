@@ -36,7 +36,7 @@
 
 \textbf{第二层：OST 需构造辅助鞅后成立。} 保险破产模型中 $U_t$ 本身不是鞅（有正的期望漂移），但通过指数变换 $e^{-R U_t}$ 构造了一个辅助鞅。OST 在辅助鞅上的应用导出了原始过程破产概率的上界——但由于停时是单边的，这个上界无法收紧为等式（除非对索赔分布做更强的假设）。
 
-\textbf{第三层：OST 的条件失效。} 单边赌徒破产中，三个充分条件全部不满足，OST 彻底失效。数值实验揭示了失效的本质——一致可积性的缺失——并从停时分布的重尾性（$\sim n^{-1/2}$）给出了微观解释。截断停时 $\tau_N = \min(\tau, N)$ 的实验进一步揭示了极限与期望不可交换这一核心现象：由于 $\tau_N \leqslant N$ 有界，OST 的条件 1 成立，故对任意有限 $N$ 恒有 $\mathbb{E}[S_{\tau_N}] = \mathbb{E}[S_0] = 0$（实验中 $N=10$ 时 Monte Carlo 估计约为 $-0.01$，$N\approx 1.3\times 10^3$ 时约为 $-0.02$，$N=10^5$ 时约为 $-0.10$，均为围绕 $0$ 的随机波动，而非系统性偏差）。另一方面，$\tau_{\text{one}} < \infty$ 几乎必然成立，故 $S_{\tau_N} \xrightarrow{a.s.} S_{\tau_{\text{one}}} = b = 10$。于是
+\textbf{第三层：OST 的条件失效。} 单边赌徒破产中，三个充分条件全部不满足，OST 彻底失效。数值实验揭示了失效的本质——一致可积性的缺失——并从停时分布的重尾性（$\sim n^{-1/2}$）给出了微观解释。截断停时 $\tau_N = \min(\tau, N)$ 的实验进一步揭示了极限与期望不可交换这一核心现象：由于 $\tau_N \leqslant N$ 有界，OST 的条件 1 成立，故对任意有限 $N$ 恒有 $\mathbb{E}[S_{\tau_N}] = \mathbb{E}[S_0] = 0$（实验中 $N=10$ 时 Monte Carlo 估计约为 $-0.01$，$N\approx 1.3\times 10^3$ 时约为 $-0.02$，$N=10^5$ 时约为 $-0.10$）。另一方面，$\tau_{\text{one}} < \infty$ 几乎必然成立，故 $S_{\tau_N} \xrightarrow{a.s.} S_{\tau_{\text{one}}} = b = 10$。于是
 \begin{equation}
   \lim_{N\to\infty} \mathbb{E}[S_{\tau_N}] = 0 \quad \neq \quad
   \mathbb{E}\!\left[\lim_{N\to\infty} S_{\tau_N}\right] = 10,

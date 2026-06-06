@@ -48,7 +48,7 @@ def fig2_1_paths(pop_size: int = 50, initial_allele_count: int = 25, n_display: 
     ax.axhline(0, color="gray", lw=0.5, ls="--", alpha=0.6)
     ax.axhline(1, color="gray", lw=0.5, ls="--", alpha=0.6)
     ax.set_xlim(0, None)
-    ax.set_xlabel("代数")
+    ax.set_xlabel("步数")
     ax.set_ylabel("A 等位基因频率")
     ax.set_title(f"Moran 模型样本路径（$N={pop_size}$）")
     handles = [
