@@ -116,9 +116,9 @@ if __name__ == '__main__':
 
     print("实验2: 截断偏误 ...")
     df_t = run_truncation_experiment()
-    print(f"  N=10: E[S_{{t∧N}}]={df_t.iloc[0]['mean']:.4f}")
-    print(f"  N=1000: E[S_{{t∧N}}]={df_t.iloc[10]['mean']:.4f}")
-    print(f"  N=100000: E[S_{{t∧N}}]={df_t.iloc[-1]['mean']:.4f}")
+    print(f"  N={max_step_values[0]}: E[S_{{t∧N}}]={df_t.iloc[0]['mean']:.4f}")
+    print(f"  N={max_step_values[10]}: E[S_{{t∧N}}]={df_t.iloc[10]['mean']:.4f}")
+    print(f"  N={max_step_values[-1]}: E[S_{{t∧N}}]={df_t.iloc[-1]['mean']:.4f}")
 
     print("实验3: 停时尾部对比 ...")
     (t2, s2), (t1, s1) = run_tail_experiment()
