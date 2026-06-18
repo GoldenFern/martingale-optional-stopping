@@ -28,9 +28,7 @@ Martingale/
 │   │   ├── ch02_moran.tex     # 第2章：Moran 模型
 │   │   ├── ch03_insurance.tex # 第3章：保险破产模型
 │   │   ├── ch04_ruin.tex      # 第4章：赌徒破产模型
-│   │   ├── ch05_secretary.tex # [未纳入论文] 秘书问题
-│   │   ├── ch06_option.tex    # [未纳入论文] 美式期权
-│   │   └── ch07_conclusion.tex# 第5章：总结与展望
+│   │   └── ch05_conclusion.tex# 第5章：总结与展望
 │   └── figures/               # 论文插图（PDF）
 ├── src/                       # Python 数值实验代码
 │   ├── core/                  # 公共核心层
@@ -50,14 +48,6 @@ Martingale/
 │   ├── ch04_ruin/             # 第4章：赌徒破产模型实验
 │   │   ├── experiment.py      # 实验脚本
 │   │   └── plot.py            # 绘图脚本
-│   ├── ch05_secretary/        # [额外探索] 秘书问题实验
-│   │   ├── secretary_model.py # 模型定义
-│   │   ├── experiment.py      # 实验脚本
-│   │   └── plot.py            # 绘图脚本
-│   └── ch06_option/           # [额外探索] 美式期权实验
-│       ├── lsm_pricer.py      # Longstaff-Schwartz 算法
-│       ├── experiment.py      # 实验脚本
-│       └── plot.py            # 绘图脚本
 ├── tests/                     # 单元测试
 │   ├── test_processes.py
 │   ├── test_stopping_times.py
@@ -128,19 +118,6 @@ python src/ch04_ruin/experiment.py
 # 运行测试
 pytest tests/
 ```
-
-## 关于第5章（秘书问题）和第6章（美式期权）
-
-本仓库中保留了两章额外的探索性代码：
-
-- `src/ch05_secretary/` —— 秘书问题的 Monte Carlo 实验与 Snell 包络可视化
-- `src/ch06_option/` —— 美式期权的 Longstaff-Schwartz 算法实现
-- `paper/sections/ch05_secretary.tex` 和 `paper/sections/ch06_option.tex` —— 对应的 LaTeX 源文件
-
-
-这两章的主题（最优停时问题）与论文的核心主题（可选停止定理的成立条件与失效机制）存在较明显的偏离——OST 关注的是"给定停时下期望是否守恒"，而秘书问题和美式期权关注的是"如何主动选择停时以最大化收益"。
-
-此外，课程大作业写七章篇幅过长，我目前也没有足够的时间对这两章的全部内容进行严格把关。**`src/ch05_secretary/` 和 `src/ch06_option/` 中的代码我尚未系统核查过**，可能存在AI幻觉。如需使用这部分代码，请仔细验证其正确性。目前这部分代码留作未来进一步探索的机会。
 
 ## 致谢
 

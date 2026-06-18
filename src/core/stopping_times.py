@@ -66,15 +66,3 @@ class Truncated(StoppingTime):
         return self.inner.should_stop(state, step_idx, history)
 
 
-class FirstRecord(StoppingTime):
-    """"历史最优首次出现"停时——用于秘书问题。
-
-    τ = inf{n ≥ r: X_n > max(X_0, ..., X_{n-1})}
-    其中 max_history 由调用方维护，停时判断依赖外部传入的 current_max。
-    """
-
-    def __init__(self, threshold: float):
-        self.threshold = threshold
-
-    def should_stop(self, state: float, step_idx: int, history=None) -> bool:
-        return state > self.threshold

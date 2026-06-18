@@ -3,7 +3,7 @@ import sys
 sys.path.insert(0, 'src')
 
 from core.stopping_times import (
-    FixedTime, HittingLevel, ExitInterval, Truncated, FirstRecord,
+    FixedTime, HittingLevel, ExitInterval, Truncated,
 )
 
 
@@ -62,8 +62,3 @@ class TestTruncated:
         assert trunc.should_stop(5.0, 10)
 
 
-class TestFirstRecord:
-    def test_record(self):
-        fr = FirstRecord(3.0)
-        assert not fr.should_stop(2.0, 10)
-        assert fr.should_stop(3.5, 10)
