@@ -7,7 +7,7 @@ class Martingale(ABC):
     """鞅过程抽象基类。所有具体过程需实现 reset 和 step。"""
 
     @abstractmethod
-    def reset(self, initial_state: float):
+    def reset(self, initial_state: float) -> None:
         """重置初始状态。"""
         ...
 
@@ -33,7 +33,7 @@ class SymmetricRW(Martingale):
         self.prob_up = prob_up
         self._state = 0.0
 
-    def reset(self, initial_state: float):
+    def reset(self, initial_state: float) -> None:
         self._state = initial_state
 
     def step(self) -> float:

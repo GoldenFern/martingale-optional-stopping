@@ -16,7 +16,7 @@ class MoranProcess:
         self.pop_size = pop_size
         self._allele_count = 0
 
-    def reset(self, initial_allele_count: int):
+    def reset(self, initial_allele_count: int) -> None:
         self._allele_count = initial_allele_count
 
     @property

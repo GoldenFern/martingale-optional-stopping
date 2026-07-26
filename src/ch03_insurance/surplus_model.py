@@ -14,7 +14,8 @@ class SurplusProcess:
     Y ~ claim_distribution: 索赔额分布（需实现 rvs 方法）
     """
 
-    def __init__(self, initial_capital: float, premium_rate: float, claim_intensity: float, claim_distribution):
+    def __init__(self, initial_capital: float, premium_rate: float, claim_intensity: float,
+                 claim_distribution: object):
         self.initial_capital = initial_capital
         self.premium_rate = premium_rate
         self.claim_intensity = claim_intensity
@@ -22,7 +23,7 @@ class SurplusProcess:
         self._current_time = 0.0
         self._surplus = initial_capital
 
-    def reset(self, initial_capital: float = None):
+    def reset(self, initial_capital: float | None = None) -> None:
         if initial_capital is not None:
             self.initial_capital = initial_capital
         self._current_time = 0.0
@@ -36,7 +37,7 @@ class SurplusProcess:
     def surplus(self) -> float:
         return self._surplus
 
-    def step_until_next_claim(self):
+    def step_until_next_claim(self) -> tuple[float, float]:
         """跳到下一次索赔时刻，更新盈余。返回 (t_new, surplus_new)。"""
         interarrival_time = np.random.exponential(1 / self.claim_intensity)
         self._current_time += interarrival_time

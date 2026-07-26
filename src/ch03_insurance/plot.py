@@ -100,7 +100,7 @@ def fig3_1_surplus_paths(seed: int = 42) -> None:
 def fig3_2_ruin_prob() -> None:
     """图 3.2：破产概率 vs 初始资本（半对数）。"""
     set_style()
-    results_df = pd.read_csv(DATA_DIR / "exp3_ruin_prob.csv")
+    results_df = pd.read_csv(DATA_DIR / "exp3_ruin_prob.csv", encoding="utf-8")
 
     fig, ax = new_figure()
     initial_capitals = results_df["u"].to_numpy()
@@ -130,7 +130,7 @@ def fig3_2_ruin_prob() -> None:
 def fig3_3_martingale_dual() -> None:
     """图 3.3：未破产路径、破产路径与均值曲线。"""
     set_style()
-    martingale_mean_df = pd.read_csv(DATA_DIR / "exp3_martingale_mean.csv")
+    martingale_mean_df = pd.read_csv(DATA_DIR / "exp3_martingale_mean.csv", encoding="utf-8")
     saved_path_data = np.load(DATA_DIR / "exp3_martingale_paths.npz")
     survived_paths = _unpack_saved_paths(saved_path_data, "survived")
     ruined_paths = _unpack_saved_paths(saved_path_data, "ruined")

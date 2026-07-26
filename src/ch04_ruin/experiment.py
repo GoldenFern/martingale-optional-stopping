@@ -13,9 +13,9 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 DATA_DIR = PROJECT_ROOT / 'output' / 'data'
 
 
-def run_truncation_experiment(lower_barrier=20, upper_barrier=10,
-                              max_step_values=np.logspace(1, 5, 20).astype(int),
-                              num_paths=1000, seed=42, num_repeats=12):
+def run_truncation_experiment(upper_barrier: int = 10,
+                              max_step_values: np.ndarray = np.logspace(1, 5, 20).astype(int),
+                              num_paths: int = 1000, seed: int = 42, num_repeats: int = 12) -> pd.DataFrame:
     """截断停时样本均值的批次分布。"""
     random_walk = SymmetricRW(0.5)
     level_stop = HittingLevel(upper_barrier, 'up')
@@ -36,12 +36,14 @@ def run_truncation_experiment(lower_barrier=20, upper_barrier=10,
         batches[f'N_{truncation_limit}'] = batch_mean_values
     results_df = pd.DataFrame(rows)
     DATA_DIR.mkdir(parents=True, exist_ok=True)
-    results_df.to_csv(DATA_DIR / 'exp4_truncation.csv', index=False)
+    results_df.to_csv(DATA_DIR / 'exp4_truncation.csv', index=False, encoding='utf-8')
     np.savez(DATA_DIR / 'exp4_truncation_batches.npz', **batches)
     return results_df
 
 
-def run_tail_experiment(lower_barrier=20, upper_barrier=10, max_steps=5000, num_paths=3000, seed=42):
+def run_tail_experiment(lower_barrier: int = 20, upper_barrier: int = 10, max_steps: int = 5000,
+                        num_paths: int = 3000, seed: int = 42
+                        ) -> tuple[tuple[np.ndarray, np.ndarray], tuple[np.ndarray, np.ndarray]]:
     """停时尾部分布：双边 vs 单边。"""
     random_walk = SymmetricRW(0.5)
     # 双边

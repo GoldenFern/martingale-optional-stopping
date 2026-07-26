@@ -16,7 +16,8 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 DATA_DIR = PROJECT_ROOT / 'output' / 'data'
 
 
-def run_R_experiment(claim_intensity=1.0, mean_claim=1.0, safety_loadings=(0.1, 0.2, 0.5)):
+def run_R_experiment(claim_intensity: float = 1.0, mean_claim: float = 1.0,
+                     safety_loadings: tuple[float, ...] = (0.1, 0.2, 0.5)) -> pd.DataFrame:
     claim_distr = expon(scale=mean_claim)
     mgf = exp_claim_mgf_factory('exponential', rate=1/mean_claim)
     rows = []
@@ -28,14 +29,15 @@ def run_R_experiment(claim_intensity=1.0, mean_claim=1.0, safety_loadings=(0.1, 
                      'lam': claim_intensity, 'mu': mean_claim})
     results_df = pd.DataFrame(rows)
     DATA_DIR.mkdir(parents=True, exist_ok=True)
-    results_df.to_csv(DATA_DIR / 'exp3_R.csv', index=False)
+    results_df.to_csv(DATA_DIR / 'exp3_R.csv', index=False, encoding='utf-8')
     return results_df
 
 
-def run_ruin_prob_experiment(claim_intensity=1.0, mean_claim=1.0, safety_loading=0.5,
-                              capital_values=np.arange(0, 21),
-                              num_paths=16000, time_horizon=200.0, seed=42,
-                              num_batches=8):
+def run_ruin_prob_experiment(claim_intensity: float = 1.0, mean_claim: float = 1.0,
+                              safety_loading: float = 0.5,
+                              capital_values: np.ndarray = np.arange(0, 21),
+                              num_paths: int = 16000, time_horizon: float = 200.0, seed: int = 42,
+                              num_batches: int = 8) -> pd.DataFrame:
     """有限时窗破产概率实验，并保存批次样本以便绘制箱线图。"""
     np.random.seed(seed)
     expected_claim = claim_intensity * mean_claim
@@ -73,7 +75,7 @@ def run_ruin_prob_experiment(claim_intensity=1.0, mean_claim=1.0, safety_loading
 
     results_df = pd.DataFrame(rows)
     DATA_DIR.mkdir(parents=True, exist_ok=True)
-    results_df.to_csv(DATA_DIR / 'exp3_ruin_prob.csv', index=False)
+    results_df.to_csv(DATA_DIR / 'exp3_ruin_prob.csv', index=False, encoding='utf-8')
     np.savez(DATA_DIR / 'exp3_ruin_prob_batches.npz', **batch_results)
     return results_df
 
@@ -220,15 +222,15 @@ def _collect_martingale_path_examples(
 
 
 def run_martingale_mean_experiment(
-    claim_intensity=1.0,
-    mean_claim=1.0,
-    safety_loading=0.5,
-    initial_capital=5.0,
-    time_horizon=50.0,
-    num_paths=16000,
-    num_grid_points=101,
-    seed=24680,
-):
+    claim_intensity: float = 1.0,
+    mean_claim: float = 1.0,
+    safety_loading: float = 0.5,
+    initial_capital: float = 5.0,
+    time_horizon: float = 50.0,
+    num_paths: int = 16000,
+    num_grid_points: int = 101,
+    seed: int = 24680,
+) -> pd.DataFrame:
     r"""Estimate E[M_{t \wedge \tau}] and save representative survived/ruined paths."""
     np.random.seed(seed)
     premium_rate = claim_intensity * mean_claim * (1 + safety_loading)
@@ -280,7 +282,7 @@ def run_martingale_mean_experiment(
 
     results_df = pd.DataFrame(rows)
     DATA_DIR.mkdir(parents=True, exist_ok=True)
-    results_df.to_csv(DATA_DIR / 'exp3_martingale_mean.csv', index=False)
+    results_df.to_csv(DATA_DIR / 'exp3_martingale_mean.csv', index=False, encoding='utf-8')
     np.savez(
         DATA_DIR / 'exp3_martingale_paths.npz',
         survived_times=survived_pack['times'],

@@ -12,7 +12,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 DATA_DIR = PROJECT_ROOT / 'output' / 'data'
 
 
-def run_fixation_experiment(pop_size=50, num_paths=50000, seed=42):
+def run_fixation_experiment(pop_size: int = 50, num_paths: int = 50000, seed: int = 42) -> pd.DataFrame:
     """实验：固定概率 vs A等位基因初始频率，仅 N=50。"""
     np.random.seed(seed)
     allele_frequencies = np.arange(0.1, 1.0, 0.1)
@@ -51,12 +51,13 @@ def run_fixation_experiment(pop_size=50, num_paths=50000, seed=42):
         })
     results_df = pd.DataFrame(rows)
     DATA_DIR.mkdir(parents=True, exist_ok=True)
-    results_df.to_csv(DATA_DIR / 'exp2_fixation.csv', index=False)
+    results_df.to_csv(DATA_DIR / 'exp2_fixation.csv', index=False, encoding='utf-8')
     np.savez(DATA_DIR / 'exp2_fixation_batches.npz', **fixation_batches)
     return results_df
 
 
-def run_tau_distribution(pop_size=50, initial_allele_count=None, num_paths=10000, seed=42):
+def run_tau_distribution(pop_size: int = 50, initial_allele_count: int | None = None,
+                         num_paths: int = 10000, seed: int = 42) -> np.ndarray:
     """实验：停时分布。"""
     np.random.seed(seed)
     if initial_allele_count is None:

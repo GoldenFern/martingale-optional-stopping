@@ -155,7 +155,7 @@ def fig4_3_tail() -> None:
 def fig4_4_truncation_convergence() -> None:
     """图 4.4：不同截断 N 下 E[S_{τ_N}] 的收敛行为。"""
     set_style()
-    df = pd.read_csv(DATA_DIR / "exp4_truncation.csv")
+    df = pd.read_csv(DATA_DIR / "exp4_truncation.csv", encoding="utf-8")
     truncation_limits = df["N"].to_numpy()
     means = df["mean"].to_numpy()
     ses = df["se"].to_numpy()

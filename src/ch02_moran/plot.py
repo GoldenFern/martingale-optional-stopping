@@ -62,7 +62,7 @@ def fig2_1_paths(pop_size: int = 50, initial_allele_count: int = 25, n_display: 
 def fig2_2_fixation() -> None:
     """图 2.2：固定概率 vs A等位基因初始频率，仅 N=50。"""
     set_style()
-    results_df = pd.read_csv(DATA_DIR / "exp2_fixation.csv")
+    results_df = pd.read_csv(DATA_DIR / "exp2_fixation.csv", encoding="utf-8")
     subset_df = results_df[results_df["N"] == 50]
     batch_data = np.load(DATA_DIR / "exp2_fixation_batches.npz")
 
@@ -110,7 +110,7 @@ def fig2_2_fixation() -> None:
 def fig2_3_tau_comparison(num_paths: int = 50000) -> None:
     """图 2.3：不同 A等位基因初始频率下 Monte Carlo 停时均值与理论解对比，含残差子图。"""
     set_style()
-    results_df = pd.read_csv(DATA_DIR / "exp2_fixation.csv")
+    results_df = pd.read_csv(DATA_DIR / "exp2_fixation.csv", encoding="utf-8")
     subset_df = results_df[results_df["N"] == 50]
 
     initial_freq = subset_df["initial_freq"].to_numpy()
