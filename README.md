@@ -70,9 +70,11 @@ Martingale/
 ## 环境依赖
 
 - Python 3.13
-- NumPy 2.1.3
-- SciPy 1.15.3
-- Matplotlib 3.10.0
+- NumPy 2.1+
+- SciPy 1.15+
+- Matplotlib 3.10+
+- Pandas 2.2+
+- pytest 8+（仅运行测试需要）
 
 安装：`pip install -r requirements.txt`
 
@@ -105,7 +107,7 @@ latexmk -xelatex main.tex
 ### 环境要求
 
 - Python 3.13+
-- NumPy, SciPy, Matplotlib
+- NumPy, SciPy, Matplotlib, Pandas（见 `requirements.txt`）
 
 ### 运行方式
 
