@@ -22,8 +22,6 @@ from core.visualization import (
     FIG_W,
     emphasize_log_grid,
     new_figure,
-    new_figure_dual,
-    plot_box_series,
     save_figure,
     set_style,
 )

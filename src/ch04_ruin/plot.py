@@ -5,7 +5,6 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "src"))
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
@@ -14,8 +13,6 @@ from core.visualization import (
     COLOR_BLUE,
     COLOR_GRAY,
     COLOR_RED,
-    FIG_H,
-    FIG_W,
     emphasize_log_grid,
     new_figure,
     new_figure_dual,

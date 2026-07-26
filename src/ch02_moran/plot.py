@@ -12,7 +12,7 @@ from matplotlib.ticker import FormatStrFormatter
 from scipy.stats import invgauss
 
 from ch02_moran.moran_model import MoranProcess, expected_tau_moran
-from core.visualization import COLOR_BLUE, COLOR_RED, FIG_H, FIG_W, new_figure, plot_box_series, save_figure, set_style
+from core.visualization import COLOR_BLUE, COLOR_RED, FIG_H, FIG_W, new_figure, save_figure, set_style
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 DATA_DIR = PROJECT_ROOT / "output" / "data"
@@ -59,7 +59,7 @@ def fig2_1_paths(pop_size: int = 50, initial_allele_count: int = 25, n_display: 
     save_figure(fig, "ch02_paths.pdf")
 
 
-def fig2_2_fixation(num_paths: int = 50000) -> None:
+def fig2_2_fixation() -> None:
     """图 2.2：固定概率 vs A等位基因初始频率，仅 N=50。"""
     set_style()
     results_df = pd.read_csv(DATA_DIR / "exp2_fixation.csv")
@@ -68,8 +68,11 @@ def fig2_2_fixation(num_paths: int = 50000) -> None:
 
     initial_freq = subset_df["initial_freq"].to_numpy()
     fixation_prob_mc = subset_df["p_fixation_mc"].to_numpy()
-    # Binomial SE — exact for independent Bernoulli trials
-    fixation_se = np.sqrt(fixation_prob_mc * (1 - fixation_prob_mc) / num_paths)
+    # 批次间标准误：与实验端的批次划分一致，不依赖硬编码的样本量
+    fixation_se = np.array([
+        np.std(batch_data[f"{freq:.1f}"], ddof=1) / np.sqrt(len(batch_data[f"{freq:.1f}"]))
+        for freq in initial_freq
+    ])
     residuals = fixation_prob_mc - initial_freq
 
     fig = plt.figure(figsize=(FIG_W, FIG_H * 1.28), constrained_layout=True)
