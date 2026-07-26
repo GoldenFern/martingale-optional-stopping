@@ -46,10 +46,12 @@ class SurplusProcess:
         return self._current_time, self._surplus
 
     def simulate_path(self, time_horizon: float) -> tuple[np.ndarray, np.ndarray]:
-        """生成 [0, T] 上的盈余轨迹（事件驱动）。
+        """生成 [0, T] 上的盈余轨迹（事件驱动），破产即停。
 
         返回 (time_points, surplus_values)，time_points[0]=0, surplus_values[0]=u。
-        若下一次索赔到达时间超过 time_horizon，只推进到 T 并停止。
+        每次索赔在同一时刻记录跳前/跳后两个点；若下一次索赔到达时间超过
+        time_horizon，只推进到 T 并停止；盈余一旦为负（破产）立即停止，
+        末位元素即破产时刻及破产后盈余。
         """
         self.reset()
         time_points = [0.0]
@@ -75,35 +77,15 @@ class SurplusProcess:
                 break
         return np.array(time_points), np.array(surplus_values)
 
-    def simulate_until_ruin_or_T(self, time_horizon: float):
-        """模拟直到破产或 T，返回 (ruined: bool, ruin_time: float, traj_times, traj_surplus)。
+    def simulate_until_ruin_or_T(self, time_horizon: float) -> tuple[bool, float, np.ndarray, np.ndarray]:
+        """模拟直到破产或 T，返回 (ruined, end_time, traj_times, traj_surplus)。
 
-        注意：若下一次索赔到达时间超过 time_horizon，则只推进到 T 并停止，
-        不计入该次索赔。这保证了有限时窗破产概率的准确定义。
+        end_time 为破产时刻（若破产）或 T。逻辑与 simulate_path 完全一致
+        （消耗相同的随机数流），此处仅补充破产标记与终止时刻。
         """
-        self.reset()
-        traj_times = [0.0]
-        traj_surplus = [self._surplus]
-        while self._current_time < time_horizon and self._surplus >= 0:
-            interarrival_time = np.random.exponential(1 / self.claim_intensity)
-            if self._current_time + interarrival_time > time_horizon:
-                # 下次索赔在 T 之后，只推进到 T 并停止
-                remaining_time = time_horizon - self._current_time
-                self._surplus += self.premium_rate * remaining_time
-                self._current_time = time_horizon
-                traj_times.append(self._current_time)
-                traj_surplus.append(self._surplus)
-                break
-            claim_amount = self.claim_distribution.rvs()
-            self._current_time += interarrival_time
-            self._surplus += self.premium_rate * interarrival_time
-            traj_times.append(self._current_time)
-            traj_surplus.append(self._surplus)
-            self._surplus -= claim_amount
-            traj_times.append(self._current_time)
-            traj_surplus.append(self._surplus)
-        ruined = self._surplus < 0
-        return ruined, self._current_time, np.array(traj_times), np.array(traj_surplus)
+        traj_times, traj_surplus = self.simulate_path(time_horizon)
+        ruined = bool(traj_surplus[-1] < 0)
+        return ruined, float(traj_times[-1]), traj_times, traj_surplus
 
 
 def find_adjustment_R(claim_intensity: float, premium_rate: float, claim_mgf,
