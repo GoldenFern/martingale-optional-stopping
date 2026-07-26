@@ -41,4 +41,12 @@ class SymmetricRW(Martingale):
         self._state += step_value
         return self._state
 
+    def batch_increments(self, num_paths: int, n_steps: int) -> np.ndarray:
+        """一次生成 (num_paths, n_steps) 的 ±1 增量矩阵（不更新内部状态）。
+
+        供模拟引擎的向量化快速路径使用：跨路径批量抽样以避免逐步的
+        Python 循环开销。
+        """
+        return np.where(np.random.rand(num_paths, n_steps) < self.prob_up, 1.0, -1.0)
+
 

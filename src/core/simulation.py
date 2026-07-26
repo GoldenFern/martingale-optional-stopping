@@ -34,6 +34,10 @@ class MonteCarloSimulation:
         if seed is not None:
             np.random.seed(seed)
 
+        if (not store_paths and hasattr(self.process, 'batch_increments')
+                and self.stopping_time.supports_batch()):
+            return self._run_batched(initial_state, num_paths, max_steps)
+
         paths = np.full((num_paths, max_steps + 1), np.nan) if store_paths else np.empty((0, 0))
         stopping_times = np.full(num_paths, max_steps, dtype=int)
         stopped_values = np.empty(num_paths)
@@ -60,6 +64,49 @@ class MonteCarloSimulation:
 
         return SimulationResult(
             paths=paths,
+            stopping_times=stopping_times,
+            stopped_values=stopped_values,
+            reached_stop=reached_stop,
+            config={'initial_state': initial_state, 'num_paths': num_paths, 'max_steps': max_steps},
+        )
+
+    def _run_batched(self, initial_state: float, num_paths: int, max_steps: int) -> SimulationResult:
+        """向量化快速路径：跨路径批量推进，分块生成增量以限制内存。
+
+        语义与逐路径循环一致（从第 1 步起每步后判停），但随机数按
+        路径×块的顺序消耗，与逐路径版本的抽样顺序不同。
+        """
+        stopping_times = np.full(num_paths, max_steps, dtype=int)
+        stopped_values = np.empty(num_paths)
+        reached_stop = np.zeros(num_paths, dtype=bool)
+        states = np.full(num_paths, float(initial_state))
+        active = np.ones(num_paths, dtype=bool)
+
+        # 每块约 4e6 个元素，控制临时矩阵在几十 MB 量级
+        chunk_steps = max(1, min(max_steps, 4_000_000 // max(num_paths, 1)))
+        step_base = 0
+        while step_base < max_steps and active.any():
+            n_steps = min(chunk_steps, max_steps - step_base)
+            idx = np.flatnonzero(active)
+            increments = self.process.batch_increments(len(idx), n_steps)
+            cum_states = states[idx, None] + np.cumsum(increments, axis=1)
+            step_indices = np.arange(step_base + 1, step_base + n_steps + 1)[None, :]
+            mask = self.stopping_time.stop_mask(cum_states, step_indices)
+
+            hit_any = mask.any(axis=1)
+            first_hit = np.argmax(mask, axis=1)
+            rows_hit = idx[hit_any]
+            stopping_times[rows_hit] = step_base + 1 + first_hit[hit_any]
+            stopped_values[rows_hit] = cum_states[hit_any, first_hit[hit_any]]
+            reached_stop[rows_hit] = True
+            active[rows_hit] = False
+
+            states[idx[~hit_any]] = cum_states[~hit_any, -1]
+            step_base += n_steps
+
+        stopped_values[~reached_stop] = states[~reached_stop]
+        return SimulationResult(
+            paths=np.empty((0, 0)),
             stopping_times=stopping_times,
             stopped_values=stopped_values,
             reached_stop=reached_stop,

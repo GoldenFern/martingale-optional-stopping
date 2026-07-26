@@ -11,6 +11,14 @@ class StoppingTime(ABC):
         """判断在当前状态和步数下是否应停止。"""
         ...
 
+    def supports_batch(self) -> bool:
+        """是否提供向量化判停 stop_mask（供模拟引擎的快速路径使用）。"""
+        return False
+
+    def stop_mask(self, states: np.ndarray, step_indices: np.ndarray) -> np.ndarray:
+        """逐元素判停：states 形状 (paths, steps)，step_indices 形状 (1, steps)。"""
+        raise NotImplementedError
+
 
 class FixedTime(StoppingTime):
     """固定时刻停时 τ = N。"""
@@ -20,6 +28,12 @@ class FixedTime(StoppingTime):
 
     def should_stop(self, state: float, step_idx: int, history=None) -> bool:
         return step_idx >= self.stop_step
+
+    def supports_batch(self) -> bool:
+        return True
+
+    def stop_mask(self, states: np.ndarray, step_indices: np.ndarray) -> np.ndarray:
+        return np.broadcast_to(step_indices >= self.stop_step, states.shape)
 
 
 class HittingLevel(StoppingTime):
@@ -41,6 +55,14 @@ class HittingLevel(StoppingTime):
         else:
             return state <= self.level
 
+    def supports_batch(self) -> bool:
+        return True
+
+    def stop_mask(self, states: np.ndarray, step_indices: np.ndarray) -> np.ndarray:
+        if self.direction == 'up':
+            return states >= self.level
+        return states <= self.level
+
 
 class ExitInterval(StoppingTime):
     """双边首次逃出停时 τ = inf{n: S_n ≤ lower 或 S_n ≥ upper}。"""
@@ -51,6 +73,12 @@ class ExitInterval(StoppingTime):
 
     def should_stop(self, state: float, step_idx: int, history=None) -> bool:
         return state <= self.lower or state >= self.upper
+
+    def supports_batch(self) -> bool:
+        return True
+
+    def stop_mask(self, states: np.ndarray, step_indices: np.ndarray) -> np.ndarray:
+        return (states <= self.lower) | (states >= self.upper)
 
 
 class Truncated(StoppingTime):
@@ -64,5 +92,11 @@ class Truncated(StoppingTime):
         if step_idx >= self.max_steps:
             return True
         return self.inner.should_stop(state, step_idx, history)
+
+    def supports_batch(self) -> bool:
+        return self.inner.supports_batch()
+
+    def stop_mask(self, states: np.ndarray, step_indices: np.ndarray) -> np.ndarray:
+        return self.inner.stop_mask(states, step_indices) | (step_indices >= self.max_steps)
 
 
