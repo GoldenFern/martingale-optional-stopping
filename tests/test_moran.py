@@ -1,8 +1,6 @@
 """测试 ch02_moran/moran_model.py"""
 import numpy as np
 import pytest
-import sys
-sys.path.insert(0, 'src')
 
 from ch02_moran.moran_model import MoranProcess, expected_tau_moran
 
@@ -24,6 +22,7 @@ class TestMoranProcess:
 
     def test_martingale_property(self):
         """验证 E[X_{n+1} | X_n=i] = i。"""
+        np.random.seed(42)
         N = 50
         mp = MoranProcess(N)
         n_trials = 5000

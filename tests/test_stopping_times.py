@@ -1,7 +1,4 @@
 """测试 core/stopping_times.py"""
-import sys
-sys.path.insert(0, 'src')
-
 from core.stopping_times import (
     FixedTime, HittingLevel, ExitInterval, Truncated,
 )

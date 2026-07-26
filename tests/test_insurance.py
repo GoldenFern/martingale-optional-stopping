@@ -1,8 +1,4 @@
 """测试 ch03_insurance/surplus_model.py"""
-import sys
-from pathlib import Path
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'src'))
-
 import numpy as np
 import pytest
 from scipy.stats import expon

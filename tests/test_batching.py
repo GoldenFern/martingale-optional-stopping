@@ -1,11 +1,5 @@
 """Tests for batch splitting helpers and batch-keyed outputs."""
-from pathlib import Path
-import sys
-
-import numpy as np
 import pytest
-
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'src'))
 
 from core.batching import split_batch_sizes
 

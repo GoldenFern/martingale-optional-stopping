@@ -1,11 +1,6 @@
 """测试第四章：赌徒破产 —— OST 条件失效"""
-import sys
-from pathlib import Path
-
 import numpy as np
 import pytest
-
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from core.processes import SymmetricRW
 from core.stopping_times import ExitInterval, HittingLevel, Truncated

@@ -1,7 +1,5 @@
 """测试 core/simulation.py"""
 import numpy as np
-import sys
-sys.path.insert(0, 'src')
 
 from core.processes import SymmetricRW
 from core.stopping_times import ExitInterval, HittingLevel, FixedTime
