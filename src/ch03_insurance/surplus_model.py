@@ -22,6 +22,23 @@ class SurplusProcess:
         self.claim_distribution = claim_distribution
         self._current_time = 0.0
         self._surplus = initial_capital
+        # 块抽样缓冲：scipy 的单次 rvs() 开销约几十微秒，按块预抽样摊薄。
+        # 缓冲是 iid 抽样的缓存，跨 reset 保留不影响过程分布。
+        self._buffer_size = 256
+        self._interarrival_buffer = np.empty(0)
+        self._claim_buffer = np.empty(0)
+        self._buffer_pos = 0
+
+    def _next_event(self) -> tuple[float, float]:
+        """返回下一事件的 (到达间隔, 索赔额)，缓冲耗尽时整块重抽。"""
+        if self._buffer_pos >= len(self._interarrival_buffer):
+            self._interarrival_buffer = np.random.exponential(
+                1 / self.claim_intensity, self._buffer_size)
+            self._claim_buffer = np.asarray(self.claim_distribution.rvs(size=self._buffer_size))
+            self._buffer_pos = 0
+        pos = self._buffer_pos
+        self._buffer_pos += 1
+        return float(self._interarrival_buffer[pos]), float(self._claim_buffer[pos])
 
     def reset(self, initial_capital: float | None = None) -> None:
         if initial_capital is not None:
@@ -39,10 +56,9 @@ class SurplusProcess:
 
     def step_until_next_claim(self) -> tuple[float, float]:
         """跳到下一次索赔时刻，更新盈余。返回 (t_new, surplus_new)。"""
-        interarrival_time = np.random.exponential(1 / self.claim_intensity)
+        interarrival_time, claim_amount = self._next_event()
         self._current_time += interarrival_time
         self._surplus += self.premium_rate * interarrival_time
-        claim_amount = self.claim_distribution.rvs()
         self._surplus -= claim_amount
         return self._current_time, self._surplus
 
@@ -58,7 +74,7 @@ class SurplusProcess:
         time_points = [0.0]
         surplus_values = [self._surplus]
         while self._current_time < time_horizon:
-            interarrival_time = np.random.exponential(1 / self.claim_intensity)
+            interarrival_time, claim_amount = self._next_event()
             if self._current_time + interarrival_time > time_horizon:
                 remaining_time = time_horizon - self._current_time
                 self._surplus += self.premium_rate * remaining_time
@@ -66,7 +82,6 @@ class SurplusProcess:
                 time_points.append(self._current_time)
                 surplus_values.append(self._surplus)
                 break
-            claim_amount = self.claim_distribution.rvs()
             self._current_time += interarrival_time
             self._surplus += self.premium_rate * interarrival_time
             time_points.append(self._current_time)

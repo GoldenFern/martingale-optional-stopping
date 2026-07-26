@@ -45,6 +45,41 @@ class MoranProcess:
             path.append(self.step())
         return np.array(path)
 
+    def simulate_batch_until_absorption(self, initial_allele_count: int, num_paths: int,
+                                        max_gen: int = 10_000_000) -> tuple[np.ndarray, np.ndarray]:
+        """向量化模拟 num_paths 条独立路径直到吸收。
+
+        跨路径向量化：每一代对所有未吸收路径同时抽样（繁殖/死亡两组
+        均匀随机数），吸收后从活跃集中移除。与逐步 step() 的单路径
+        分布相同，但快两个数量级。
+
+        Args:
+            initial_allele_count: 初始 A 等位基因数。
+            num_paths: 路径条数。
+            max_gen: 安全上限，防止意外死循环。
+
+        Returns:
+            (tau, fixed)：tau 为各路径吸收时间（形状 (num_paths,)），
+            fixed 为是否固定于 N（True）而非灭绝于 0。
+        """
+        pop_size = self.pop_size
+        counts = np.full(num_paths, initial_allele_count, dtype=np.int64)
+        tau = np.zeros(num_paths, dtype=np.int64)
+        active = (counts != 0) & (counts != pop_size)
+        gen = 0
+        while active.any() and gen < max_gen:
+            gen += 1
+            idx = np.flatnonzero(active)
+            frac = counts[idx] / pop_size
+            reproduce_A = np.random.random(idx.size) < frac
+            kill_A = np.random.random(idx.size) < frac
+            counts[idx] += reproduce_A.astype(np.int64) - kill_A.astype(np.int64)
+            tau[idx] = gen
+            absorbed_now = (counts[idx] == 0) | (counts[idx] == pop_size)
+            active[idx[absorbed_now]] = False
+        fixed = counts == pop_size
+        return tau, fixed
+
 
 def expected_tau_moran(pop_size: int) -> np.ndarray:
     """利用出生-死亡链递推关系精确求解 E[τ | X_0 = i]，返回形状 (N+1,)。"""

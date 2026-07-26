@@ -92,7 +92,25 @@ def _simulate_stopped_exp_martingale_grid(
     values = np.empty_like(time_grid, dtype=float)
     current_time = 0.0
     current_surplus = initial_capital
-    next_claim_time = np.random.exponential(1 / claim_intensity)
+
+    # 块抽样缓冲：按 (到达间隔, 索赔额) 成对预抽，摊薄 scipy 单次 rvs 开销
+    buffer_size = 256
+    interarrival_buffer = np.random.exponential(1 / claim_intensity, buffer_size)
+    claim_buffer = np.asarray(claim_distr.rvs(size=buffer_size))
+    buffer_pos = 0
+
+    def next_event() -> tuple[float, float]:
+        nonlocal interarrival_buffer, claim_buffer, buffer_pos
+        if buffer_pos >= buffer_size:
+            interarrival_buffer = np.random.exponential(1 / claim_intensity, buffer_size)
+            claim_buffer = np.asarray(claim_distr.rvs(size=buffer_size))
+            buffer_pos = 0
+        pair = (float(interarrival_buffer[buffer_pos]), float(claim_buffer[buffer_pos]))
+        buffer_pos += 1
+        return pair
+
+    interarrival, pending_claim = next_event()
+    next_claim_time = interarrival
     ruined = False
     frozen_value = np.nan
 
@@ -104,12 +122,13 @@ def _simulate_stopped_exp_martingale_grid(
         while next_claim_time <= target_time:
             current_surplus += premium_rate * (next_claim_time - current_time)
             current_time = next_claim_time
-            current_surplus -= claim_distr.rvs()
+            current_surplus -= pending_claim
             if current_surplus < 0:
                 ruined = True
                 frozen_value = np.exp(-adj_coefficient * current_surplus)
                 break
-            next_claim_time += np.random.exponential(1 / claim_intensity)
+            interarrival, pending_claim = next_event()
+            next_claim_time += interarrival
 
         if ruined:
             values[i] = frozen_value

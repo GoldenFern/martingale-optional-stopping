@@ -29,19 +29,15 @@ def run_fixation_experiment(pop_size: int = 50, num_paths: int = 50000, seed: in
         tau_samples = []
         batch_vals = np.empty(num_batches)
         for batch_idx, batch_size in enumerate(batch_sizes):
-            batch_fix = 0
-            for _ in range(batch_size):
-                model.reset(initial_allele_count)
-                path = model.simulate_path()
-                fixed = int(path[-1] == pop_size)
-                if fixed:
-                    fixations += 1
-                    batch_fix += 1
-                tau_samples.append(len(path) - 1)
-            batch_vals[batch_idx] = batch_fix / batch_size
+            tau_batch, fixed_batch = model.simulate_batch_until_absorption(
+                initial_allele_count, batch_size)
+            fixations += int(fixed_batch.sum())
+            batch_vals[batch_idx] = fixed_batch.mean()
+            tau_samples.append(tau_batch)
+        tau_all = np.concatenate(tau_samples)
         p_fix = fixations / total_paths
-        tau_mean = np.mean(tau_samples)
-        tau_se = np.std(tau_samples, ddof=1) / np.sqrt(total_paths)
+        tau_mean = tau_all.mean()
+        tau_se = tau_all.std(ddof=1) / np.sqrt(total_paths)
         fixation_batches[f'{freq:.1f}'] = batch_vals
         rows.append({
             'N': pop_size, 'initial_freq': freq, 'x0': initial_allele_count,
@@ -63,11 +59,7 @@ def run_tau_distribution(pop_size: int = 50, initial_allele_count: int | None = 
     if initial_allele_count is None:
         initial_allele_count = pop_size // 2
     model = MoranProcess(pop_size)
-    tau_samples = np.empty(num_paths, dtype=int)
-    for path_idx in range(num_paths):
-        model.reset(initial_allele_count)
-        path = model.simulate_path()
-        tau_samples[path_idx] = len(path) - 1
+    tau_samples, _ = model.simulate_batch_until_absorption(initial_allele_count, num_paths)
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     np.savetxt(DATA_DIR / 'exp2_tau_dist.csv', tau_samples, fmt='%d', delimiter=',')
     return tau_samples

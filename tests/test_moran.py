@@ -47,6 +47,24 @@ class TestMoranProcess:
         assert len(path) == 1
 
 
+class TestBatchAbsorption:
+    def test_fixation_prob_matches_theory(self):
+        """批量模拟：固定概率 ≈ x0/N（5σ 容差）。"""
+        np.random.seed(42)
+        mp = MoranProcess(20)
+        tau, fixed = mp.simulate_batch_until_absorption(5, 4000)
+        se = np.sqrt(0.25 * 0.75 / 4000)
+        assert abs(fixed.mean() - 0.25) < 5 * se
+        assert np.all(tau > 0)
+
+    def test_initially_absorbed(self):
+        mp = MoranProcess(20)
+        tau0, fixed0 = mp.simulate_batch_until_absorption(0, 10)
+        assert np.all(tau0 == 0) and not fixed0.any()
+        tau_n, fixed_n = mp.simulate_batch_until_absorption(20, 10)
+        assert np.all(tau_n == 0) and fixed_n.all()
+
+
 class TestExpectedTau:
     def test_shape(self):
         tau = expected_tau_moran(50)
