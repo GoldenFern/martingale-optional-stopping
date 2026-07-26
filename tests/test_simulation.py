@@ -55,16 +55,6 @@ class TestMonteCarloSimulation:
         mean, se = sim.estimate_expectation(0.0, num_paths=5000, max_steps=100, seed=42)
         assert abs(mean) < 0.3
 
-    def test_estimate_convergence(self):
-        rw = SymmetricRW(0.5)
-        tau = ExitInterval(-10, 10)
-        sim = MonteCarloSimulation(rw, tau)
-        path_counts = np.array([100, 500, 1000])
-        means, ses = sim.estimate_convergence(
-            0.0, path_counts, max_steps=5000, num_repeats=3, seed=42)
-        assert means.shape == (3,)
-        assert ses.shape == (3,)
-
     def test_estimate_tail(self):
         rw = SymmetricRW(0.5)
         tau = ExitInterval(-10, 10)

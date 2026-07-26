@@ -13,54 +13,6 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 DATA_DIR = PROJECT_ROOT / 'output' / 'data'
 
 
-def run_convergence_experiment(lower_barrier=20, upper_barrier=10,
-                               path_counts=np.logspace(2, 4, 8).astype(int),
-                               max_steps=10000, num_repeats=6, seed=42):
-    """双边 vs 单边收敛对比。"""
-    random_walk = SymmetricRW(0.5)
-    rows = []
-    batches = {}
-    for path_count in path_counts:
-        # 双边
-        exit_stop = ExitInterval(-lower_barrier, upper_barrier)
-        two_sided_sim = MonteCarloSimulation(random_walk, exit_stop)
-        two_sided_means = np.empty(num_repeats)
-        for repeat_idx in range(num_repeats):
-            estimated_mean, _ = two_sided_sim.estimate_expectation(
-                0.0, path_count, max_steps, seed + 1000 * repeat_idx + int(path_count)
-            )
-            two_sided_means[repeat_idx] = estimated_mean
-        rows.append({
-            'stop_type': 'two_sided', 'n_paths': path_count,
-            'mean': two_sided_means.mean(), 'se': two_sided_means.std(ddof=1),
-            'reached_frac': 1.0,
-        })
-        batches[f'two_{path_count}'] = two_sided_means
-        # 单边
-        hitting_stop = HittingLevel(upper_barrier, 'up')
-        one_sided_sim = MonteCarloSimulation(random_walk, hitting_stop)
-        one_sided_means = np.empty(num_repeats)
-        reached_fractions = np.empty(num_repeats)
-        for repeat_idx in range(num_repeats):
-            result = one_sided_sim.run(
-                0.0, path_count, max_steps, seed + 50000 + 1000 * repeat_idx + int(path_count)
-            )
-            reached_mask = result.reached_stop
-            reached_fractions[repeat_idx] = reached_mask.mean()
-            one_sided_means[repeat_idx] = result.stopped_values[reached_mask].mean() if reached_mask.any() else np.nan
-        rows.append({
-            'stop_type': 'one_sided', 'n_paths': path_count,
-            'mean': np.nanmean(one_sided_means), 'se': np.nanstd(one_sided_means, ddof=1),
-            'reached_frac': reached_fractions.mean(),
-        })
-        batches[f'one_{path_count}'] = one_sided_means
-    results_df = pd.DataFrame(rows)
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
-    results_df.to_csv(DATA_DIR / 'exp4_convergence.csv', index=False)
-    np.savez(DATA_DIR / 'exp4_convergence_batches.npz', **batches)
-    return results_df
-
-
 def run_truncation_experiment(lower_barrier=20, upper_barrier=10,
                               max_step_values=np.logspace(1, 5, 20).astype(int),
                               num_paths=1000, seed=42, num_repeats=12):
@@ -108,21 +60,14 @@ def run_tail_experiment(lower_barrier=20, upper_barrier=10, max_steps=5000, num_
 
 if __name__ == '__main__':
     print("=== 第四章实验：赌徒破产 ===")
-    print("实验1: 双边 vs 单边收敛 ...")
-    results_df = run_convergence_experiment()
-    for stop_type in ['two_sided', 'one_sided']:
-        subset_df = results_df[results_df['stop_type'] == stop_type]
-        print(f"  {stop_type}: M=100 -> {subset_df.iloc[0]['mean']:.4f}, "
-              f"M=10000 -> {subset_df.iloc[-1]['mean']:.4f}")
-
-    print("实验2: 截断偏误 ...")
+    print("实验1: 截断偏误 ...")
     grid_vals = np.logspace(1, 5, 20).astype(int)
     df_t = run_truncation_experiment(max_step_values=grid_vals)
     print(f"  N={grid_vals[0]}: E[S_{{t∧N}}]={df_t.iloc[0]['mean']:.4f}")
     print(f"  N={grid_vals[10]}: E[S_{{t∧N}}]={df_t.iloc[10]['mean']:.4f}")
     print(f"  N={grid_vals[-1]}: E[S_{{t∧N}}]={df_t.iloc[-1]['mean']:.4f}")
 
-    print("实验3: 停时尾部对比 ...")
+    print("实验2: 停时尾部对比 ...")
     (t2, s2), (t1, s1) = run_tail_experiment()
     two_mask = t2 <= 1000
     one_mask = t1 <= 1000

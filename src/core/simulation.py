@@ -80,25 +80,6 @@ class MonteCarloSimulation:
         std_error = np.std(values, ddof=1) / np.sqrt(len(values))
         return estimated_mean, std_error
 
-    def estimate_convergence(self, initial_state: float, path_counts: np.ndarray,
-                             max_steps: int, num_repeats: int = 5,
-                             seed: Optional[int] = None
-                             ) -> tuple[np.ndarray, np.ndarray]:
-        """对不同样本量估计 E[X_τ]，返回 (means, ses)。"""
-        if seed is not None:
-            np.random.seed(seed)
-
-        num_levels = len(path_counts)
-        repeated_means = np.empty((num_repeats, num_levels))
-        for repeat_idx in range(num_repeats):
-            for level_idx, path_count in enumerate(path_counts):
-                estimated_mean, _ = self.estimate_expectation(initial_state, int(path_count), max_steps)
-                repeated_means[repeat_idx, level_idx] = estimated_mean
-
-        mean_estimates = repeated_means.mean(axis=0)
-        std_errors = repeated_means.std(axis=0, ddof=1)
-        return mean_estimates, std_errors
-
     def estimate_tail(self, initial_state: float, num_paths: int, max_steps: int,
                       seed: Optional[int] = None) -> tuple[np.ndarray, np.ndarray]:
         """估计停时分布的生存函数 P(τ > t)。"""
