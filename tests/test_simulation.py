@@ -1,5 +1,6 @@
 """测试 core/simulation.py"""
 import numpy as np
+import pytest
 
 from core.processes import SymmetricRW
 from core.stopping_times import ExitInterval, HittingLevel, FixedTime, Truncated
@@ -60,6 +61,37 @@ class TestMonteCarloSimulation:
         t, survival = sim.estimate_tail(0.0, num_paths=500, max_steps=2000, seed=42)
         assert survival[0] == 1.0  # P(τ > 0) = 1
 
+    def test_rejects_invalid_run_sizes(self):
+        sim = MonteCarloSimulation(SymmetricRW(0.5), FixedTime(1))
+        with pytest.raises(ValueError):
+            sim.run(0.0, num_paths=0, max_steps=1)
+        with pytest.raises(ValueError):
+            sim.run(0.0, num_paths=1, max_steps=-1)
+
+
+class TestInitialStopping:
+    def test_scalar_fixed_time_zero_stops_without_a_step(self):
+        sim = MonteCarloSimulation(SymmetricRW(0.5), FixedTime(0))
+        result = sim.run(0.0, num_paths=4, max_steps=5, seed=42, store_paths=True)
+        assert np.array_equal(result.stopping_times, np.zeros(4, dtype=int))
+        assert np.array_equal(result.stopped_values, np.zeros(4))
+        assert result.reached_stop.all()
+        assert np.all(result.paths[:, 0] == 0.0)
+        assert np.isnan(result.paths[:, 1:]).all()
+
+    def test_batched_initial_barrier_stops_without_a_step(self):
+        sim = MonteCarloSimulation(SymmetricRW(0.5), HittingLevel(10.0, 'up'))
+        result = sim.run(10.0, num_paths=4, max_steps=5, seed=42, store_paths=False)
+        assert np.array_equal(result.stopping_times, np.zeros(4, dtype=int))
+        assert np.array_equal(result.stopped_values, np.full(4, 10.0))
+        assert result.reached_stop.all()
+
+    def test_tail_keeps_right_censored_paths_at_horizon(self):
+        sim = MonteCarloSimulation(SymmetricRW(0.5), HittingLevel(1.0, 'up'))
+        result = sim.run(0.0, num_paths=1000, max_steps=1, seed=42, store_paths=False)
+        _, survival = sim.estimate_tail(0.0, num_paths=1000, max_steps=1, seed=42)
+        assert survival[-1] == pytest.approx((~result.reached_stop).mean())
+
 
 class TestBatchedFastPath:
     """向量化快速路径与逐路径循环的统计等价性。"""
@@ -102,5 +134,12 @@ class TestReproducibility:
         sim = MonteCarloSimulation(rw, tau)
         r1 = sim.run(0.0, num_paths=100, max_steps=1000, seed=42)
         r2 = sim.run(0.0, num_paths=100, max_steps=1000, seed=42)
+        assert np.array_equal(r1.stopping_times, r2.stopping_times)
+        assert np.array_equal(r1.stopped_values, r2.stopped_values)
+
+    def test_batched_mode_is_reproducible(self):
+        sim = MonteCarloSimulation(SymmetricRW(0.5), ExitInterval(-10, 10))
+        r1 = sim.run(0.0, num_paths=100, max_steps=1000, seed=42, store_paths=False)
+        r2 = sim.run(0.0, num_paths=100, max_steps=1000, seed=42, store_paths=False)
         assert np.array_equal(r1.stopping_times, r2.stopping_times)
         assert np.array_equal(r1.stopped_values, r2.stopped_values)

@@ -1,4 +1,6 @@
 """测试 core/stopping_times.py"""
+import pytest
+
 from core.stopping_times import (
     FixedTime, HittingLevel, ExitInterval, Truncated,
 )
@@ -10,6 +12,10 @@ class TestFixedTime:
         assert not ft.should_stop(0.0, 5)
         assert ft.should_stop(0.0, 10)
         assert ft.should_stop(0.0, 15)
+
+    def test_rejects_negative_step(self):
+        with pytest.raises(ValueError):
+            FixedTime(-1)
 
 
 class TestHittingLevel:
@@ -26,7 +32,6 @@ class TestHittingLevel:
         assert hl.should_stop(-5.0, 10)
 
     def test_invalid_direction(self):
-        import pytest
         with pytest.raises(ValueError):
             HittingLevel(0.0, 'left')
 
@@ -45,6 +50,10 @@ class TestExitInterval:
         assert ei.should_stop(10.0, 10)
         assert ei.should_stop(-10.0, 10)
 
+    def test_rejects_empty_interval(self):
+        with pytest.raises(ValueError):
+            ExitInterval(5.0, 5.0)
+
 
 class TestTruncated:
     def test_truncation_overrides(self):
@@ -58,4 +67,7 @@ class TestTruncated:
         trunc = Truncated(inner, 50)
         assert trunc.should_stop(5.0, 10)
 
+    def test_rejects_negative_limit(self):
+        with pytest.raises(ValueError):
+            Truncated(HittingLevel(5.0, 'up'), -1)
 

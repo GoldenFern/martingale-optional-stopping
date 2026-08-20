@@ -46,6 +46,22 @@ class TestMoranProcess:
         assert path[-1] == 50
         assert len(path) == 1
 
+    def test_rejects_invalid_population_and_state(self):
+        with pytest.raises(ValueError):
+            MoranProcess(0)
+
+        mp = MoranProcess(10)
+        with pytest.raises(ValueError):
+            mp.reset(-1)
+        with pytest.raises(ValueError):
+            mp.reset(11)
+
+    def test_path_reports_unabsorbed_truncation(self):
+        mp = MoranProcess(10)
+        mp.reset(5)
+        with pytest.raises(RuntimeError, match="did not absorb"):
+            mp.simulate_path(max_gen=0)
+
 
 class TestBatchAbsorption:
     def test_fixation_prob_matches_theory(self):
@@ -64,6 +80,11 @@ class TestBatchAbsorption:
         tau_n, fixed_n = mp.simulate_batch_until_absorption(20, 10)
         assert np.all(tau_n == 0) and fixed_n.all()
 
+    def test_reports_unabsorbed_truncation(self):
+        mp = MoranProcess(20)
+        with pytest.raises(RuntimeError, match="did not absorb"):
+            mp.simulate_batch_until_absorption(10, 5, max_gen=0)
+
 
 class TestExpectedTau:
     def test_shape(self):
@@ -81,3 +102,10 @@ class TestExpectedTau:
     def test_all_positive_interior(self):
         tau = expected_tau_moran(50)
         assert np.all(tau[1:50] > 0)
+
+    def test_single_individual_population(self):
+        assert np.array_equal(expected_tau_moran(1), np.zeros(2))
+
+    def test_rejects_invalid_population(self):
+        with pytest.raises(ValueError):
+            expected_tau_moran(0)

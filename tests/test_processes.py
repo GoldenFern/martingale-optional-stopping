@@ -46,6 +46,8 @@ class TestSymmetricRW:
     def test_p_0_5_only(self):
         with pytest.raises(ValueError):
             SymmetricRW(0.6)
+        with pytest.raises(ValueError):
+            SymmetricRW(0.500001)
 
     def test_simulate_path_shape(self):
         rw = SymmetricRW(0.5)

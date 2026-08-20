@@ -16,7 +16,9 @@ DATA_DIR = PROJECT_ROOT / 'output' / 'data'
 def run_truncation_experiment(upper_barrier: int = 10,
                               max_step_values: np.ndarray = np.logspace(1, 5, 20).astype(int),
                               num_paths: int = 1000, seed: int = 42, num_repeats: int = 12) -> pd.DataFrame:
-    """截断停时样本均值的批次分布。"""
+    """截断停时样本均值的重复批次分布及其均值标准误。"""
+    if num_repeats < 2:
+        raise ValueError("num_repeats must be at least 2 to estimate a standard error")
     random_walk = SymmetricRW(0.5)
     level_stop = HittingLevel(upper_barrier, 'up')
     rows = []
@@ -31,7 +33,7 @@ def run_truncation_experiment(upper_barrier: int = 10,
                                                             include_all=True)
             batch_mean_values[repeat_idx] = estimated_mean
         mean_estimate = batch_mean_values.mean()
-        std_error = batch_mean_values.std(ddof=1)
+        std_error = batch_mean_values.std(ddof=1) / np.sqrt(num_repeats)
         rows.append({'N': truncation_limit, 'mean': mean_estimate, 'se': std_error})
         batches[f'N_{truncation_limit}'] = batch_mean_values
     results_df = pd.DataFrame(rows)
@@ -54,6 +56,7 @@ def run_tail_experiment(lower_barrier: int = 20, upper_barrier: int = 10, max_st
     hitting_stop = HittingLevel(upper_barrier, 'up')
     one_sided_sim = MonteCarloSimulation(random_walk, hitting_stop)
     tail_time_one, survival_one = one_sided_sim.estimate_tail(0.0, num_paths, max_steps, seed)
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
     np.savez(DATA_DIR / 'exp4_tail.npz',
              t_two=tail_time_two, surv_two=survival_two,
              t_one=tail_time_one, surv_one=survival_one)

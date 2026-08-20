@@ -1,6 +1,14 @@
 """Moran 模型 —— 有限种群遗传漂变"""
+from numbers import Integral
 import numpy as np
 from scipy.linalg import solve
+
+
+def _validate_integer(value: int, name: str, minimum: int) -> int:
+    if isinstance(value, bool) or not isinstance(value, Integral) or value < minimum:
+        qualifier = "positive" if minimum == 1 else "non-negative"
+        raise ValueError(f"{name} must be a {qualifier} integer")
+    return int(value)
 
 
 class MoranProcess:
@@ -13,10 +21,13 @@ class MoranProcess:
     """
 
     def __init__(self, pop_size: int):
-        self.pop_size = pop_size
+        self.pop_size = _validate_integer(pop_size, "pop_size", 1)
         self._allele_count = 0
 
     def reset(self, initial_allele_count: int) -> None:
+        initial_allele_count = _validate_integer(initial_allele_count, "initial_allele_count", 0)
+        if initial_allele_count > self.pop_size:
+            raise ValueError("initial_allele_count must not exceed pop_size")
         self._allele_count = initial_allele_count
 
     @property
@@ -37,12 +48,15 @@ class MoranProcess:
         return self._allele_count
 
     def simulate_path(self, max_gen: int = 100000) -> np.ndarray:
-        """模拟直到吸收或 max_gen 代。返回包含初始值的路径。"""
+        """模拟直到吸收。若达到 max_gen 仍未吸收则显式失败。"""
+        max_gen = _validate_integer(max_gen, "max_gen", 0)
         path = [self._allele_count]
         for _ in range(max_gen):
             if self._allele_count == 0 or self._allele_count == self.pop_size:
                 break
             path.append(self.step())
+        if 0 < self._allele_count < self.pop_size:
+            raise RuntimeError(f"path did not absorb within max_gen={max_gen}")
         return np.array(path)
 
     def simulate_batch_until_absorption(self, initial_allele_count: int, num_paths: int,
@@ -60,8 +74,16 @@ class MoranProcess:
 
         Returns:
             (tau, fixed)：tau 为各路径吸收时间（形状 (num_paths,)），
-            fixed 为是否固定于 N（True）而非灭绝于 0。
+            fixed 为是否固定于 N（True）而非灭绝于 0。若安全上限内存在
+            未吸收路径则抛出 RuntimeError，避免把删失路径误作灭绝。
         """
+        initial_allele_count = _validate_integer(
+            initial_allele_count, "initial_allele_count", 0
+        )
+        if initial_allele_count > self.pop_size:
+            raise ValueError("initial_allele_count must not exceed pop_size")
+        num_paths = _validate_integer(num_paths, "num_paths", 1)
+        max_gen = _validate_integer(max_gen, "max_gen", 0)
         pop_size = self.pop_size
         counts = np.full(num_paths, initial_allele_count, dtype=np.int64)
         tau = np.zeros(num_paths, dtype=np.int64)
@@ -77,12 +99,19 @@ class MoranProcess:
             tau[idx] = gen
             absorbed_now = (counts[idx] == 0) | (counts[idx] == pop_size)
             active[idx[absorbed_now]] = False
+        if active.any():
+            raise RuntimeError(
+                f"{active.sum()} paths did not absorb within max_gen={max_gen}"
+            )
         fixed = counts == pop_size
         return tau, fixed
 
 
 def expected_tau_moran(pop_size: int) -> np.ndarray:
     """利用出生-死亡链递推关系精确求解 E[τ | X_0 = i]，返回形状 (N+1,)。"""
+    pop_size = _validate_integer(pop_size, "pop_size", 1)
+    if pop_size == 1:
+        return np.zeros(2)
     # 边界: E[τ_0] = 0, E[τ_N] = 0
     # 内部: E[τ_i] = 1 + p_up*E[τ_{i+1}] + p_down*E[τ_{i-1}] + p_stay*E[τ_i]
     # 其中 p_up = p_down = i(N-i)/N^2, p_stay = 1 - 2i(N-i)/N^2

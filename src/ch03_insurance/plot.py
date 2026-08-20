@@ -51,6 +51,43 @@ def _unpack_saved_paths(path_data, prefix: str) -> list[dict]:
     return records
 
 
+def _collect_surplus_path_examples(
+    initial_capital: float,
+    premium_rate: float,
+    claim_intensity: float,
+    claim_distribution: object,
+    time_horizon: float,
+    total_paths: int,
+    num_ruined: int,
+    max_attempts: int = 1000,
+) -> tuple[list[tuple[np.ndarray, np.ndarray]], list[tuple[np.ndarray, np.ndarray]]]:
+    """Collect a fixed mix of survived and ruined surplus paths for plotting."""
+    if total_paths < 1 or not 0 <= num_ruined <= total_paths:
+        raise ValueError("num_ruined must be between zero and total_paths")
+
+    num_survived = total_paths - num_ruined
+    survived_paths: list[tuple[np.ndarray, np.ndarray]] = []
+    ruined_paths: list[tuple[np.ndarray, np.ndarray]] = []
+
+    for _ in range(max_attempts):
+        if len(survived_paths) >= num_survived and len(ruined_paths) >= num_ruined:
+            break
+        surplus_process = SurplusProcess(
+            initial_capital, premium_rate, claim_intensity, claim_distribution
+        )
+        times, values = surplus_process.simulate_path(time_horizon)
+        if values[-1] < 0 and len(ruined_paths) < num_ruined:
+            ruined_paths.append((times, values))
+        elif values[-1] >= 0 and len(survived_paths) < num_survived:
+            survived_paths.append((times, values))
+
+    if len(survived_paths) < num_survived or len(ruined_paths) < num_ruined:
+        raise RuntimeError(
+            "could not collect the requested survived and ruined paths within max_attempts"
+        )
+    return survived_paths, ruined_paths
+
+
 def fig3_1_surplus_paths(seed: int = 42) -> None:
     """图 3.1：盈余过程轨迹。"""
     set_style()
@@ -61,14 +98,19 @@ def fig3_1_surplus_paths(seed: int = 42) -> None:
     time_horizon, initial_capital = 200.0, 5.0
 
     fig, ax = new_figure()
-    ruined_count = 0
-    for _ in range(15):
-        surplus_process = SurplusProcess(initial_capital, premium_rate, claim_intensity, claim_distr)
-        times, values = surplus_process.simulate_path(time_horizon)
+    survived_paths, ruined_paths = _collect_surplus_path_examples(
+        initial_capital,
+        premium_rate,
+        claim_intensity,
+        claim_distr,
+        time_horizon,
+        total_paths=15,
+        num_ruined=3,
+    )
+    for times, values in survived_paths + ruined_paths:
         ruined = values[-1] < 0
         if ruined:
             color, alpha, zorder = COLOR_RED, 0.8, 5
-            ruined_count += 1
         else:
             color, alpha, zorder = COLOR_GRAY, 0.4, 1
         # Use plot (not step) to show continuous premium growth between claims
@@ -85,7 +127,7 @@ def fig3_1_surplus_paths(seed: int = 42) -> None:
     ax.set_xlim(0, None)
     ax.set_xlabel("时间 $t$")
     ax.set_ylabel("盈余 $U_t$")
-    ax.set_title(f"Cramér-Lundberg 盈余路径（破产 {ruined_count}/15）")
+    ax.set_title(f"Cramér-Lundberg 盈余路径（破产 {len(ruined_paths)}/15）")
     from matplotlib.lines import Line2D
 
     handles = [

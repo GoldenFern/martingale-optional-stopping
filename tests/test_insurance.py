@@ -6,6 +6,7 @@ from ch03_insurance.surplus_model import (
     SurplusProcess, find_adjustment_R, exp_claim_mgf_factory,
     lundberg_psi_exact, psi_exact_exponential,
 )
+from ch03_insurance.plot import _collect_surplus_path_examples
 
 
 class TestSurplusProcess:
@@ -45,6 +46,29 @@ class TestSurplusProcess:
         ruined, ruin_time, traj_times, traj_surplus = proc.simulate_until_ruin_or_T(time_horizon=50.0)
         # 高初始资本 + 小索赔 → 大概率不破产
         assert ruin_time > 0
+
+    def test_rejects_invalid_model_parameters(self):
+        claim_distr = expon(scale=1.0)
+        with pytest.raises(ValueError):
+            SurplusProcess(0.0, 1.0, 0.0, claim_distr)
+        with pytest.raises(ValueError):
+            SurplusProcess(-1.0, 1.0, 1.0, claim_distr)
+
+    def test_plot_path_collection_contains_requested_ruined_paths(self):
+        np.random.seed(42)
+        survived_paths, ruined_paths = _collect_surplus_path_examples(
+            initial_capital=5.0,
+            premium_rate=1.5,
+            claim_intensity=1.0,
+            claim_distribution=expon(scale=1.0),
+            time_horizon=200.0,
+            total_paths=15,
+            num_ruined=3,
+        )
+        assert len(survived_paths) == 12
+        assert len(ruined_paths) == 3
+        assert all(values[-1] >= 0 for _, values in survived_paths)
+        assert all(values[-1] < 0 for _, values in ruined_paths)
 
 
 class TestAdjustmentR:
@@ -105,3 +129,9 @@ class TestMGF:
     def test_exponential_mgf_blows_up(self):
         mgf = exp_claim_mgf_factory('exponential', rate=2.0)
         assert mgf(3.0) == np.inf
+
+    def test_gamma_mgf(self):
+        mgf = exp_claim_mgf_factory('gamma', rate=2.0, shape=3.0)
+        assert mgf(0.0) == 1.0
+        assert mgf(1.0) == pytest.approx(8.0)
+        assert mgf(2.0) == np.inf

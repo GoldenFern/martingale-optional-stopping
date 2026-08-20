@@ -95,21 +95,24 @@
 
 \begin{table}[H]
   \centering
+  \small
   \caption{赌徒破产模型数值实验条件}
   \label{tab:gambler_params}
-  \begin{tabular}{lllll}
+  \begin{tabular}{lcccc}
     \toprule
     参数 & 图 4.1 & 图 4.2 & 图 4.3 & 图 4.4 \\
     \midrule
     初始资金 $(a,b)$ & $(20,10)$ & $(20,10)$ & $(20,10)$ & $(20,10)$ \\
     胜率 $p$ & 0.5 & 0.5 & 0.5 & 0.5 \\
     双边障碍 & $[-20, 10]$ & — & $[-20, 10]$ & — \\
-    单边障碍 & — & $\tau_{\text{one}} = \inf\{n:S_n=+10\}$ & $\tau_{\text{one}} = \inf\{n:S_n=+10\}$ & $\tau_{\text{one}} = \inf\{n:S_n=+10\}$ \\
+    单边障碍 & — & $\tau_{\text{one}}$ & $\tau_{\text{one}}$ & $\tau_{\text{one}}$ \\
     路径数 & 15（展示） & 16（展示） & 3000 & 1000 $\times$ 12 批 \\
-    最大步数 & 10000 & 10000 & 5000 & $\log$-spaced $[10,10^5]$ \\
+    最大步数 & $10^4$ & $10^4$ & $5\times10^3$ & 对数间隔 $[10,10^5]$ \\
     实验目标 & 双边样本轨道 & 单边样本轨道与截断 & 停时尾部比较 & 截断收敛 \\
     \bottomrule
   \end{tabular}
+  \par\smallskip
+  \footnotesize $\tau_{\text{one}} = \inf\{n:S_n=+10\}$。
 \end{table}
 
 在双边障碍 $[-20, 10]$ 下，对称随机游走在两个吸收壁之间来回游荡（图~\ref{fig:ch04_paths}）。虽然每条路径的最终停时值为 $+10$ 或 $-20$，但按吸收概率加权平均后恰为零——蓝色路径被 $+10$ 吸收、红色路径被 $-20$ 吸收的比例符合理论预测的 $2/3$ 与 $1/3$。这一样本层面的表现与 OST 在双边情形下的严格成立完全一致。

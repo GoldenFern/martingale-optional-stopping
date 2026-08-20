@@ -1,6 +1,16 @@
 """Cramér-Lundberg 保险盈余过程 + 指数鞅"""
+from numbers import Real
 import numpy as np
 from scipy.optimize import brentq
+
+
+def _validate_finite(value: float, name: str, minimum: float, strict: bool = False) -> float:
+    if isinstance(value, bool) or not isinstance(value, Real) or not np.isfinite(value):
+        raise ValueError(f"{name} must be finite")
+    if value < minimum or (strict and value == minimum):
+        comparison = ">" if strict else ">="
+        raise ValueError(f"{name} must be {comparison} {minimum}")
+    return float(value)
 
 
 class SurplusProcess:
@@ -11,17 +21,21 @@ class SurplusProcess:
     u : 初始资本
     c : 保费速率（单位时间）
     λ : 泊松索赔强度
-    Y ~ claim_distribution: 索赔额分布（需实现 rvs 方法）
+    Y ~ claim_distribution: 索赔额分布（需实现 rvs(size=...) 方法）
     """
 
     def __init__(self, initial_capital: float, premium_rate: float, claim_intensity: float,
                  claim_distribution: object):
-        self.initial_capital = initial_capital
-        self.premium_rate = premium_rate
-        self.claim_intensity = claim_intensity
+        self.initial_capital = _validate_finite(initial_capital, "initial_capital", 0.0)
+        self.premium_rate = _validate_finite(premium_rate, "premium_rate", 0.0, strict=True)
+        self.claim_intensity = _validate_finite(
+            claim_intensity, "claim_intensity", 0.0, strict=True
+        )
+        if not callable(getattr(claim_distribution, "rvs", None)):
+            raise ValueError("claim_distribution must provide rvs(size=...)")
         self.claim_distribution = claim_distribution
         self._current_time = 0.0
-        self._surplus = initial_capital
+        self._surplus = self.initial_capital
         # 块抽样缓冲：scipy 的单次 rvs() 开销约几十微秒，按块预抽样摊薄。
         # 缓冲是 iid 抽样的缓存，跨 reset 保留不影响过程分布。
         self._buffer_size = 256
@@ -34,7 +48,12 @@ class SurplusProcess:
         if self._buffer_pos >= len(self._interarrival_buffer):
             self._interarrival_buffer = np.random.exponential(
                 1 / self.claim_intensity, self._buffer_size)
-            self._claim_buffer = np.asarray(self.claim_distribution.rvs(size=self._buffer_size))
+            claim_buffer = np.asarray(self.claim_distribution.rvs(size=self._buffer_size), dtype=float)
+            if claim_buffer.shape != (self._buffer_size,):
+                raise ValueError("claim_distribution.rvs(size=...) must return a one-dimensional array")
+            if not np.all(np.isfinite(claim_buffer)) or np.any(claim_buffer < 0):
+                raise ValueError("claim_distribution must generate finite non-negative claims")
+            self._claim_buffer = claim_buffer
             self._buffer_pos = 0
         pos = self._buffer_pos
         self._buffer_pos += 1
@@ -42,7 +61,7 @@ class SurplusProcess:
 
     def reset(self, initial_capital: float | None = None) -> None:
         if initial_capital is not None:
-            self.initial_capital = initial_capital
+            self.initial_capital = _validate_finite(initial_capital, "initial_capital", 0.0)
         self._current_time = 0.0
         self._surplus = self.initial_capital
 
@@ -70,6 +89,7 @@ class SurplusProcess:
         time_horizon，只推进到 T 并停止；盈余一旦为负（破产）立即停止，
         末位元素即破产时刻及破产后盈余。
         """
+        time_horizon = _validate_finite(time_horizon, "time_horizon", 0.0)
         self.reset()
         time_points = [0.0]
         surplus_values = [self._surplus]
@@ -111,6 +131,13 @@ def find_adjustment_R(claim_intensity: float, premium_rate: float, claim_mgf,
     claim_mgf(r) = E[e^{rY}] 索赔额的矩母函数。
     使用 brentq 求根。
     """
+    claim_intensity = _validate_finite(claim_intensity, "claim_intensity", 0.0, strict=True)
+    premium_rate = _validate_finite(premium_rate, "premium_rate", 0.0, strict=True)
+    search_lower = _validate_finite(search_lower, "search_lower", 0.0, strict=True)
+    search_upper = _validate_finite(search_upper, "search_upper", search_lower, strict=True)
+    if not callable(claim_mgf):
+        raise ValueError("claim_mgf must be callable")
+
     def lundberg_equation(rate):
         return claim_intensity * (claim_mgf(rate) - 1) - rate * premium_rate
 
@@ -135,15 +162,23 @@ def exp_claim_mgf_factory(dist_name: str, **params):
     'exponential': M_Y(r) = 1 / (1 - r/rate)  (r < rate)
     'gamma': M_Y(r) = (1 - r/rate)^{-shape}  (r < rate)
     """
+    claim_rate = _validate_finite(params.get('rate', 1.0), "rate", 0.0, strict=True)
     if dist_name == 'exponential':
-        claim_rate = params.get('rate', 1.0)
-        def mgf(rate):
-            if rate >= claim_rate:
+        def mgf(argument):
+            if argument >= claim_rate:
                 return np.inf
-            return 1.0 / (1.0 - rate / claim_rate)
+            return 1.0 / (1.0 - argument / claim_rate)
         return mgf
-    else:
-        raise ValueError(f"未知分布: {dist_name}")
+    if dist_name == 'gamma':
+        shape = _validate_finite(params.get('shape', 1.0), "shape", 0.0, strict=True)
+
+        def mgf(argument):
+            if argument >= claim_rate:
+                return np.inf
+            return (1.0 - argument / claim_rate) ** (-shape)
+
+        return mgf
+    raise ValueError(f"未知分布: {dist_name}")
 
 
 def lundberg_psi_exact(initial_capital: float, adjustment_coefficient: float) -> float:
@@ -157,6 +192,10 @@ def psi_exact_exponential(initial_capital: float, claim_intensity: float, premiu
     ψ(u) = (1 / (1 + θ)) * exp(−θ u / (μ (1 + θ)))
     其中 θ = c/(λμ) − 1 = 安全负荷。
     """
+    initial_capital = _validate_finite(initial_capital, "initial_capital", 0.0)
+    claim_intensity = _validate_finite(claim_intensity, "claim_intensity", 0.0, strict=True)
+    premium_rate = _validate_finite(premium_rate, "premium_rate", 0.0, strict=True)
+    mean_claim = _validate_finite(mean_claim, "mean_claim", 0.0, strict=True)
     safety_loading = premium_rate / (claim_intensity * mean_claim) - 1
     if safety_loading <= 0:
         return 1.0  # 安全负荷为负，必然破产

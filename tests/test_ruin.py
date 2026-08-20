@@ -5,6 +5,7 @@ import pytest
 from core.processes import SymmetricRW
 from core.stopping_times import ExitInterval, HittingLevel, Truncated
 from core.simulation import MonteCarloSimulation
+from ch04_ruin import experiment as ruin_experiment
 
 LOWER_BARRIER = 20
 UPPER_BARRIER = 10
@@ -113,6 +114,31 @@ class TestTruncation:
         result = sim.run(0.0, num_paths=200, max_steps=100, seed=42)
         assert result.reached_stop.mean() == 1.0
         assert np.all(result.stopping_times <= 100)
+
+    def test_experiment_uses_standard_error_of_batch_means(self, monkeypatch):
+        saved_batches = {}
+
+        def capture_batches(_path, **batches):
+            saved_batches.update(batches)
+
+        monkeypatch.setattr(ruin_experiment.np, 'savez', capture_batches)
+        monkeypatch.setattr(ruin_experiment.pd.DataFrame, 'to_csv', lambda *_args, **_kwargs: None)
+        result = ruin_experiment.run_truncation_experiment(
+            upper_barrier=1,
+            max_step_values=np.array([10]),
+            num_paths=100,
+            num_repeats=3,
+            seed=42,
+        )
+        batch_means = saved_batches['N_10']
+        expected_se = batch_means.std(ddof=1) / np.sqrt(len(batch_means))
+        assert result.loc[0, 'se'] == pytest.approx(expected_se)
+
+    def test_experiment_rejects_one_repeat(self):
+        with pytest.raises(ValueError):
+            ruin_experiment.run_truncation_experiment(
+                max_step_values=np.array([10]), num_paths=10, num_repeats=1
+            )
 
 
 class TestTailEstimation:

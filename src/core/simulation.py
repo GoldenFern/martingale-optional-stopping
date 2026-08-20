@@ -1,4 +1,5 @@
 """Monte Carlo 模拟引擎"""
+from numbers import Integral
 import numpy as np
 from dataclasses import dataclass, field
 from typing import Optional
@@ -29,8 +30,11 @@ class MonteCarloSimulation:
 
         store_paths=False 时不保存完整路径矩阵（返回的 paths 为空数组），
         避免在 max_steps 很大时分配 O(num_paths × max_steps) 的内存；
-        仅估计停时值/停时分布时无需整条路径。随机数消耗与 True 时完全一致。
+        仅估计停时值/停时分布时无需整条路径。批量路径与逐路径路径
+        分布等价，但会以不同顺序消耗随机数；相同 seed 只保证同一种
+        执行模式内的可复现性。
         """
+        self._validate_run_arguments(num_paths, max_steps)
         if seed is not None:
             np.random.seed(seed)
 
@@ -48,11 +52,17 @@ class MonteCarloSimulation:
             if store_paths:
                 paths[path_idx, 0] = initial_state
             state = initial_state
+            history = paths[path_idx, :1] if store_paths else None
+            if self.stopping_time.should_stop(state, 0, history):
+                stopping_times[path_idx] = 0
+                stopped_values[path_idx] = state
+                reached_stop[path_idx] = True
+                continue
             for step_idx in range(1, max_steps + 1):
                 state = self.process.step()
                 if store_paths:
                     paths[path_idx, step_idx] = state
-                history = paths[path_idx, :step_idx] if store_paths else None
+                history = paths[path_idx, :step_idx + 1] if store_paths else None
                 if self.stopping_time.should_stop(state, step_idx, history):
                     stopping_times[path_idx] = step_idx
                     stopped_values[path_idx] = state
@@ -73,14 +83,20 @@ class MonteCarloSimulation:
     def _run_batched(self, initial_state: float, num_paths: int, max_steps: int) -> SimulationResult:
         """向量化快速路径：跨路径批量推进，分块生成增量以限制内存。
 
-        语义与逐路径循环一致（从第 1 步起每步后判停），但随机数按
-        路径×块的顺序消耗，与逐路径版本的抽样顺序不同。
+        语义与逐路径循环一致（包括第 0 步判停），但随机数按路径×块
+        的顺序消耗，与逐路径版本的抽样顺序不同。
         """
         stopping_times = np.full(num_paths, max_steps, dtype=int)
         stopped_values = np.empty(num_paths)
         reached_stop = np.zeros(num_paths, dtype=bool)
         states = np.full(num_paths, float(initial_state))
-        active = np.ones(num_paths, dtype=bool)
+        initial_mask = self.stopping_time.stop_mask(
+            states[:, None], np.zeros((1, 1), dtype=int)
+        )[:, 0]
+        stopping_times[initial_mask] = 0
+        stopped_values[initial_mask] = states[initial_mask]
+        reached_stop[initial_mask] = True
+        active = ~initial_mask
 
         # 每块约 4e6 个元素，控制临时矩阵在几十 MB 量级
         chunk_steps = max(1, min(max_steps, 4_000_000 // max(num_paths, 1)))
@@ -113,6 +129,13 @@ class MonteCarloSimulation:
             config={'initial_state': initial_state, 'num_paths': num_paths, 'max_steps': max_steps},
         )
 
+    @staticmethod
+    def _validate_run_arguments(num_paths: int, max_steps: int) -> None:
+        if isinstance(num_paths, bool) or not isinstance(num_paths, Integral) or num_paths <= 0:
+            raise ValueError("num_paths must be a positive integer")
+        if isinstance(max_steps, bool) or not isinstance(max_steps, Integral) or max_steps < 0:
+            raise ValueError("max_steps must be a non-negative integer")
+
     def estimate_expectation(self, initial_state: float, num_paths: int, max_steps: int,
                              seed: Optional[int] = None,
                              include_all: bool = False) -> tuple[float, float]:
@@ -135,10 +158,16 @@ class MonteCarloSimulation:
 
     def estimate_tail(self, initial_state: float, num_paths: int, max_steps: int,
                       seed: Optional[int] = None) -> tuple[np.ndarray, np.ndarray]:
-        """估计停时分布的生存函数 P(τ > t)。"""
+        """估计停时分布的生存函数 P(τ > t)。
+
+        未在观察窗口内触发的路径是右删失样本，故在 t=max_steps 时仍
+        计入 P(τ > t)，而不会被误认为恰在 max_steps 停止。
+        """
         result = self.run(initial_state, num_paths, max_steps, seed, store_paths=False)
         time_values = np.arange(0, max_steps + 1)
         # P(τ > t) = 1 − F(t)：对停时计数做累积和，替代逐 t 计数的 O(T·M) 循环
-        tau_counts = np.bincount(result.stopping_times, minlength=max_steps + 1)
+        tau_counts = np.bincount(
+            result.stopping_times[result.reached_stop], minlength=max_steps + 1
+        )
         survival_probs = (num_paths - np.cumsum(tau_counts)) / num_paths
         return time_values, survival_probs

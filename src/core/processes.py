@@ -28,9 +28,9 @@ class SymmetricRW(Martingale):
     """对称随机游走 S_n = ∑ η_i, η_i ∈ {+1, −1} 各概率 1/2。"""
 
     def __init__(self, prob_up: float = 0.5):
-        if not np.isclose(prob_up, 0.5):
+        if prob_up != 0.5:
             raise ValueError("SymmetricRW requires p=0.5")
-        self.prob_up = prob_up
+        self.prob_up = 0.5
         self._state = 0.0
 
     def reset(self, initial_state: float) -> None:

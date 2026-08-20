@@ -90,9 +90,12 @@ def new_figure_dual() -> tuple[plt.Figure, tuple[plt.Axes, plt.Axes]]:
 
 def save_figure(fig: plt.Figure, filename: str) -> None:
     """Save PDF outputs to both output and paper figure directories."""
+    output_name = Path(filename)
+    if output_name.name != str(filename) or output_name.suffix.lower() != ".pdf":
+        raise ValueError("filename must be a PDF basename")
     ensure_output_dir()
     for directory in FIGURE_DIRS:
-        fig.savefig(directory / filename, format="pdf", bbox_inches="tight")
+        fig.savefig(directory / output_name.name, format="pdf", bbox_inches="tight")
     plt.close(fig)
 
 
