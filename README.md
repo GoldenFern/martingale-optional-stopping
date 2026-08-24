@@ -49,14 +49,17 @@ Martingale/
 │   │   ├── experiment.py      # 实验脚本
 │   │   └── plot.py            # 绘图脚本
 ├── tests/                     # 单元测试
+│   ├── conftest.py            # pytest 配置（src/ 导入路径）
 │   ├── test_processes.py
 │   ├── test_stopping_times.py
 │   ├── test_simulation.py
 │   ├── test_batching.py
+│   ├── test_visualization.py
 │   ├── test_moran.py
+│   ├── test_ruin.py
 │   └── test_insurance.py
 ├── output/                    # 实验输出
-│   ├── data/                  # 模拟数据（CSV/NPY）
+│   ├── data/                  # 模拟数据（CSV/NPZ）
 │   └── figures/               # 生成的图表
 └── docs/                      # 参考资料（已 gitignore）
 ```
