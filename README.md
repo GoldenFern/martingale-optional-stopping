@@ -58,10 +58,9 @@ Martingale/
 │   ├── test_moran.py
 │   ├── test_ruin.py
 │   └── test_insurance.py
-├── output/                    # 实验输出
-│   ├── data/                  # 模拟数据（CSV/NPZ）
-│   └── figures/               # 生成的图表
-└── docs/                      # 参考资料（已 gitignore）
+└── output/                    # 实验输出
+    ├── data/                  # 模拟数据（CSV/NPZ）
+    └── figures/               # 生成的图表
 ```
 
 ### 架构设计原则
@@ -130,4 +129,4 @@ pytest tests/
 
 ## AI使用说明
 
-本项目由 DeepSeek V4（Claude Code 环境）、GPT 5.4（Codex 环境）以及 Gemini 3.5 Flash（普通问答）协助完成。
+本项目由 DeepSeek V4（Claude Code 环境）、GPT 5.4（Codex 环境）以及 Gemini 3.5 Flash（普通问答）协助完成。论文结果由我人工审核。
