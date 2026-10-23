@@ -132,3 +132,7 @@ pytest tests/
 ## AI使用说明
 
 本项目由 DeepSeek V4（Claude Code 环境）、GPT 5.4（Codex 环境）以及 Gemini 3.5 Flash（普通问答）协助完成。论文结果由我人工审核。
+
+## 许可证
+
+本仓库中的原创代码与文档采用 [MIT 许可证](LICENSE)。第三方内容的版权归其原作者所有，并遵循各自的许可协议。

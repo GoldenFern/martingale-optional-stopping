@@ -132,3 +132,7 @@ I thank the course instructor, Deng Zhang, and the teaching assistants for their
 ## AI Usage
 
 This project was completed with assistance from DeepSeek V4 (in the Claude Code environment), GPT 5.4 (in the Codex environment), and Gemini 3.5 Flash (for general Q&A). I manually reviewed the paper's results.
+
+## License
+
+All original code and documentation in this repository are released under the [MIT License](LICENSE). Third-party materials remain under their original licenses.
