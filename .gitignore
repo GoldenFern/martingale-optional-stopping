@@ -68,5 +68,4 @@ docs/
 .DS_Store
 Thumbs.db
 
-# Internal working notes
-REPRODUCTION_PROMPT.md
+# Internal working notes are kept under gitignored docs/
