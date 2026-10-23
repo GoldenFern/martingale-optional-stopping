@@ -12,6 +12,7 @@ build/
 venv/
 .venv/
 *.tmp
+tmp/
 
 # LaTeX
 *.aux
